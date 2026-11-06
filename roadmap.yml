@@ -1,0 +1,7 @@
+scope: product
+name: SAI Web Application
+repos: [sai-web-frontend]
+milestones:
+  - version: v0.1.0
+    current: true
+  - version: v1.0.0

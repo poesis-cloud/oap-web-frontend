@@ -1,0 +1,26 @@
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Node / frontend outputs
+**/node_modules/
+**/.angular/
+**/.npm/
+**/.cache/
+**/coverage/
+**/dist/
+**/.pnpm-store/
+**/.yarn/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Test / tooling artifacts
+**/.nyc_output/
+**/.eslintcache
+**/.sass-cache/
+
+# Local environment
+.env.local
+.env.*.local
