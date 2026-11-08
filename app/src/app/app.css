@@ -1,0 +1,13 @@
+.sai-nav-link.is-active {
+  background: var(--sai-sidebar-active-bg);
+  border-left-color: var(--sai-sidebar-active-border);
+  color: var(--sai-sidebar-active-text);
+}
+.sai-sidebar ::ng-deep .p-select {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.sai-sidebar ::ng-deep .p-select .p-select-label,
+.sai-sidebar ::ng-deep .p-select .p-select-dropdown {
+  color: #e2e8f0;
+}

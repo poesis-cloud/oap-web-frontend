@@ -1,0 +1,183 @@
+<div class="px-6 py-5 max-md:px-4">
+  <header class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-2xl">Supervisor</h1>
+      <p class="m-0 text-sm text-ink-muted">
+        {{ store.workspace().name }} · {{ store.tenant().organizationName }} · what waits for you, what the agents are
+        doing, what it costs.
+      </p>
+    </div>
+    <p-button label="Start a conversation" icon="pi pi-comments" size="small" routerLink="/conversations" />
+  </header>
+
+  <section class="mb-6">
+    <div class="mb-2 flex items-baseline justify-between">
+      <h2 class="sai-eyebrow">Waiting for your decision</h2>
+      <span class="text-xs text-ink-light">{{ waiting().length }}</span>
+    </div>
+    @if (waiting().length === 0) {
+      <div class="sai-empty">
+        Nothing waits for your decision.
+        @if (store.runs().length === 0) {
+          <div class="mt-1 text-sm">
+            Open a conversation and state an intent; the orchestrator proposes a workflow, you confirm, the run stops at
+            its ★ gate and a validation conversation invites you.
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col gap-3">
+        @for (entry of waiting(); track entry.gate.id) {
+          <sai-gate-card [run]="entry.run" [gate]="entry.gate" />
+        }
+      </div>
+    }
+  </section>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <section>
+      <div class="mb-2 flex items-baseline justify-between">
+        <h2 class="sai-eyebrow">Runs</h2>
+        <span class="text-xs text-ink-light">{{ active().length }} active · {{ store.runs().length }} total</span>
+      </div>
+      @if (store.runs().length === 0) {
+        <div class="sai-empty text-sm">
+          No run yet. Every run is the journal of one workflow execution by the SAF harness.
+        </div>
+      } @else {
+        <div class="sai-card divide-y divide-line">
+          @for (run of active(); track run.id) {
+            <a
+              class="flex flex-col gap-1.5 px-4 py-3 text-ink hover:bg-surface-sunken hover:no-underline"
+              [routerLink]="['/supervisor', 'runs', run.id]"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong>{{ run.workflowSlug | title }}</strong
+                ><sai-status [status]="run.status" />
+              </div>
+              <div class="sai-progress" [class.is-gate]="run.status === 'waiting-for-gate'">
+                <span [style.width.%]="progress(run)"></span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
+                <span>{{ delivered(run) }} / {{ run.steps.length }} steps · {{ tokens(run) | tokens }} tokens</span
+                ><span class="font-mono">{{ run.workflowInstanceId }}</span>
+              </div>
+            </a>
+          }
+          @for (run of past(); track run.id) {
+            <a
+              class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm text-ink hover:bg-surface-sunken hover:no-underline"
+              [routerLink]="['/supervisor', 'runs', run.id]"
+            >
+              <span class="flex items-center gap-2"
+                ><sai-status [status]="run.status" /><span>{{ run.workflowSlug | title }}</span></span
+              >
+              <span class="text-xs text-ink-muted"
+                >{{ tokens(run) | tokens }} tokens · {{ run.endedAt | ago }}
+                @if (run.failure) {
+                  · {{ run.failure.message }}
+                }
+              </span>
+            </a>
+          }
+        </div>
+      }
+    </section>
+
+    <section>
+      <div class="mb-2 flex items-baseline justify-between">
+        <h2 class="sai-eyebrow">Activity</h2>
+        @if (store.unreadCount() > 0) {
+          <p-button label="Mark all read" size="small" [text]="true" (onClick)="store.markAllNotificationsRead()" />
+        }
+      </div>
+      @if (activity().length === 0) {
+        <div class="sai-empty text-sm">
+          Gate invitations, decisions, run results and budget alerts appear here and in the bell.
+        </div>
+      } @else {
+        <div class="sai-card divide-y divide-line">
+          @for (n of activity(); track n.id) {
+            <button
+              type="button"
+              class="flex w-full items-start gap-3 px-4 py-2.5 text-left hover:bg-surface-sunken"
+              [class.opacity-60]="n.readAt !== null"
+              (click)="open(n)"
+            >
+              <i [class]="icon(n.kind) + ' mt-0.5'" aria-hidden="true"></i>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold">{{ n.title }}</span>
+                <span class="block text-xs text-ink-muted">{{ n.body }}</span>
+              </span>
+              <span class="shrink-0 text-[11px] text-ink-light">{{ n.createdAt | ago }}</span>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section>
+      <div class="mb-2 flex items-baseline justify-between">
+        <h2 class="sai-eyebrow">Budget and models</h2>
+        <span class="text-xs text-ink-light">tenant {{ store.tenant().id }}</span>
+      </div>
+      <div class="sai-card flex flex-col gap-3 p-4">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-ink-muted">Tokens attributed this session</span
+          ><strong>{{ store.tenantTokens() | tokens }} / {{ store.tenant().budget.limitTokens | tokens }}</strong>
+        </div>
+        <div
+          class="sai-progress"
+          [class.is-fail]="budgetRatio() >= 1"
+          [class.is-gate]="budgetRatio() >= 0.8 && budgetRatio() < 1"
+        >
+          <span [style.width.%]="budgetRatio() * 100"></span>
+        </div>
+        <div class="text-xs text-ink-light">
+          Alert at {{ store.tenant().budget.alertAtRatio * 100 }}%, hard stop at 100% (F3). EU-only processing:
+          {{ store.tenant().euOnly ? 'yes' : 'no' }}.
+        </div>
+        <div class="flex flex-col gap-1 text-sm">
+          @for (d of store.deployments(); track d.name) {
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-mono text-xs">{{ d.name }}</span
+              ><span class="flex items-center gap-2 text-xs text-ink-muted"
+                ><span>{{ d.profile }}</span
+                ><p-tag [value]="d.dataZone + ' · ' + d.region" severity="secondary" [rounded]="true"
+              /></span>
+            </div>
+          }
+        </div>
+        <div class="text-[11px] text-ink-light">
+          Deployments served by the model gateway mock (Azure AI Foundry behind the Poesis Models Gateway). No model is
+          called in this build.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="sai-eyebrow">Recent decisions</h2></div>
+      @if (decisions().length === 0) {
+        <div class="sai-empty text-sm">No gate decided yet.</div>
+      } @else {
+        <div class="sai-card divide-y divide-line">
+          @for (d of decisions(); track d.gate.id) {
+            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-gate" aria-hidden="true">★</span><span>{{ d.gate.label }}</span
+                ><sai-status [status]="d.gate.status" />
+              </div>
+              <div class="flex items-center gap-2 text-xs text-ink-muted">
+                @if (d.gate.decidedBy; as by) {
+                  <sai-actor [actor]="by" [displayName]="name(by)" />
+                }
+                <span class="text-ink-light">{{ d.gate.decidedAt | ago }}</span>
+                <a [routerLink]="['/supervisor', 'runs', d.run.id]">run</a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>
