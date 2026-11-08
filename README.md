@@ -34,7 +34,7 @@ Foundry, with a fictitious price list so that runs show euros). Each mock sits b
 conversation, and cost and time of runs follow `def/adr/ADR-008-organization-surface-gates-cost.md`.
 See `app/README.md` to run and verify, `def/README.md` for the documents.
 
-Preview for the team: `def/ci/preview.yaml` (to move to `.github/workflows/` with a `workflow`-scoped token) builds the branch `Nicolas` on every push
+Preview for the team: `.github/workflows/preview.yaml` builds the branch `Nicolas` on every push
 and keeps the site as a downloadable artifact; putting it on a URL under `poesis.cloud` is a
 one-time decision and setup described in `def/deployment.md` (recommended: Azure Static Web Apps
 Free with sign-in). Deployment assets for the product itself will be added as it is implemented.

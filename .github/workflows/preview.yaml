@@ -1,9 +1,5 @@
 # Preview of the OAP frontend mock for the team, from the branch `Nicolas`.
 #
-# Kept under def/ci/ until it is moved to .github/workflows/ by a push made with a token that
-# has the `workflow` scope (GitHub refuses workflow files from a token without it):
-#   gh auth refresh -h github.com -s workflow && git mv def/ci/preview.yaml .github/workflows/preview.yaml
-#
 # What runs on every push to the branch: type check, unit tests, production build, and the
 # built site uploaded as a workflow artifact (`oap-frontend-preview`, downloadable by members
 # of the organization from the run page; serve it with any static server, SPA fallback on

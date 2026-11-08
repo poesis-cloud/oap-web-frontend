@@ -8,21 +8,14 @@ Question from Nicolas (2026-11-08): how do we put this mock online so that the t
 
 - **GitHub Pages is now available on this repository on the Free plan** (public repository). An admin enables it once (Settings → Pages → Source: *GitHub Actions*; the `github-pages` environment must allow the branch `Nicolas`), then the workflow job `pages` deploys the build to `https://poesis-cloud.github.io/oap-web-frontend/` (`base_href=/oap-web-frontend/`), or to `https://oap-preview.poesis.cloud/` with a `CNAME` at GoDaddy. This is the simplest answer to the original question, and it stays in the product repository.
 - The preview is as public as the code; the privacy argument of the table below no longer applies to this repository.
-- The workflow file lives under `def/ci/preview.yaml` until a token with the `workflow` scope moves it to `.github/workflows/` (the push of 2026-11-08 was refused for that file with the current token).
+- The workflow is in place (`.github/workflows/preview.yaml`, pushed at 22:00 once the token had the `workflow` scope).
 
 ## Deploy from this repository (decision of Nicolas, 2026-11-08 21:45): checklist
 
-Everything is in the branch `Nicolas`; three one-time actions remain, none of which the assistant's account or token can do (`namasa-web` has push, not admin; the `gh` token has no `workflow` scope; the attempts were refused on 2026-11-08):
+Everything is in the branch `Nicolas`; what remains needs a repository admin (`namasa-web` has push, not admin: enabling Pages answered 404 on 2026-11-08):
 
 1. **Enable Pages** (repository admin, e.g. Clément): Settings → Pages → Build and deployment → Source: **GitHub Actions**. Then Settings → Environments → `github-pages` → Deployment branches: add **`Nicolas`** (the environment is created restricted to the default branch).
-2. **Put the workflow in place** (Nicolas, 30 seconds):
-   ```bash
-   source /Users/namasa/Projects/Poesis-Project/.tools/poesis-env.sh
-   gh auth refresh -h github.com -s workflow            # one-time: adds the workflow scope to the token
-   cd /Users/namasa/Projects/Poesis-Project/POESIS-SAI/oap-web-frontend
-   git mv def/ci/preview.yaml .github/workflows/preview.yaml
-   git commit -s -m "ci: preview workflow in place" && git push origin Nicolas
-   ```
+2. **Workflow in place**: done on 2026-11-08 at 22:00 (`.github/workflows/preview.yaml` on the branch `Nicolas`; every push now verifies and builds the branch and keeps the site as the artifact `oap-frontend-preview`).
 3. **Deploy**: Actions → `oap-frontend-preview` → Run workflow → branch `Nicolas`, `deploy = pages`, `base_href = /oap-web-frontend/`. The site answers at **`https://poesis-cloud.github.io/oap-web-frontend/`** (deep links work: the build copies `index.html` to `404.html`). For `https://oap-preview.poesis.cloud/`: Settings → Pages → Custom domain, and a `CNAME oap-preview → poesis-cloud.github.io` at GoDaddy; then redeploy with `base_href = /`.
 
 After step 2, every push of `Nicolas` verifies and builds the branch and keeps the site as the artifact `oap-frontend-preview`; to redeploy Pages on every push, change the `pages` job condition from `workflow_dispatch` to `push` (one line).
@@ -42,7 +35,7 @@ The mock bundles the SAF organization sources (Apache-2.0, public repositories) 
 ## What the branch provides already
 
 - `app/` builds as a static site that works at a domain root or under a sub-path (`ng build --base-href /oap-web-frontend/`): relative asset URLs, fonts bundled, SPA fallback (`404.html` copy for Pages, `staticwebapp.config.json` for Azure).
-- `def/ci/preview.yaml` (to move to `.github/workflows/` with a `workflow`-scoped token) on the branch `Nicolas`: on every push, clean install (`npm ci`), type check, unit tests, production build, and the site uploaded as the workflow artifact **`oap-frontend-preview`** (members download it from the run page and serve it locally with any static server, for 14 days).
+- `.github/workflows/preview.yaml` on the branch `Nicolas`: on every push, clean install (`npm ci`), type check, unit tests, production build, and the site uploaded as the workflow artifact **`oap-frontend-preview`** (members download it from the run page and serve it locally with any static server, for 14 days).
 - Two **manual** deployment jobs (`workflow_dispatch`, input `deploy`): `pages` and `swa`. They stay inert until someone runs them on purpose.
 - `tools/smoke.mjs --dist dist-subpath --base /oap-web-frontend` walks the built site under a sub-path, to prove the hosting layout.
 
