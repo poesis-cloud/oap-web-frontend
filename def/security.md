@@ -1,4 +1,4 @@
-# SAI Web Frontend — security model (slice 1, 2026-11-08)
+# OAP Web Frontend — security model (slice 1, 2026-11-08, revised at night)
 
 Security is a design condition. This note records the threat model of the frontend slice (STRIDE over the trust boundaries), the controls in place, and what is explicitly **not** secured yet. References: OWASP Top 10 (2021), OWASP Top 10 for LLM Applications (2025), OWASP ASVS 4.0 (levels noted), affordance rules R4, R5, R6, R9, R12, R15.
 
@@ -64,3 +64,9 @@ Re-run this note at each slice. Before any production deployment: a threat model
 - Rendering: PrimeNG and Tailwind inject styles; the CSP keeps `style-src 'self' 'unsafe-inline'` as before. No `innerHTML` was introduced: the YAML/JSON viewer renders a parsed tree through templates, and the YAML reader never evaluates content.
 - `public/runtime-config.js` is a static script (same mechanism as OIP) read at start; it carries URLs only, never secrets.
 - Mocks: `MockKeycloak` holds no credential and no token; the "acting as" switch exists only in mock mode and must disappear from live builds (open item).
+
+## Addendum 2026-11-08 (night): public repository and public preview
+
+- The repository `oap-web-frontend` is **public** since 2026-11-08 21:33. Everything on the branch `Nicolas` is therefore visible to anyone: the mock holds **fictitious data only** (tenants, users, products, prices), no secret, no credential, no customer data; the SAF organization files it bundles are Apache-2.0 and public.
+- The team preview is served from a public site under an unlisted long-key path (`noindex`, excluded from the site search). Anyone who has the link can open it; the state lives in the browser only. Rotate the key (rename the folder) if the link spreads beyond the team.
+- The organization sources are fetched from the same origin (`saf-package/organization-sources.json`), which the CSP `connect-src 'self'` allows; no third-party request is made by the application.

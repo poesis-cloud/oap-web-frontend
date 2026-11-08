@@ -4,7 +4,7 @@ Design-time material for the SAI web application. Normative sources, in order: a
 
 ## 1. What SAI is, in one paragraph
 
-SAI is a collaborative workspace of humans and agents working in framed, auditable workflows to deliver quality artifacts (R15). It is not an AI assistant and has no free chat: every exchange leads to a workflow launch confirmed by a human, to a consultation of an agent within its scope, or to an out-of-scope answer. Every workflow is a SAF organization executed by the SAF harness (R3). The frontend merges the roles of team messaging (Conversations), work tracking and documentation (Workspace) and supervision (Supervisor) in one minimalist web UI with **three surfaces** (Clément, 2026-11-08). It is developed against **five mocked backends**, one port each (ADR-007): workspace manager, conversation manager, agent runtime, PIS IAM (Keycloak), model gateway (Azure AI Foundry).
+OAP, the Organization Agentic Platform, delivers the SAI capability: a collaborative workspace of humans and agents working in framed, auditable workflows to deliver quality artifacts (R15). It is not an AI assistant and has no free chat: every exchange leads to a workflow launch confirmed by a human, to a consultation of an agent within its scope, or to an out-of-scope answer. Every workflow is a SAF organization executed by the SAF harness (R3). The frontend merges the roles of team messaging (Conversations), work tracking and documentation (Workspace) and supervision (Supervisor) in one minimalist web UI with **three surfaces** (Clément, 2026-11-08). It is developed against **five mocked backends**, one port each (ADR-007): workspace manager, conversation manager, agent runtime, PIS IAM (Keycloak), model gateway (Azure AI Foundry).
 
 ## 2. Boundaries of responsibility
 
@@ -25,7 +25,7 @@ SAI is a collaborative workspace of humans and agents working in framed, auditab
 | --- | --- | --- |
 | Artifacts, organization of the workspace, run journals, run state and cost, gates, work items | hosted SAF workspace (git; one validated write = one commit) | `WorkspaceReadPort` (F14-R10) |
 | Workspace structure (where each artifact kind lives) | the organization package (`conf/workspace.conf.yaml`) | `OrganizationPackage.workspaceStructure` → explorer tree |
-| Workspaces, conversations, validation conversations, notifications | conversation manager / workspace manager stores (F17) | repository ports |
+| Workspaces, conversations, gate conversations, notifications | conversation manager / workspace manager stores (F17) | repository ports |
 | Users, Organizations, memberships, permissions, roles | PIS IAM (OIDC claims) | `IdentityPort` → `Tenant`/`Member` |
 | Model deployments allowed per tenant, usage records | model gateway | `ModelGatewayPort` |
 

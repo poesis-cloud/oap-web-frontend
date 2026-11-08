@@ -60,7 +60,7 @@ tools/                         fixture generator, smoke test (`--base`, `--dist`
 
 | Real | Mocked |
 | --- | --- |
-| Domain rules and lifecycles (oap#1), addressee rule, participant and tenant isolation, gate role checks, validation conversations and notifications | identities and tenants (fictitious, "acting as" switch) |
+| Domain rules and lifecycles (oap#1), addressee rule, participant and tenant isolation, gate role checks, gate conversations and notifications | identities and tenants (fictitious, "acting as" switch) |
 | Harness lifecycle order, log-entry contract, one validated write per commit, commit-gate rejection and retry, model resolution over the real catalog, budget stop, cancellation | step execution and artifact bodies (scripted texts) |
 | SAF package content (agents, workflows, weights, statuses, model profiles, **workspace structure map**, roles) generated from the repositories | Copilot dispatcher, scopes, gates, launch inputs (declared by SAI pending saf#6 SF15) |
 | Views rebuilt from workspace state and history; cost, duration, human wait and subject analysis derived from runs and usage records | persistence (in memory, lost on reload); model deployments and **prices** (fictitious EU data-zone names, euro bands by SAF cost rank) |

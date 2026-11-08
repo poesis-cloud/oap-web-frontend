@@ -1,4 +1,4 @@
-# SAI Web Frontend — SAF integration boundary (2026-11-08)
+# OAP Web Frontend — SAF integration boundary (2026-11-08)
 
 How the frontend relates to the Systemic Agentic Framework, what it reuses, what it waits for, and what slice 1 simulates. Companion of ADR-004 and ADR-005.
 
@@ -48,3 +48,9 @@ The ★ gate is **not** a harness function: the harness places the human checkpo
 ## Addendum 2026-11-08 (evening): workspace structure map and roles
 
 The fixture generator now also exports `conf/workspace.conf.yaml` (the recursive map of `folder` and `artifact` nodes with `<placeholder>` slugs) as `workspace-structure.json`, and the roles of `conf/access-control-list.conf.yaml` as `roles.json`. The explorer lays the paths at HEAD on that map (`core/application/workspace-tree.ts`); required slots without a file are shown as expected. Reading choice to confirm with SAF: the single root node `portfolio` ("Workspace root folder") is treated as the workspace itself, because the artifact schemas declare `pathPatterns` without that segment (`art/*/program-backlog/*/*.adr.md`). Raised in `POESIS-SAI/issues-drafts/saf-6-comment.md`.
+
+## Addendum 2026-11-08 (night): the organization in the workspace
+
+- The frontend now seeds the **real organization files** of the SAFe package (agents, workflows, conf, artifact schemas and templates, skills, instructions: 176 files exported verbatim by `tools/import-saf-package.py`) under `organization/` of the mocked workspace git, as the tagged nominal import (oap#1 F16-R1, F16-R2). The Organization surface browses them in their native formats and shows the history and the gap to nominal.
+- What SAF still has to provide for the organization to evolve, listed in the UI as "to be created in SAF": `organization-change` (SF11, saf-agentic-organization#20), `organization-upgrade` (SF13, #22), the change scorecard (SF12, #21) and pain-point capture (SF10, #19). The frontend's actions open conversations and never execute (F16-R11).
+- The gateway price list (euros per million tokens) is fictitious, derived from the catalog's `costRank` (1 cheapest, 10 most expensive); the real list comes from the Poesis Models Gateway (PIS F10). The subject of a run is derived from the folder of its artifacts; a run input naming the subject would be more robust (open point for the runtime contract).
