@@ -3,6 +3,7 @@ import type { OrganizationPackage } from '../../core/domain/organization';
 import type { Workspace } from '../../core/domain/workspace';
 import { serializeFrontmatter } from '../../core/saf/frontmatter';
 import type { InMemoryWorkspace } from './in-memory-workspace';
+import type { OrganizationSources } from './organization-sources';
 
 /**
  * Seeds one hosted SAF workspace: the nominal import of the organization package as one tagged
@@ -16,6 +17,8 @@ export interface WorkspaceSeed {
   name: string;
   repository: string;
   organization: OrganizationPackage;
+  /** The organization files to import under `organization/` (F16-R1); the manifest alone when absent. */
+  sources?: OrganizationSources | null;
   withBacklog: boolean;
 }
 
@@ -35,7 +38,10 @@ export function seedWorkspace(
     importedAt,
     agents: spec.organization.agents.filter((a) => a.kind !== 'dispatcher').map((a) => a.slug),
     workflows: spec.organization.workflows.map((w) => w.slug),
+    sourceFiles: spec.sources ? Object.keys(spec.sources.files).length : 0,
   };
+  const sources: Record<string, string> = {};
+  for (const [path, content] of Object.entries(spec.sources?.files ?? {})) sources[`organization/${path}`] = content;
   const nominal = repository.commit({
     workspaceId: spec.id,
     message: `nominal import: ${spec.organization.id}@${spec.organization.version}`,
@@ -44,8 +50,9 @@ export function seedWorkspace(
     stepSlug: null,
     author: { kind: 'installer' },
     changes: {
+      ...sources,
       'organization/package.json': JSON.stringify(manifest, null, 2),
-      'organization/README.md': `# Organization of this workspace\n\nNominal state imported from \`${spec.organization.id}\` ${spec.organization.version} (${spec.organization.license}).\nIt changes only through governed organization-change runs (R16); this slice does not implement them.\n`,
+      'organization/README.md': `# Organization of this workspace\n\nNominal state imported from \`${spec.organization.id}\` ${spec.organization.version} (${spec.organization.license}): ${Object.keys(sources).length} files under \`organization/\` (agents, workflows, skills, instructions, artifact schemas and templates, configuration).\n\nIt changes only through governed \`organization-change\` and \`organization-upgrade\` runs (oap#1 F16, SAF SF11 and SF13), never by hand. This build does not run them yet.\n`,
     },
     tag: `nominal-import/${spec.organization.id}@${spec.organization.version}`,
     timestamp: importedAt,

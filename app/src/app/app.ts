@@ -15,11 +15,12 @@ import { SaiStore } from './state/sai-store';
 
 const SECTION_LABELS: Record<string, string> = {
   workspace: 'Workspace',
+  organization: 'Organization',
   conversations: 'Conversations',
   supervisor: 'Supervisor',
 };
 
-/** Application shell: sidebar with the three surfaces, header with notifications, mock controls. */
+/** Application shell: sidebar with the four surfaces, header with notifications, mock controls. */
 @Component({
   selector: 'sai-root',
   standalone: true,
@@ -33,9 +34,10 @@ export class App {
   private readonly router = inject(Router);
 
   readonly menu = [
-    { path: '/workspace', label: 'Workspace', icon: 'pi pi-folder-open' },
-    { path: '/conversations', label: 'Conversations', icon: 'pi pi-comments' },
-    { path: '/supervisor', label: 'Supervisor', icon: 'pi pi-eye' },
+    { path: '/workspace', label: 'Workspace', icon: 'pi pi-folder-open', hint: 'Artifacts and board' },
+    { path: '/organization', label: 'Organization', icon: 'pi pi-sitemap', hint: 'Agents, workflows, rules' },
+    { path: '/conversations', label: 'Conversations', icon: 'pi pi-comments', hint: 'Humans and agents' },
+    { path: '/supervisor', label: 'Supervisor', icon: 'pi pi-chart-bar', hint: 'Gates, runs, costs' },
   ] as const;
 
   private readonly currentUrl = toSignal(
@@ -55,6 +57,15 @@ export class App {
   readonly memberOptions = computed(() => [...this.store.tenant().members]);
   readonly unread = computed(() => this.store.notifications().filter((n) => n.readAt === null));
   readonly recent = computed(() => this.store.notifications().slice(0, 12));
+  readonly initials = computed(() => {
+    const name = this.store.me()?.displayName ?? '?';
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  });
 
   open(notification: Notification, popover: Popover): void {
     if (notification.readAt === null) this.store.markNotificationRead(notification.id);

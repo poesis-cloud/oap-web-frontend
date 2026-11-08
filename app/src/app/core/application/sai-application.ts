@@ -221,6 +221,17 @@ export class SaiApplication {
     return this.deps.gateway.deployments(session.tenantId);
   }
 
+  /** The gateway's price for a model (euros per million tokens), for cost figures (F3). */
+  priceOf(session: Session, model: string) {
+    this.tenant(session);
+    return this.deps.gateway.priceOf(model);
+  }
+
+  /** The clock the runtime uses, so that durations of active runs are measured consistently. */
+  now() {
+    return this.deps.clock.now();
+  }
+
   /** Gates the user may decide: holder of the declared role, run waiting (F18-R4). */
   gatesWaitingFor(session: Session, workspaceId: WorkspaceId): WaitingGate[] {
     const tenant = this.tenant(session);

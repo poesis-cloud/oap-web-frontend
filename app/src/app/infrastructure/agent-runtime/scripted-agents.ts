@@ -80,6 +80,17 @@ export class ScriptedAgents implements AgentResponderPort {
     }
 
     // Dispatcher (Copilot).
+    if (has(['organization', 'organisation']) && has(['change', 'upgrade', 'rollback', 'propose', 'improve', 'adjust'])) {
+      return [
+        {
+          kind: 'text',
+          agent: organization.dispatcher,
+          content:
+            'A change to the organization is applied by the organization-change workflow (SAF SF11; a rollback is the same workflow with a revert, an upgrade goes through organization-upgrade, SF13), drafted by the owning agent, challenged, validated by the harness and decided at the ★ Organization gate. This package version does not declare these workflows yet, so nothing can be launched: I hand your proposal to @release-train-engineer as a pain point for the next Inspect & Adapt (/inspect-and-adapt), which is where improvements are decided today.',
+          mentions: [Actor.agent('release-train-engineer')],
+        },
+      ];
+    }
     if (has(['consult', 'compare', 'opinions', 'both'])) {
       return this.consultTwoSpecialists(text, organization);
     }

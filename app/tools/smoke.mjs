@@ -4,10 +4,11 @@
  *
  * Serves `dist/` with a tiny static server (SPA fallback), drives a headless Chrome through
  * the DevTools protocol (Node 22 ships a WebSocket client), walks the slice-1 journeys
- * (J4 explorer and preview, J1 launch, J3 gate → validation conversation → decision, J2 run, J4 board, J5 consultation, J6 out of scope) and
- * saves screenshots plus a JSON report. Fails on any console error or uncaught exception.
+ * (J4 explorer and preview, J1 launch, J3 gate → gate conversation → decision, J2 run with cost and time, J4 board,
+ * Organization surface, Supervisor runs and analysis, J5 consultation, J6 out of scope) and saves screenshots plus a
+ * JSON report. Fails on any console error or uncaught exception.
  *
- *   node tools/smoke.mjs [--out ../../evidence/smoke] [--chrome "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+ *   node tools/smoke.mjs [--out ../../evidence/smoke] [--base /oap-web-frontend] [--chrome "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
  */
 
 import { spawn } from 'node:child_process';
@@ -23,10 +24,13 @@ const opt = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
-const DIST = resolve(here, '..', 'dist');
+const DIST = resolve(here, '..', opt('--dist', 'dist'));
 const OUT = resolve(here, opt('--out', '../../../evidence/smoke'));
 const CHROME = opt('--chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 const PORT = Number(opt('--port', '4410'));
+/** Base path the build was made for (`ng build --base-href /x/`), without trailing slash; '' at the root. */
+const BASE = opt('--base', '').replace(/\/$/, '');
+const at = (path) => `${BASE}${path}`;
 const CDP_PORT = Number(opt('--cdp-port', '9333'));
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -42,7 +46,8 @@ async function serve() {
   const index = await readFile(join(DIST, 'index.html'));
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
-    const path = resolve(DIST, `.${decodeURIComponent(url.pathname)}`);
+    const pathname = BASE && url.pathname.startsWith(`${BASE}/`) ? url.pathname.slice(BASE.length) : url.pathname;
+    const path = resolve(DIST, `.${decodeURIComponent(pathname)}`);
     try {
       // Serve only files inside dist/: a traversal falls through to the SPA index.
       const info = path.startsWith(`${DIST}/`) ? await stat(path) : null;
@@ -106,17 +111,17 @@ class Cdp {
     throw new Error(`timeout waiting for ${label}`);
   }
   async goto(path) {
-    await this.send('Page.navigate', { url: `http://127.0.0.1:${PORT}${path}` });
+    await this.send('Page.navigate', { url: `http://127.0.0.1:${PORT}${at(path)}` });
     await this.waitFor(`document.querySelector('sai-root main')?.textContent?.trim().length > 20`, `page ${path}`);
     await sleep(400);
   }
   /** In-app navigation: the demo state lives in memory, so a full reload would reset it. */
   async nav(path) {
     const clicked = await this.eval(
-      `(() => { const a = document.querySelector('a[href="${path}"], [routerlink="${path}"]'); if (!a) return false; a.click(); return true; })()`,
+      `(() => { const a = document.querySelector('a[href="${at(path)}"], [routerlink="${path}"]'); if (!a) return false; a.click(); return true; })()`,
     );
     if (!clicked) throw new Error(`no in-app link to ${path}`);
-    await this.waitFor(`location.pathname === ${JSON.stringify(path)}`, `route ${path}`);
+    await this.waitFor(`location.pathname === ${JSON.stringify(at(path))}`, `route ${path}`);
     await sleep(400);
   }
   async click(selector, textIncludes) {
@@ -214,7 +219,7 @@ async function main() {
       await cdp.click('button', 'Use the scenario');
       report.screenshots.push(await cdp.shot('05-conversations-new'));
       await cdp.click('button', 'Start');
-      await cdp.waitFor(`location.pathname.startsWith('/conversations/conv-')`, 'conversation route');
+      await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/conversations/conv-'))})`, 'conversation route');
       await cdp.waitFor(`document.querySelector('[role=dialog]')`, 'AI notice');
       report.screenshots.push(await cdp.shot('06-ai-notice'));
       await cdp.click('[role=dialog] button', 'I understand');
@@ -239,7 +244,7 @@ async function main() {
       report.screenshots.push(await cdp.shot('10-notifications'));
       await cdp.click('.p-popover button', 'waits for your decision');
       await cdp.waitFor(
-        `location.pathname.startsWith('/conversations/conv-') && document.querySelector('sai-gate-card')`,
+        `location.pathname.startsWith(${JSON.stringify(at('/conversations/conv-'))}) && document.querySelector('sai-gate-card')`,
         'validation conversation',
         10000,
       );
@@ -252,23 +257,37 @@ async function main() {
       await cdp.waitFor(`document.body.textContent.includes('This validation is closed')`, 'validation closed', 10000);
       report.screenshots.push(await cdp.shot('12-validation-closed-rejected'));
       await cdp.nav('/supervisor');
-      await cdp.waitFor(`document.querySelector('sai-gate-card textarea')`, 'second gate in supervisor', 60000);
+      // Supervisor offers no decision button: the gate card leads to the gate conversation.
+      await cdp.waitFor(
+        `[...document.querySelectorAll('sai-gate-card button')].some(b => b.textContent.includes('Decide in the gate conversation')) && !document.querySelector('sai-gate-card textarea')`,
+        'second gate in supervisor, as a conversation link',
+        60000,
+      );
       await sleep(500);
       report.screenshots.push(await cdp.shot('13-supervisor-second-gate'));
     });
-    await step('J3 approve the reworked ADR from Supervisor', async () => {
-      await cdp.click('sai-gate-card button', 'Approve');
+    await step('J3 approve the reworked ADR inside its gate conversation', async () => {
+      await cdp.click('sai-gate-card button', 'Decide in the gate conversation');
       await cdp.waitFor(
-        `document.body.textContent.includes('Recent decisions') && document.body.textContent.includes('approved')`,
-        'decision recorded',
+        `location.pathname.startsWith(${JSON.stringify(at('/conversations/conv-'))}) && document.querySelector('sai-gate-card textarea')`,
+        'second gate conversation',
+        10000,
+      );
+      await cdp.click('sai-gate-card button', 'Approve');
+      await cdp.waitFor(`document.body.textContent.includes('This validation is closed')`, 'second validation closed', 10000);
+      await cdp.nav('/supervisor');
+      await cdp.waitFor(
+        `document.body.textContent.includes('All gates') && document.body.textContent.includes('approved')`,
+        'decision listed among the gates',
         10000,
       );
       report.screenshots.push(await cdp.shot('14-supervisor-approved'));
     });
     await step('J2 run detail with folded internals', async () => {
-      await cdp.click('a[href^="/supervisor/runs/run-"]');
-      await cdp.waitFor(`location.pathname.startsWith('/supervisor/runs/run-')`, 'run route');
+      await cdp.click(`a[href^="${at('/supervisor/runs/run-')}"]`);
+      await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/supervisor/runs/run-'))})`, 'run route');
       await sleep(400);
+      await cdp.waitFor(`document.body.textContent.includes('AI cost') && document.body.textContent.includes('Waiting for humans')`, 'run cost and time');
       report.screenshots.push(await cdp.shot('15-run-detail'));
       await cdp.click('details.sai-fold > summary', 'Harness verdicts');
       await cdp.click('details.sai-fold > summary', 'Journal');
@@ -279,7 +298,7 @@ async function main() {
       await cdp.nav('/workspace');
       await cdp.click('p-tab', 'Board');
       await cdp.waitFor(
-        `location.pathname === '/workspace/board' && document.body.textContent.includes('Secure REST API for customer subscriptions')`,
+        `location.pathname === ${JSON.stringify(at('/workspace/board'))} && document.body.textContent.includes('Secure REST API for customer subscriptions')`,
         'feature card',
       );
       report.screenshots.push(await cdp.shot('17-board-features'));
@@ -288,7 +307,7 @@ async function main() {
       report.screenshots.push(await cdp.shot('18-board-adrs'));
       await cdp.click('p-tab', 'Explorer');
       await cdp.waitFor(
-        `location.pathname === '/workspace/explorer' && document.querySelector('p-tree')`,
+        `location.pathname === ${JSON.stringify(at('/workspace/explorer'))} && document.querySelector('p-tree')`,
         'explorer tree',
       );
       await cdp.click('.p-tree-node-content', 'subscriptions-api-security.adr.md');
@@ -298,13 +317,42 @@ async function main() {
       await sleep(300);
       report.screenshots.push(await cdp.shot('20-artifact-adr-history'));
     });
-    await step('Organization tab', async () => {
-      await cdp.click('p-tab', 'Organization');
-      await cdp.waitFor(
-        `location.pathname === '/workspace/organization' && document.body.textContent.includes('Trackable item types')`,
-        'organization',
-      );
-      report.screenshots.push(await cdp.shot('21-workspace-organization'));
+    await step('Organization surface: overview, agents, workflows, browse a real SAF file, history', async () => {
+      await cdp.nav('/organization');
+      await cdp.waitFor(`document.body.textContent.includes('Where it lives, how it changes')`, 'organization overview');
+      report.screenshots.push(await cdp.shot('21-organization-overview'));
+      await cdp.click('p-tab', 'Agents');
+      await cdp.waitFor(`document.body.textContent.includes('Orchestrators')`, 'agents');
+      report.screenshots.push(await cdp.shot('21b-organization-agents'));
+      await cdp.click('p-tab', 'Workflows');
+      await cdp.waitFor(`document.body.textContent.includes('to be created in SAF')`, 'workflows');
+      await cdp.click('button', 'Architectural Runway Extension');
+      await sleep(300);
+      report.screenshots.push(await cdp.shot('21c-organization-workflows'));
+      await cdp.click('p-tab', 'Browse');
+      await cdp.waitFor(`document.querySelector('p-tree')`, 'organization tree');
+      await cdp.click('.p-tree-node-content', 'agents');
+      await sleep(300);
+      await cdp.click('.p-tree-node-content', 'system-architect.agent.md');
+      await cdp.waitFor(`document.querySelector('sai-artifact-viewer') && document.body.textContent.includes('Frontmatter')`, 'agent file rendered');
+      report.screenshots.push(await cdp.shot('21d-organization-browse-agent'));
+      await cdp.click('.p-tree-node-content', 'conf');
+      await sleep(300);
+      await cdp.click('.p-tree-node-content', 'workspace.conf.yaml');
+      await cdp.waitFor(`document.querySelector('sai-data-tree')`, 'yaml tree');
+      report.screenshots.push(await cdp.shot('21e-organization-browse-yaml'));
+      await cdp.click('p-tab', 'History');
+      await cdp.waitFor(`document.body.textContent.includes('Gap to nominal') && document.body.textContent.includes('nominal import')`, 'history');
+      report.screenshots.push(await cdp.shot('21f-organization-history'));
+    });
+    await step('Supervisor runs table and end-to-end analysis by subject', async () => {
+      await cdp.nav('/supervisor');
+      await cdp.click('p-tab', 'Runs');
+      await cdp.waitFor(`location.pathname === ${JSON.stringify(at('/supervisor/runs'))} && document.body.textContent.includes('Waiting for humans')`, 'runs table');
+      report.screenshots.push(await cdp.shot('21g-supervisor-runs'));
+      await cdp.click('p-tab', 'Analysis');
+      await cdp.waitFor(`location.pathname === ${JSON.stringify(at('/supervisor/analysis'))} && document.body.textContent.includes('By agent')`, 'analysis');
+      report.screenshots.push(await cdp.shot('21h-supervisor-analysis'));
     });
     await step('J5/J6 consultation and out-of-scope, phone width', async () => {
       await cdp.nav('/conversations');
@@ -323,6 +371,8 @@ async function main() {
       report.screenshots.push(await cdp.shot('25-phone-supervisor', 390, 844));
       await cdp.nav('/workspace');
       report.screenshots.push(await cdp.shot('26-phone-workspace', 390, 844));
+      await cdp.nav('/organization');
+      report.screenshots.push(await cdp.shot('27-phone-organization', 390, 844));
     });
     report.consoleErrors = cdp.consoleErrors;
     ws.close();

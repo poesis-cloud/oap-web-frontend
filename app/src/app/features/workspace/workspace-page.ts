@@ -12,26 +12,21 @@ import { Tree } from 'primeng/tree';
 import { map } from 'rxjs';
 import { countFiles, type TreeEntry } from '../../core/application/workspace-tree';
 import { artifactFormat, type Artifact, type WorkItem } from '../../core/domain/artifact';
-import {
-  CAPABILITY_TAGS,
-  itemTypeForPath,
-  type StepDefinition,
-  type WorkflowDefinition,
-} from '../../core/domain/organization';
+import { itemTypeForPath } from '../../core/domain/organization';
 import { pendingGate, type Run } from '../../core/domain/run';
-import { Actor } from '../../core/domain/types';
 import { ArtifactViewer } from '../../shared/artifact-viewer';
 import { GateCard } from '../../shared/gate-card';
-import { ActorBadge, StatusBadge, TitlePipe, fileName } from '../../shared/ui';
+import { StatusBadge, TitlePipe, fileName } from '../../shared/ui';
 import { SaiStore } from '../../state/sai-store';
 
-type View = 'explorer' | 'board' | 'organization';
+type View = 'explorer' | 'board';
 
 /**
- * Workspace (F5): the explorer laid out as the organization's workspace structure map, with
- * every artifact previewed read-only in its native format (F5-R7, F5-R9); the board by
- * declared statuses (F5-R2); the organization of the workspace and the packages the instance
- * offers (F16, F18-R5). All views read the hosted SAF workspace; actions go through gates.
+ * Workspace (F5): a workspace is one hosted SAF git repository (its organization and its
+ * artifacts). The explorer lays the artifacts out as the organization's workspace structure
+ * map, every artifact previewed read-only in its native format (F5-R7, F5-R9); the board shows
+ * the work items by declared statuses (F5-R2). The organization folder has its own surface
+ * (Organization). All views read the hosted workspace; decisions happen at gates.
  */
 @Component({
   selector: 'sai-workspace-page',
@@ -50,7 +45,6 @@ type View = 'explorer' | 'board' | 'organization';
     Tree,
     ArtifactViewer,
     GateCard,
-    ActorBadge,
     StatusBadge,
     TitlePipe,
   ],
@@ -64,7 +58,6 @@ export class WorkspacePage {
   readonly selectedPath = toSignal(this.route.queryParamMap.pipe(map((q) => q.get('path'))), {
     initialValue: null as string | null,
   });
-  readonly tags = CAPABILITY_TAGS;
 
   // Explorer
   readonly treeNodes = computed(() => this.store.tree().map((e) => this.toNode(e, 0)));
@@ -96,9 +89,6 @@ export class WorkspacePage {
       .workItems()
       .filter((i) => i.type === this.itemType() && (!q || i.title.toLowerCase().includes(q)));
   });
-
-  // Organization
-  readonly expandedWorkflow = signal<string | null>(null);
 
   constructor() {
     // Keep the tree selection in sync with the route (deep links, back/forward).
@@ -193,20 +183,5 @@ export class WorkspacePage {
   }
   fileName(path: string): string {
     return fileName(path);
-  }
-
-  // ---- organization
-
-  toggleWorkflow(w: WorkflowDefinition): void {
-    this.expandedWorkflow.set(this.expandedWorkflow() === w.slug ? null : w.slug);
-  }
-  agentRef(slug: string) {
-    return Actor.agent(slug);
-  }
-  after(s: StepDefinition): string {
-    return s.conditions.map((c) => c.step).join(', ');
-  }
-  json(value: unknown): string {
-    return JSON.stringify(value, null, 2);
   }
 }

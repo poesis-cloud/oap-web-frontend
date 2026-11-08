@@ -2,7 +2,9 @@
 """Import the SAF organization package the SAI demo runtime loads as its nominal organization.
 
 Reads the sibling SAF repositories (Apache-2.0) and writes JSON fixtures under
-`src/assets/saf-package/`. Nothing here interprets the organization: it copies the
+`src/assets/saf-package/` plus the organization **sources** (agents, workflows, conf, artifact
+schemas and templates, skills, instructions, verbatim) under `public/saf-package/`, fetched at
+startup and seeded into the mocked workspace git as the nominal import (F16-R1, F16-R2). Nothing here interprets the organization: it copies the
 declarations SAI needs (agents, workflows with their steps and capability weights, the
 model profile catalog) so that the frontend stays agnostic of the organization (affordance
 R18) and so that the fixtures can be regenerated when the package changes.
@@ -31,6 +33,12 @@ except ImportError:  # pragma: no cover - environment guard
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = APP_ROOT / "src" / "assets" / "saf-package"
+PUBLIC_DIR = APP_ROOT / "public" / "saf-package"
+
+# Folders of the organization repository that form the organization of a workspace (oap#1:
+# "agents, skills, instructions, workflows, templates and schemas are workspace artifacts").
+SOURCE_FOLDERS = ("agents", "workflows", "conf", "artifacts", "skills", "instructions")
+SOURCE_SUFFIXES = (".md", ".yaml", ".yml", ".json", ".txt")
 
 LAYER_BY_FOLDER = {"portfolio": "portfolio", "program": "program", "team": "team"}
 ORCHESTRATORS = {"value-management-officer", "release-train-engineer", "scrum-master"}
@@ -166,6 +174,22 @@ def read_roles(org: Path) -> list[dict]:
     return roles
 
 
+def read_sources(org: Path) -> dict:
+    """The organization files verbatim, keyed by their path relative to the organization root."""
+    files: dict[str, str] = {}
+    for folder in SOURCE_FOLDERS:
+        for path in sorted((org / folder).rglob("*")):
+            if path.is_file() and path.suffix in SOURCE_SUFFIXES:
+                files[path.relative_to(org).as_posix()] = path.read_text(encoding="utf-8")
+    return {
+        "root": "organization",
+        "package": "saf-agentic-organization",
+        "version": git_describe(org),
+        "folders": list(SOURCE_FOLDERS),
+        "files": files,
+    }
+
+
 def _as_list(value) -> list[str]:
     if value is None:
         return []
@@ -222,6 +246,13 @@ def main() -> int:
     (OUT_DIR / "item-types.json").write_text(json.dumps(item_types, indent=2) + "\n", encoding="utf-8")
     (OUT_DIR / "workspace-structure.json").write_text(json.dumps(structure, indent=2) + "\n", encoding="utf-8")
     (OUT_DIR / "roles.json").write_text(json.dumps(roles, indent=2) + "\n", encoding="utf-8")
+    sources = read_sources(org)
+    package["counts"]["sourceFiles"] = len(sources["files"])
+    (OUT_DIR / "package.json").write_text(json.dumps(package, indent=2) + "\n", encoding="utf-8")
+    PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
+    (PUBLIC_DIR / "organization-sources.json").write_text(
+        json.dumps(sources, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8"
+    )
     print(json.dumps(package["counts"]))
     return 0
 

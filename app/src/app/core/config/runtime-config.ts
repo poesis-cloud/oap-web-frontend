@@ -6,6 +6,8 @@
 export interface RuntimeConfig {
   readonly envName: string;
   readonly backends: 'mock' | 'live';
+  /** `hash` for static hosts without an SPA fallback (a folder of a GitHub Pages site); `path` otherwise. */
+  readonly routing: 'path' | 'hash';
   readonly workspaceManagerUrl: string;
   readonly conversationManagerUrl: string;
   readonly agentRuntimeUrl: string;
@@ -23,6 +25,7 @@ declare global {
 const DEFAULTS: RuntimeConfig = {
   envName: 'dev',
   backends: 'mock',
+  routing: 'path',
   workspaceManagerUrl: '',
   conversationManagerUrl: '',
   agentRuntimeUrl: '',

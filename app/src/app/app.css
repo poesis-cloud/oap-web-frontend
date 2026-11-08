@@ -1,13 +1,122 @@
+/* Shell: brand, sidebar navigation and controls. Colours come from the tokens only. */
+.sai-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(79, 70, 229, 0.55), rgba(79, 70, 229, 0.15));
+  box-shadow: inset 0 0 0 1px rgba(224, 231, 255, 0.18);
+  flex: none;
+}
+.sai-sidebar-label {
+  display: block;
+  margin: 0 0 4px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sai-sidebar-section);
+}
+.sai-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--sai-sidebar-text);
+  text-decoration: none;
+  transition:
+    background-color var(--sai-dur) var(--sai-ease),
+    color var(--sai-dur) var(--sai-ease);
+}
+.sai-nav-link:hover,
+.sai-nav-link:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  text-decoration: none;
+}
 .sai-nav-link.is-active {
   background: var(--sai-sidebar-active-bg);
-  border-left-color: var(--sai-sidebar-active-border);
   color: var(--sai-sidebar-active-text);
+  box-shadow: inset 3px 0 0 var(--sai-sidebar-active-border);
+}
+.sai-nav-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+  opacity: 0.85;
+}
+.sai-nav-link.is-active .sai-nav-icon {
+  opacity: 1;
+  color: #c7d2fe;
+}
+.sai-nav-badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--sai-gate);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+.sai-sidebar-note {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.sai-sidebar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sai-sidebar-action:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 .sai-sidebar ::ng-deep .p-select {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
 }
+.sai-sidebar ::ng-deep .p-select:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
 .sai-sidebar ::ng-deep .p-select .p-select-label,
 .sai-sidebar ::ng-deep .p-select .p-select-dropdown {
   color: #e2e8f0;
+}
+.sai-phone-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--sai-text-muted);
+  text-decoration: none;
+}
+.sai-phone-link.is-active {
+  color: var(--sai-primary);
+  background: var(--sai-primary-tint);
+}
+.sai-phone-link:hover {
+  text-decoration: none;
 }

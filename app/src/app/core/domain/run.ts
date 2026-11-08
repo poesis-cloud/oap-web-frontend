@@ -114,3 +114,33 @@ export function costPerAcceptedArtifact(run: Run): number | null {
 export function isRunActive(run: Run): boolean {
   return run.status === 'queued' || run.status === 'running' || run.status === 'waiting-for-gate';
 }
+
+// ---- Time: what Clément asked to see on every run (2026-11-08): how long it took, and where the time went.
+
+function ms(from: IsoDateTime | null, to: IsoDateTime | null, now: IsoDateTime): number {
+  if (!from) return 0;
+  return Math.max(0, new Date(to ?? now).getTime() - new Date(from).getTime());
+}
+
+/** Wall-clock duration of the run, up to `now` while it is still active. */
+export function runDurationMs(run: Run, now: IsoDateTime): number {
+  return ms(run.startedAt, run.endedAt, now);
+}
+
+export function stepDurationMs(step: StepRun, now: IsoDateTime): number {
+  return ms(step.startedAt, step.endedAt, now);
+}
+
+/** Time the run spent waiting for humans at its ★ gates (raised → decided, or → now). */
+export function humanWaitMs(run: Run, now: IsoDateTime): number {
+  return run.gates.reduce((sum, g) => sum + ms(g.raisedAt, g.decidedAt, now), 0);
+}
+
+/** Decisions taken at the run's gates, oldest first. */
+export function decidedGates(run: Run): Gate[] {
+  return run.gates.filter((g) => g.status !== 'pending');
+}
+
+export function rejectedGates(run: Run): number {
+  return run.gates.filter((g) => g.status === 'rejected').length;
+}

@@ -1,12 +1,29 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
+import {
+  analyzeSubjects,
+  runMetrics,
+  stepMetrics,
+  sumCost,
+  summarizeWorkflows,
+  type RunMetrics,
+  type StepMetrics,
+} from '../core/application/analysis';
+import {
+  contentPaths,
+  gapToNominal,
+  organizationHistory,
+  organizationTree,
+  ORGANIZATION_ROOT,
+} from '../core/application/organization-view';
 import type { Session } from '../core/application/sai-application';
 import { buildWorkspaceTree } from '../core/application/workspace-tree';
 import type { Conversation } from '../core/domain/conversation';
 import { isRunActive, type Run } from '../core/domain/run';
 import { DomainError, type ActorRef } from '../core/domain/types';
 import type { GateDecision, RuntimeEvent } from '../core/ports';
-import { createMockWorld, DEMO_WORKSPACE_ID, type MockWorld } from '../infrastructure/mock-world';
+import { createMockWorld, DEMO_WORKSPACE_ID, INSTANCE, type MockWorld } from '../infrastructure/mock-world';
+import { OrganizationSourcesHolder } from './organization-sources-holder';
 
 const TICK_MS = 900;
 const STREAM_CHARS_PER_FRAME = 9;
@@ -22,7 +39,7 @@ const STREAM_FRAME_MS = 24;
 @Injectable({ providedIn: 'root' })
 export class SaiStore {
   private readonly messages = inject(MessageService);
-  private readonly world: MockWorld = createMockWorld();
+  private readonly world: MockWorld = createMockWorld({ sources: inject(OrganizationSourcesHolder).sources });
   private readonly version = signal(0);
   private readonly streamProgress = signal<Record<string, number>>({});
   private readonly streamTimers = new Map<string, ReturnType<typeof setInterval>>();
@@ -30,6 +47,8 @@ export class SaiStore {
 
   /** All five backends are in-browser mocks in this build. */
   readonly mockBackends = true;
+  /** The instance this build stands for: the Specialized configuration serving the SAFe pack. */
+  readonly instance = INSTANCE;
   readonly session = signal<Session>(this.world.session);
   readonly workspaceId = signal<string>(DEMO_WORKSPACE_ID);
   readonly runsPaused = signal(false);
@@ -47,7 +66,14 @@ export class SaiStore {
   readonly workItems = computed(() => (this.version(), this.app.workItems(this.session(), this.workspaceId())));
   readonly artifacts = computed(() => (this.version(), this.app.artifacts(this.session(), this.workspaceId())));
   readonly paths = computed(() => (this.version(), this.app.paths(this.session(), this.workspaceId())));
-  readonly tree = computed(() => buildWorkspaceTree(this.organization().workspaceStructure, this.paths()));
+  /** The workspace content laid on the structure map; the organization folder has its own surface. */
+  readonly tree = computed(() => buildWorkspaceTree(this.organization().workspaceStructure, contentPaths(this.paths())));
+  readonly organizationTree = computed(() => organizationTree(this.paths()));
+  readonly organizationFileCount = computed(() => this.paths().filter((p) => p.startsWith(`${ORGANIZATION_ROOT}/`)).length);
+  readonly organizationHistory = computed(() =>
+    organizationHistory(this.commits(), this.workspace().nominalImportCommit),
+  );
+  readonly organizationGap = computed(() => gapToNominal(this.commits(), this.workspace().nominalImportCommit));
   readonly journal = computed(() => (this.version(), this.app.journal(this.session(), this.workspaceId())));
   readonly commits = computed(() => (this.version(), this.app.commits(this.session(), this.workspaceId())));
   readonly gatesWaitingForMe = computed(
@@ -56,6 +82,23 @@ export class SaiStore {
   readonly offeredOrganizations = computed(() => (this.version(), this.app.offeredOrganizations(this.session())));
   readonly tenantUsage = computed(() => (this.version(), this.app.usageForTenant(this.session())));
   readonly tenantTokens = computed(() => this.tenantUsage().reduce((sum, u) => sum + u.tokensIn + u.tokensOut, 0));
+  /** Euros the gateway would invoice the tenant for this session (F3). */
+  readonly tenantCost = computed(() => sumCost(this.tenantUsage(), this.priceOf));
+  /** Cost and time of every run of the workspace (Clément, 2026-11-08). */
+  readonly runMetrics = computed((): RunMetrics[] =>
+    this.runs().map((run) => runMetrics(run, this.app.usageForRun(this.session(), run.id), this.priceOf, this.app.now())),
+  );
+  readonly workflowSummary = computed(() => summarizeWorkflows(this.runMetrics()));
+  /** End-to-end analysis by subject (work item) across workflows and runs. */
+  readonly subjects = computed(() =>
+    analyzeSubjects(
+      this.runs(),
+      this.workItems(),
+      (runId) => this.app.usageForRun(this.session(), runId),
+      this.priceOf,
+      this.app.now(),
+    ),
+  );
   readonly deployments = computed(() => (this.version(), this.app.deployments(this.session())));
   readonly aiNoticeAcknowledged = computed(
     () => (this.version(), this.app.aiNoticeAcknowledged(this.session().userId)),
@@ -95,6 +138,18 @@ export class SaiStore {
     return this.app.usageForRun(this.session(), runId);
   }
 
+  readonly priceOf = (model: string) => this.app.priceOf(this.session(), model);
+
+  metricsOf(run: Run): RunMetrics {
+    this.version();
+    return runMetrics(run, this.app.usageForRun(this.session(), run.id), this.priceOf, this.app.now());
+  }
+
+  stepMetricsOf(run: Run): StepMetrics[] {
+    this.version();
+    return stepMetrics(run, this.app.usageForRun(this.session(), run.id), this.priceOf, this.app.now());
+  }
+
   conversationsAbout(path: string): readonly Conversation[] {
     this.version();
     try {
@@ -126,6 +181,33 @@ export class SaiStore {
       this.streamNewAgentMessages(conversation, []);
       return conversation;
     });
+  }
+
+  /**
+   * Organization actions never execute directly: each opens a conversation with the
+   * orchestrator about the organization folder (F16-R11).
+   */
+  proposeOrganizationAction(kind: 'change' | 'upgrade' | 'rollback' | 'poesis'): Conversation | null {
+    const texts: Record<typeof kind, { title: string; message: string }> = {
+      change: {
+        title: 'Organization change proposal',
+        message: 'I propose a change to the organization: adjust the author-adr step instructions so that ADRs name the partner authentication mode explicitly.',
+      },
+      upgrade: {
+        title: 'Organization upgrade proposal',
+        message: 'I propose to upgrade the organization to the next version of the SAFe package.',
+      },
+      rollback: {
+        title: 'Organization rollback proposal',
+        message: 'I propose a rollback of the last organization change.',
+      },
+      poesis: {
+        title: 'Propose an organization change to Poesis',
+        message: 'I propose to send our organization change to Poesis for the next package version, with our consent for this change only.',
+      },
+    };
+    const { title, message } = texts[kind];
+    return this.startConversation(title, message, `${ORGANIZATION_ROOT}/`);
   }
 
   postMessage(conversationId: string, threadId: string, content: string): void {

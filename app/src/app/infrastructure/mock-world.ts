@@ -10,6 +10,7 @@ import { InMemoryConversations, InMemoryNotifications } from './conversation-man
 import { MockKeycloak } from './iam/mock-keycloak';
 import { MockFoundry } from './model-gateway/mock-foundry';
 import { InMemoryWorkspace } from './workspace-manager/in-memory-workspace';
+import type { OrganizationSources } from './workspace-manager/organization-sources';
 import { seedWorkspace } from './workspace-manager/seed-workspace';
 
 /**
@@ -61,6 +62,19 @@ export class InMemoryWorkspaces implements WorkspaceRepository {
   }
 }
 
+/**
+ * The instance this build stands for: the **Specialized configuration** of OAP, serving the
+ * SAFe Agentic Organization of SAF as its only package (oap#1: three configurations; Clément,
+ * 2026-11-08: the Specialized SAFe configuration comes first).
+ */
+export const INSTANCE = {
+  product: 'Organization Agentic Platform',
+  shortName: 'OAP',
+  configuration: 'Specialized' as const,
+  pack: 'SAFe Agentic Organization',
+  packId: 'saf-agentic-organization',
+};
+
 export const DEMO_TENANT_ID = 'acme-it';
 export const DEMO_WORKSPACE_ID = 'ws-customer-platform';
 export const DEMO_USER_ID = 'alex-moreau';
@@ -86,10 +100,13 @@ export interface MockWorld {
   readonly organization: OrganizationPackage;
 }
 
-export function createMockWorld(options: { now?: () => number } = {}): MockWorld {
+export function createMockWorld(
+  options: { now?: () => number; sources?: OrganizationSources | null } = {},
+): MockWorld {
   const clock = new MonotonicClock(options.now);
   const ids = new SequentialIds();
   const organization = loadSafePackage();
+  const sources = options.sources ?? null;
   const tenant: Tenant = {
     id: DEMO_TENANT_ID,
     organizationName: 'Acme IT Department',
@@ -116,7 +133,7 @@ export function createMockWorld(options: { now?: () => number } = {}): MockWorld
   const workspaces = new InMemoryWorkspaces();
   const conversations = new InMemoryConversations();
   const notifications = new InMemoryNotifications();
-  const gateway = new MockFoundry();
+  const gateway = new MockFoundry(undefined, organization.modelProfiles);
   const iam = new MockKeycloak([tenant, otherTenant]);
   const runtime = new MockAgentRuntime(
     repository,
@@ -130,16 +147,18 @@ export function createMockWorld(options: { now?: () => number } = {}): MockWorld
     id: DEMO_WORKSPACE_ID,
     tenantId: DEMO_TENANT_ID,
     name: 'Customer Platform',
-    repository: 'git://sai-instance.local/acme-it/customer-platform.git',
+    repository: 'git://oap-instance.local/acme-it/customer-platform.git',
     organization,
+    sources,
     withBacklog: true,
   });
   seedWorkspace(repository, workspaces, clock, {
     id: OTHER_WORKSPACE_ID,
     tenantId: OTHER_TENANT_ID,
     name: 'Globex Ops Tooling',
-    repository: 'git://sai-instance.local/globex/ops-tooling.git',
+    repository: 'git://oap-instance.local/globex/ops-tooling.git',
     organization,
+    sources,
     withBacklog: false,
   });
 

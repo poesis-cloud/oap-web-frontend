@@ -3,19 +3,19 @@
     <div>
       <h1 class="text-2xl">{{ store.workspace().name }}</h1>
       <p class="m-0 text-sm text-ink-muted">
-        Hosted SAF workspace · HEAD
+        Workspace of {{ store.tenant().organizationName }}: one hosted SAF git repository
+        <span class="font-mono text-xs">{{ store.workspace().repository }}</span> · HEAD
         <span class="font-mono">{{ store.commits().at(-1)?.sha?.slice(0, 10) ?? '—' }}</span> ·
-        {{ store.commits().length }} commits · read through git · structured by
-        <span class="font-mono">{{ store.organization().workspaceStructure.source }}</span>
+        {{ store.commits().length }} commits · laid out by the organization's
+        <a [routerLink]="['/organization', 'browse']" [queryParams]="{ path: 'organization/conf/workspace.conf.yaml' }"
+          >structure map</a
+        >
       </p>
     </div>
     <p-tabs [value]="view()">
       <p-tablist>
         <p-tab value="explorer" routerLink="/workspace/explorer"><i class="pi pi-sitemap mr-1.5"></i>Explorer</p-tab>
         <p-tab value="board" routerLink="/workspace/board"><i class="pi pi-th-large mr-1.5"></i>Board</p-tab>
-        <p-tab value="organization" routerLink="/workspace/organization"
-          ><i class="pi pi-users mr-1.5"></i>Organization</p-tab
-        >
       </p-tablist>
     </p-tabs>
   </header>
@@ -151,175 +151,6 @@
       </p-drawer>
     }
 
-    <!-- ===================================================== Organization -->
-    @case ('organization') {
-      <div class="grid gap-4 lg:grid-cols-2">
-        <section class="sai-card flex flex-col gap-3 p-4">
-          <h2 class="text-lg">{{ store.organization().name }}</h2>
-          <p class="m-0 text-sm text-ink-muted">
-            Nominal state imported as one tagged commit (F14-R7):
-            <span class="font-mono">{{ store.workspace().nominalImportCommit?.slice(0, 10) }}</span>
-          </p>
-          <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-            <dt class="text-ink-light">Package</dt>
-            <dd class="m-0 font-mono">{{ store.organization().id }}&#64;{{ store.organization().version }}</dd>
-            <dt class="text-ink-light">Harness</dt>
-            <dd class="m-0 font-mono">{{ store.organization().harnessVersion }}</dd>
-            <dt class="text-ink-light">License</dt>
-            <dd class="m-0">{{ store.organization().license }}</dd>
-            <dt class="text-ink-light">Agents</dt>
-            <dd class="m-0">{{ store.organization().agents.length }} (incl. the Copilot dispatcher)</dd>
-            <dt class="text-ink-light">Workflows</dt>
-            <dd class="m-0">{{ store.organization().workflows.length }}</dd>
-            <dt class="text-ink-light">Item types</dt>
-            <dd class="m-0">{{ store.organization().itemTypes.length }}</dd>
-            <dt class="text-ink-light">Structure</dt>
-            <dd class="m-0">
-              {{ counts().present }} artifacts present, {{ counts().expected }} required slots still empty
-            </dd>
-          </dl>
-          <p class="m-0 text-sm"><strong>Intended use.</strong> {{ store.organization().intendedUse }}</p>
-          <details class="sai-fold">
-            <summary>Limitations of this build</summary>
-            <ul class="mt-1 list-disc pl-5 text-sm">
-              @for (l of store.organization().limitations; track l) {
-                <li>{{ l }}</li>
-              }
-            </ul>
-          </details>
-          <p class="m-0 text-xs text-ink-light">
-            The organization is part of the workspace and changes only through governed organization-change runs (R16).
-          </p>
-        </section>
-
-        <section class="sai-card p-4">
-          <h2 class="sai-eyebrow mb-2">Trackable item types and their statuses</h2>
-          <table class="sai-table">
-            <tbody>
-              @for (t of store.organization().itemTypes; track t.slug) {
-                <tr>
-                  <td class="font-semibold">{{ t.slug }}</td>
-                  <td class="text-ink-muted">{{ t.statuses.join(' → ') }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </section>
-
-        <section class="sai-card p-4">
-          <h2 class="sai-eyebrow mb-2">Agents</h2>
-          <div class="flex flex-col divide-y divide-line">
-            @for (a of store.organization().agents; track a.slug) {
-              <div class="py-2.5">
-                <div class="flex items-center justify-between gap-2">
-                  <sai-actor [actor]="agentRef(a.slug)" />
-                  <p-tag
-                    [value]="a.kind"
-                    [severity]="a.kind === 'dispatcher' ? 'warn' : a.kind === 'orchestrator' ? 'info' : 'secondary'"
-                    [rounded]="true"
-                  />
-                </div>
-                <p class="m-0 mt-1 text-sm text-ink-muted">{{ a.description }}</p>
-                @if (a.scope) {
-                  <p class="m-0 mt-0.5 text-xs text-ink-light">Scope: {{ a.scope }}</p>
-                }
-              </div>
-            }
-          </div>
-        </section>
-
-        <section class="sai-card p-4">
-          <h2 class="sai-eyebrow mb-2">Workflows</h2>
-          <div class="flex flex-col divide-y divide-line">
-            @for (w of store.organization().workflows; track w.slug) {
-              <div class="py-2">
-                <button
-                  type="button"
-                  class="flex w-full items-center justify-between gap-2 text-left"
-                  (click)="toggleWorkflow(w)"
-                  [attr.aria-expanded]="expandedWorkflow() === w.slug"
-                >
-                  <strong class="text-sm">{{ w.slug | title }}</strong>
-                  <span class="flex items-center gap-2 text-[11px] text-ink-light"
-                    ><p-tag [value]="w.layer" severity="secondary" [rounded]="true" /><span
-                      >&#64;{{ w.orchestrator }}</span
-                    ><span>{{ w.steps.length }} steps</span>
-                    @if (w.gate) {
-                      <span class="text-gate">★</span>
-                    }
-                  </span>
-                </button>
-                @if (expandedWorkflow() === w.slug) {
-                  <div class="mt-2 flex flex-col gap-2 rounded-lg bg-surface-sunken p-3">
-                    <p class="m-0 text-sm text-ink-muted">{{ w.description }}</p>
-                    @if (w.gate) {
-                      <p class="m-0 text-sm">
-                        ★ <strong>{{ w.gate.label }}</strong> after the last step, decided by holders of
-                        <code>{{ w.gate.holderRole }}</code> in a validation conversation; rejection reworks from
-                        <code>{{ w.gate.reworkStep }}</code
-                        >. <span class="text-ink-light">(declared by SAI pending saf#6 SF15)</span>
-                      </p>
-                    }
-                    @for (s of w.steps; track s.slug) {
-                      <div class="border-t border-dashed border-line pt-1.5">
-                        <div class="flex items-center justify-between gap-2 text-sm">
-                          <span
-                            ><strong>{{ s.slug }}</strong>
-                            <span class="text-ink-light">&#64;{{ s.actor }} → {{ s.artifact }}</span></span
-                          >
-                          @if (s.conditions.length) {
-                            <span class="text-[11px] text-ink-light">after {{ after(s) }}</span>
-                          }
-                        </div>
-                        <div class="mt-1 inline-flex h-[18px] items-end gap-[2px]" aria-label="Capability weights">
-                          @for (tag of tags; track tag) {
-                            <span
-                              class="inline-flex h-full w-[7px] items-end rounded-[1px] bg-line"
-                              [title]="tag + ': ' + (s.capabilities[tag] ?? 0)"
-                              ><span
-                                class="block w-full rounded-[1px] bg-primary"
-                                [style.height.%]="((s.capabilities[tag] ?? 0) / 10) * 100"
-                              ></span
-                            ></span>
-                          }
-                        </div>
-                      </div>
-                    }
-                    <details class="sai-fold">
-                      <summary>Native definition (JSON)</summary>
-                      <pre class="mt-1 max-h-80">{{ json(w) }}</pre>
-                    </details>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        </section>
-
-        <section class="sai-card p-4 lg:col-span-2">
-          <h2 class="sai-eyebrow mb-2">Packages offered by this instance (F18-R5)</h2>
-          @for (pkg of store.offeredOrganizations(); track pkg.id) {
-            <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <div>
-                <strong>{{ pkg.name }}</strong>
-                <span class="font-mono text-xs text-ink-muted"
-                  >{{ pkg.id }}&#64;{{ pkg.version }} · harness {{ pkg.harnessVersion }} · {{ pkg.license }}</span
-                >
-              </div>
-              <div class="flex gap-3 text-ink-muted">
-                <span>{{ pkg.agents.length }} agents</span><span>{{ pkg.workflows.length }} workflows</span
-                ><span>{{ pkg.itemTypes.length }} item types</span
-                ><span>{{ pkg.modelProfiles.length }} model profiles</span>
-              </div>
-            </div>
-          }
-          <p class="m-0 mt-2 text-xs text-ink-light">
-            A workspace imports one package as its nominal state. The agent runtime hosts the catalogue (F7).
-          </p>
-        </section>
-      </div>
-    }
-
     <!-- ========================================================= Explorer -->
     @default {
       <div class="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -365,7 +196,9 @@
               <p class="m-0">Pick an artifact in the tree to read it in its native format, with its history.</p>
               <p class="m-0 text-xs text-ink-light">
                 Folders and files follow the organization's workspace structure map; italic entries are slots the map
-                requires that no run has filled yet.
+                requires that no run has filled yet. The organization itself ({{ store.organizationFileCount() }} files
+                under <span class="font-mono">organization/</span>) is browsed in
+                <a routerLink="/organization">Organization</a>.
               </p>
             </div>
           }

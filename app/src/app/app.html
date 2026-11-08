@@ -4,23 +4,32 @@
   >Skip to content</a
 >
 
-<div class="grid min-h-dvh grid-cols-[236px_minmax(0,1fr)] max-md:grid-cols-1">
+<div class="grid min-h-dvh grid-cols-[248px_minmax(0,1fr)] max-md:grid-cols-1">
   <!-- Sidebar -->
   <aside
     class="sai-sidebar sticky top-0 flex h-dvh flex-col bg-sidebar text-sidebar-text max-md:hidden"
-    aria-label="SAI"
+    aria-label="Organization Agentic Platform"
   >
-    <div class="flex h-[60px] items-center gap-2.5 px-5">
-      <span
-        class="grid h-[30px] w-[30px] place-items-center rounded-lg bg-primary text-[11px] font-black text-white"
-        aria-hidden="true"
-        >SAI</span
-      >
-      <span class="text-sm font-semibold text-white">Systemic Agentic Interface</span>
+    <div class="flex items-center gap-3 px-5 pb-4 pt-5">
+      <span class="sai-brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="34" height="34" role="img" aria-label="OAP">
+          <circle cx="16" cy="16" r="6.2" fill="none" stroke="#e0e7ff" stroke-width="2.4" />
+          <circle cx="16" cy="5.5" r="3" fill="#a5b4fc" />
+          <circle cx="25.5" cy="22" r="3" fill="#a5b4fc" />
+          <circle cx="6.5" cy="22" r="3" fill="#a5b4fc" />
+          <path d="M16 8.5v1.6M22.9 20.3l-1.4-.8M9.1 20.3l1.4-.8" stroke="#e0e7ff" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="min-w-0 leading-tight">
+        <span class="block truncate text-[15px] font-semibold text-white">Organization Agentic Platform</span>
+        <span class="block text-[11px] text-sidebar-section"
+          >{{ store.instance.configuration }} configuration · {{ store.instance.pack }}</span
+        >
+      </span>
     </div>
 
-    <div class="px-4 pb-2">
-      <label class="sr-only" for="ws-switch">Workspace</label>
+    <div class="px-4 pb-3">
+      <label class="sai-sidebar-label" for="ws-switch">Workspace</label>
       <p-select
         inputId="ws-switch"
         [options]="workspaceOptions()"
@@ -30,25 +39,26 @@
         (onChange)="store.workspaceId.set($event.value)"
         styleClass="w-full"
         size="small"
+        pTooltip="A workspace is one hosted SAF git repository: its organization and its artifacts"
+        tooltipPosition="right"
       />
     </div>
 
-    <nav class="flex-1 py-2" aria-label="Main">
+    <nav class="flex-1 px-3 py-1" aria-label="Main">
       @for (item of menu; track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="is-active"
           ariaCurrentWhenActive="page"
-          class="sai-nav-link flex items-center gap-3 border-l-[3px] border-l-transparent px-5 py-2.5 text-[13px] font-medium text-sidebar-text hover:text-white hover:no-underline"
+          class="sai-nav-link"
+          [title]="item.hint"
         >
-          <i [class]="item.icon" aria-hidden="true"></i>
+          <i [class]="item.icon + ' sai-nav-icon'" aria-hidden="true"></i>
           <span class="flex-1">{{ item.label }}</span>
           @if (item.path === '/supervisor' && store.waitingCount() > 0) {
-            <span
-              class="rounded-full bg-gate px-1.5 text-[11px] font-bold text-white"
-              [attr.aria-label]="store.waitingCount() + ' items waiting'"
-              >{{ store.waitingCount() }}</span
-            >
+            <span class="sai-nav-badge" [attr.aria-label]="store.waitingCount() + ' items waiting'">{{
+              store.waitingCount()
+            }}</span>
           }
           @if (item.path === '/conversations' && store.activeRuns().length > 0) {
             <span class="h-2 w-2 animate-pulse rounded-full bg-primary" aria-label="runs in progress"></span>
@@ -59,24 +69,20 @@
 
     <div class="flex flex-col gap-3 px-4 pb-4">
       @if (store.mockBackends) {
-        <div class="rounded-lg bg-white/5 p-3 text-xs leading-snug" role="note">
-          <div class="mb-1 font-semibold uppercase tracking-wide text-gate">Mock backends</div>
+        <div class="sai-sidebar-note" role="note">
+          <div class="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-gate">Mocked backends</div>
           <div>
-            Workspace manager, conversation manager, agent runtime, IAM and model gateway are in-browser mocks. Scripted
-            agents, no model called.
+            Workspace manager, conversation manager, agent runtime, PIS IAM and model gateway run in this browser.
+            Scripted agents, no model called.
           </div>
-          <p-button
-            [label]="store.runsPaused() ? 'Resume runs' : 'Pause runs'"
-            size="small"
-            [text]="true"
-            severity="secondary"
-            styleClass="mt-1 !px-0 !text-sidebar-text"
-            (onClick)="store.toggleRunsPaused()"
-          />
+          <button type="button" class="sai-sidebar-action" (click)="store.toggleRunsPaused()">
+            <i [class]="store.runsPaused() ? 'pi pi-play' : 'pi pi-pause'" aria-hidden="true"></i>
+            {{ store.runsPaused() ? 'Resume runs' : 'Pause runs' }}
+          </button>
         </div>
       }
       <div>
-        <label class="sr-only" for="acting-as">Acting as</label>
+        <label class="sai-sidebar-label" for="acting-as">Acting as</label>
         <p-select
           inputId="acting-as"
           [options]="memberOptions()"
@@ -87,7 +93,7 @@
           styleClass="w-full"
           size="small"
         />
-        <div class="mt-1 text-[11px] text-sidebar-section">
+        <div class="mt-1.5 text-[11px] leading-snug text-sidebar-section">
           {{ store.tenant().organizationName }} ·
           {{ store.me()?.roles?.length ? 'roles: ' + store.me()?.roles?.join(', ') : 'no gate role' }} · IAM mock
         </div>
@@ -101,6 +107,7 @@
       class="sticky top-0 z-30 flex min-h-[56px] items-center justify-between gap-3 border-b border-line bg-surface/90 px-6 backdrop-blur max-md:px-4"
     >
       <div class="flex min-w-0 items-center gap-2 text-sm">
+        <span class="hidden text-ink-light md:inline">Workspace</span>
         <span class="truncate font-semibold">{{ store.workspace().name }}</span>
         <span class="text-ink-light">/</span>
         <strong class="truncate">{{ section() }}</strong>
@@ -134,10 +141,10 @@
           }
         </span>
         <span
-          class="grid h-8 w-8 place-items-center rounded-full bg-primary-tint text-xs font-bold text-primary-tint-text"
+          class="grid h-8 w-8 place-items-center rounded-full bg-primary-tint text-[11px] font-bold text-primary-tint-text"
           [pTooltip]="store.me()?.displayName ?? ''"
           tooltipPosition="bottom"
-          >{{ (store.me()?.displayName ?? '?').slice(0, 1) }}</span
+          >{{ initials() }}</span
         >
       </div>
     </header>
@@ -150,15 +157,11 @@
 
 <!-- Phone navigation -->
 <nav
-  class="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-line bg-surface px-2 py-1.5 md:hidden"
+  class="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-line bg-surface px-1 py-1.5 md:hidden"
   aria-label="Main (phone)"
 >
   @for (item of menu; track item.path) {
-    <a
-      [routerLink]="item.path"
-      routerLinkActive="text-primary"
-      class="relative flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] text-ink-muted hover:no-underline"
-    >
+    <a [routerLink]="item.path" routerLinkActive="is-active" class="sai-phone-link">
       <i [class]="item.icon + ' text-lg'" aria-hidden="true"></i>
       <span>{{ item.label }}</span>
       @if (item.path === '/supervisor' && store.waitingCount() > 0) {

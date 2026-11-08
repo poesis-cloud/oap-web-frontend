@@ -5,3 +5,6 @@ out-tsc
 .npm-cache
 coverage
 *.log
+
+# sub-path or preview builds
+dist-*/

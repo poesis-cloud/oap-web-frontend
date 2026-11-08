@@ -1,5 +1,6 @@
-/* SAI global styles: Tailwind 4 utilities + PrimeNG (Aura) bridged to the SAI tokens, like OIP.
-   The layer order lets Tailwind utilities override PrimeNG component styles. */
+/* OAP global styles: Tailwind 4 utilities + PrimeNG (Aura) bridged to the design tokens, like OIP.
+   The layer order lets Tailwind utilities override PrimeNG component styles. Element defaults
+   (links, headings, code) live in the `base` layer so that any utility class wins over them. */
 @layer theme, base, primeng, components, utilities;
 
 @import 'tailwindcss';
@@ -53,7 +54,7 @@
 /* Self-hosted fonts (SIL OFL): no request leaves the instance. */
 @font-face {
   font-family: 'Hanken Grotesk';
-  src: url('/fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  src: url('./fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -63,7 +64,7 @@
 }
 @font-face {
   font-family: 'Hanken Grotesk';
-  src: url('/fonts/hanken-grotesk-latin-ext-wght-normal.woff2') format('woff2');
+  src: url('./fonts/hanken-grotesk-latin-ext-wght-normal.woff2') format('woff2');
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -71,7 +72,7 @@
 }
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('/fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2');
+  src: url('./fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2');
   font-style: normal;
   font-weight: 100 800;
   font-display: swap;
@@ -168,12 +169,34 @@ h4 {
   margin: 0;
 }
 
-a {
-  color: var(--sai-primary);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
+@layer base {
+  a {
+    color: var(--sai-primary);
+    text-decoration: none;
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  /* Links that are controls (navigation, cards, buttons) never underline. */
+  a.sai-nav-link,
+  a.sai-phone-link,
+  a.sai-row,
+  a.sai-card,
+  a.p-button,
+  a[role='tab'],
+  a[role='button'] {
+    text-decoration: none;
+  }
+  a.sai-nav-link:hover,
+  a.sai-phone-link:hover,
+  a.sai-row:hover,
+  a.sai-card:hover,
+  a.p-button:hover,
+  a[role='tab']:hover,
+  a[role='button']:hover {
+    text-decoration: none;
+  }
 }
 
 code,
@@ -209,7 +232,68 @@ pre code {
   border-radius: 6px;
 }
 
-/* ---- Reusable SAI pieces (kept small; Tailwind utilities do the rest) ---- */
+/* ---- Reusable pieces (kept small; Tailwind utilities do the rest) ---- */
+.sai-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sai-text);
+  transition: background-color var(--sai-dur) var(--sai-ease);
+}
+.sai-row:hover {
+  background: var(--sai-surface-sunken);
+}
+.sai-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.9rem 1rem;
+  background: var(--sai-surface);
+  border: 1px solid var(--sai-border-hairline);
+  border-radius: var(--sai-radius-card);
+  box-shadow: var(--sai-shadow-card);
+}
+.sai-kpi > .sai-kpi-label {
+  font-size: 0.72rem;
+  color: var(--sai-text-muted);
+}
+.sai-kpi > .sai-kpi-value {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.sai-kpi > .sai-kpi-hint {
+  font-size: 0.7rem;
+  color: var(--sai-text-light);
+}
+.sai-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--sai-surface-sunken);
+  overflow: hidden;
+}
+.sai-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background: var(--sai-primary);
+}
+.sai-bar > span.is-wait {
+  background: var(--sai-gate);
+}
+.sai-bar > span.is-ok {
+  background: var(--sai-ok);
+}
+.sai-bar > span.is-fail {
+  background: var(--sai-fail);
+}
+.sai-bar > span.is-muted {
+  background: var(--sai-border-strong);
+}
+
 .sai-card {
   background: var(--sai-surface);
   border: 1px solid var(--sai-border-hairline);

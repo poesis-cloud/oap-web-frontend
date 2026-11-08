@@ -2,13 +2,18 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { costPerAcceptedArtifact, isRunActive, runTokens, type Run } from '../../core/domain/run';
+import { formatDuration, formatEuros } from '../../core/application/analysis';
+import { isRunActive, runTokens, type Run } from '../../core/domain/run';
 import { Actor } from '../../core/domain/types';
 import { GateCard } from '../../shared/gate-card';
 import { ActorBadge, ClockPipe, StatusBadge, TitlePipe, TokensPipe, actorLabel } from '../../shared/ui';
 import { SaiStore } from '../../state/sai-store';
 
-/** Run detail (F18-R2, F18-R3): steps, verdicts, agents, models, cost, artifacts, gates and journal; internals folded. */
+/**
+ * Run detail (F18-R2, F18-R3): what it cost in euros and how long it took (Clément, 2026-11-08),
+ * steps with their cost and duration, verdicts, agents, models, artifacts, gates (decided in
+ * their conversation) and journal; internals folded.
+ */
 @Component({
   selector: 'sai-run-page',
   standalone: true,
@@ -44,26 +49,31 @@ import { SaiStore } from '../../state/sai-store';
           }
         </header>
 
-        <div class="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="sai-card flex flex-col gap-0.5 p-4">
-            <span class="text-[11px] text-ink-light">Steps delivered</span
-            ><strong class="text-lg">{{ delivered() }} / {{ run.steps.length }}</strong>
+        <div class="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div class="sai-kpi">
+            <span class="sai-kpi-label">AI cost</span>
+            <span class="sai-kpi-value">{{ euros(metrics().cost) }}</span>
+            <span class="sai-kpi-hint">{{ tokens().input | tokens }} in · {{ tokens().output | tokens }} out, rated by the gateway</span>
           </div>
-          <div class="sai-card flex flex-col gap-0.5 p-4">
-            <span class="text-[11px] text-ink-light">Tokens (in / out)</span
-            ><strong class="text-lg">{{ tokens().input | tokens }} / {{ tokens().output | tokens }}</strong>
+          <div class="sai-kpi">
+            <span class="sai-kpi-label">Duration</span>
+            <span class="sai-kpi-value">{{ duration(metrics().durationMs) }}</span>
+            <span class="sai-kpi-hint">{{ active() ? 'still running' : 'launch to end' }}</span>
           </div>
-          <div class="sai-card flex flex-col gap-0.5 p-4">
-            <span class="text-[11px] text-ink-light">Cost per accepted artifact</span
-            ><strong class="text-lg">{{
-              costPerArtifact() === null ? '—' : (costPerArtifact() | tokens) + ' tokens'
-            }}</strong
-            ><span class="text-[11px] text-ink-light">R14: accepted at the ★ gate without manual fixing</span>
+          <div class="sai-kpi">
+            <span class="sai-kpi-label">Waiting for humans</span>
+            <span class="sai-kpi-value" [class.text-gate]="run.status === 'waiting-for-gate'">{{ duration(metrics().humanWaitMs) }}</span>
+            <span class="sai-kpi-hint">at ★ gates · agents at work {{ duration(metrics().workingMs) }}</span>
           </div>
-          <div class="sai-card flex flex-col gap-1 p-4">
-            <span class="text-[11px] text-ink-light">Budget</span
-            ><strong class="text-lg">{{ tokens().total | tokens }} / {{ run.budget.limitTokens | tokens }}</strong>
-            <div class="sai-progress" [class.is-fail]="tokens().total > run.budget.limitTokens">
+          <div class="sai-kpi">
+            <span class="sai-kpi-label">Steps delivered</span>
+            <span class="sai-kpi-value">{{ delivered() }} / {{ run.steps.length }}</span>
+            <span class="sai-kpi-hint">{{ metrics().acceptedArtifacts }} accepted · {{ metrics().rejectedGates }} gate rework</span>
+          </div>
+          <div class="sai-kpi">
+            <span class="sai-kpi-label">Budget</span>
+            <span class="sai-kpi-value">{{ tokens().total | tokens }} <span class="text-sm font-medium text-ink-muted">/ {{ run.budget.limitTokens | tokens }}</span></span>
+            <div class="sai-progress mt-1" [class.is-fail]="tokens().total > run.budget.limitTokens">
               <span [style.width.%]="Math.min(100, (tokens().total / run.budget.limitTokens) * 100)"></span>
             </div>
           </div>
@@ -114,6 +124,12 @@ import { SaiStore } from '../../state/sai-store';
                       ><span class="text-ink-light">score {{ s.model.score }} · cost rank {{ s.model.costRank }}</span>
                     }
                     <span>{{ s.tokens.input + s.tokens.output | tokens }} tokens</span>
+                    @if (stepOf(s.stepSlug); as sm) {
+                      <span class="font-semibold text-ink">{{ euros(sm.cost) }}</span>
+                      @if (s.startedAt) {
+                        <span class="text-ink-light">{{ duration(sm.durationMs) }}</span>
+                      }
+                    }
                   </div>
                 </div>
                 @if (s.artifactPath) {
@@ -243,7 +259,8 @@ export class RunPage {
   });
   readonly delivered = computed(() => this.run()?.steps.filter((s) => s.status === 'delivered').length ?? 0);
   readonly tokens = computed(() => (this.run() ? runTokens(this.run() as Run) : { input: 0, output: 0, total: 0 }));
-  readonly costPerArtifact = computed(() => (this.run() ? costPerAcceptedArtifact(this.run() as Run) : null));
+  readonly metrics = computed(() => this.store.metricsOf(this.run() as Run));
+  readonly steps = computed(() => this.store.stepMetricsOf(this.run() as Run));
   readonly journal = computed(() => {
     const run = this.run();
     return run
@@ -254,6 +271,15 @@ export class RunPage {
 
   agent(slug: string) {
     return Actor.agent(slug);
+  }
+  stepOf(slug: string) {
+    return this.steps().find((s) => s.stepSlug === slug) ?? null;
+  }
+  euros(value: number | null): string {
+    return formatEuros(value);
+  }
+  duration(ms: number): string {
+    return formatDuration(ms);
   }
   label(actor: Parameters<typeof actorLabel>[0]): string {
     return actorLabel(actor, this.store.tenant().members);

@@ -35,7 +35,11 @@ export function parseInlines(text: string): Inline[] {
 
 export function parseBlocks(markdown: string): Block[] {
   const blocks: Block[] = [];
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  // HTML comments (license headers of the SAF files) are not content: dropped, never rendered.
+  const lines = markdown
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\r\n/g, '\n')
+    .split('\n');
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
