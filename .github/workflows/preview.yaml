@@ -1,0 +1,115 @@
+# Preview of the OAP frontend mock for the team, from the branch `Nicolas`.
+#
+# What runs on every push to the branch: type check, unit tests, production build, and the
+# built site uploaded as a workflow artifact (`oap-frontend-preview`, downloadable by members
+# of the organization from the run page; serve it with any static server, SPA fallback on
+# index.html).
+#
+# Deployment to a URL is a manual, validated step (workflow_dispatch) because it depends on a
+# decision that is not the CI's to take (see def/deployment.md):
+#   - `pages`: GitHub Pages. Needs Pages enabled on the repository by an admin. On the GitHub
+#     Free plan Pages is not available for a private repository, and a Pages site is reachable
+#     by anyone who has the URL.
+#   - `swa`: Azure Static Web Apps (Free tier, built-in authentication, custom domain such as
+#     oap-preview.poesis.cloud). Needs the secret AZURE_STATIC_WEB_APPS_API_TOKEN.
+name: oap-frontend-preview
+
+on:
+  push:
+    branches: [Nicolas]
+    paths:
+      - 'app/**'
+      - '.github/workflows/preview.yaml'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Where to deploy the build'
+        type: choice
+        default: none
+        options: [none, pages, swa]
+      base_href:
+        description: 'Base href of the build (/ at a domain root, /oap-web-frontend/ for a Pages project site)'
+        type: string
+        default: '/'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Verify and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install (clean, from the lock file)
+        run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Production build
+        env:
+          BASE_HREF: ${{ inputs.base_href || '/' }}
+        run: |
+          npx ng build --base-href "$BASE_HREF"
+          # Single-page application: unknown paths fall back to index.html (GitHub Pages serves 404.html).
+          cp dist/index.html dist/404.html
+      - name: Keep the build as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oap-frontend-preview
+          path: app/dist
+          retention-days: 14
+
+  pages:
+    name: Deploy to GitHub Pages
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == 'pages' }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: oap-frontend-preview
+          path: site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  swa:
+    name: Deploy to Azure Static Web Apps
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == 'swa' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: oap-frontend-preview
+          path: site
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: site
+          skip_app_build: true
+          skip_api_build: true
