@@ -1,0 +1,113 @@
+[
+  {
+    "slug": "value-management-officer",
+    "artifacts": [
+      "portfolio-kanban",
+      "portfolio-manifest",
+      "portfolio-sync",
+      "product-manifest"
+    ]
+  },
+  {
+    "slug": "business-owner",
+    "artifacts": [
+      "budget-allocation",
+      "epic",
+      "lean-business-case",
+      "portfolio-review-decision",
+      "portfolio-roadmap",
+      "portfolio-vision",
+      "strategic-themes"
+    ]
+  },
+  {
+    "slug": "enterprise-architect",
+    "artifacts": [
+      "architecture-vision",
+      "epic-enabler"
+    ]
+  },
+  {
+    "slug": "release-train-engineer",
+    "artifacts": [
+      "art-manifest",
+      "art-sync",
+      "objectives",
+      "pain-point",
+      "program-kanban",
+      "system-demo"
+    ]
+  },
+  {
+    "slug": "product-manager",
+    "artifacts": [
+      "feature",
+      "objectives",
+      "product-roadmap",
+      "product-vision",
+      "release-on-demand",
+      "risks"
+    ]
+  },
+  {
+    "slug": "system-architect",
+    "artifacts": [
+      "adr",
+      "architecture-runway",
+      "feature-enabler",
+      "nfr-list",
+      "story-enabler"
+    ]
+  },
+  {
+    "slug": "scrum-master",
+    "artifacts": [
+      "iteration-retrospective",
+      "iteration-review",
+      "plan",
+      "team-manifest",
+      "team-sync"
+    ]
+  },
+  {
+    "slug": "product-owner",
+    "artifacts": [
+      "story"
+    ]
+  },
+  {
+    "slug": "developer",
+    "artifacts": [
+      "code-change",
+      "feasibility-review"
+    ]
+  },
+  {
+    "slug": "operator",
+    "artifacts": [
+      "operability-review"
+    ]
+  },
+  {
+    "slug": "security-expert",
+    "artifacts": [
+      "security-review"
+    ]
+  },
+  {
+    "slug": "ux-designer",
+    "artifacts": [
+      "ux-review"
+    ]
+  },
+  {
+    "slug": "quality-engineer",
+    "artifacts": [
+      "qa-signoff"
+    ]
+  },
+  {
+    "slug": "workspace-reader",
+    "artifacts": []
+  }
+]

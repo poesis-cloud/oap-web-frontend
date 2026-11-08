@@ -1,0 +1,151 @@
+[
+  {
+    "slug": "epic",
+    "label": "Epic",
+    "pathPatterns": [
+      "portfolio-backlog/*/*.epic.md"
+    ],
+    "statuses": [
+      "funnel",
+      "reviewing",
+      "analyzing",
+      "portfolio-backlog",
+      "implementing",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/business-owner/epic.artifact.schema.json"
+  },
+  {
+    "slug": "lean-business-case",
+    "label": "Lean Business Case",
+    "pathPatterns": [
+      "portfolio-backlog/*/*.lean-business-case.md"
+    ],
+    "statuses": [
+      "draft",
+      "challenged",
+      "gate-ready"
+    ],
+    "source": "artifacts/business-owner/lean-business-case.artifact.schema.json"
+  },
+  {
+    "slug": "epic-enabler",
+    "label": "Epic Enabler",
+    "pathPatterns": [
+      "portfolio-backlog/*/*.epic-enabler.md"
+    ],
+    "statuses": [
+      "funnel",
+      "reviewing",
+      "analyzing",
+      "portfolio-backlog",
+      "implementing",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/enterprise-architect/epic-enabler.artifact.schema.json"
+  },
+  {
+    "slug": "feature",
+    "label": "Feature",
+    "pathPatterns": [
+      "art/*/program-backlog/*/*.feature.md"
+    ],
+    "statuses": [
+      "funnel",
+      "refined",
+      "arch-pending",
+      "ready",
+      "committed",
+      "in-progress",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/product-manager/feature.artifact.schema.json"
+  },
+  {
+    "slug": "story",
+    "label": "Story",
+    "pathPatterns": [
+      "art/*/teams/*/team-backlog/*/*.story.md"
+    ],
+    "statuses": [
+      "backlog",
+      "ready",
+      "in-progress",
+      "in-review",
+      "in-qa",
+      "awaiting-pr",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/product-owner/story.artifact.schema.json"
+  },
+  {
+    "slug": "pain-point",
+    "label": "Pain Point",
+    "pathPatterns": [
+      "art/*/improvement-backlog/*/*.pain-point.md"
+    ],
+    "statuses": [
+      "open",
+      "triaged",
+      "resolved",
+      "converted",
+      "accepted",
+      "duplicate"
+    ],
+    "source": "artifacts/release-train-engineer/pain-point.artifact.schema.json"
+  },
+  {
+    "slug": "adr",
+    "label": "Adr",
+    "pathPatterns": [
+      "art/*/program-backlog/*/*.adr.md"
+    ],
+    "statuses": [
+      "proposed",
+      "accepted",
+      "rejected",
+      "superseded"
+    ],
+    "source": "artifacts/system-architect/adr.artifact.schema.json"
+  },
+  {
+    "slug": "feature-enabler",
+    "label": "Feature Enabler",
+    "pathPatterns": [
+      "art/*/program-backlog/*/*.feature-enabler.md"
+    ],
+    "statuses": [
+      "funnel",
+      "refined",
+      "arch-pending",
+      "ready",
+      "committed",
+      "in-progress",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/system-architect/feature-enabler.artifact.schema.json"
+  },
+  {
+    "slug": "story-enabler",
+    "label": "Story Enabler",
+    "pathPatterns": [
+      "art/*/teams/*/team-backlog/*/*.story-enabler.md"
+    ],
+    "statuses": [
+      "backlog",
+      "ready",
+      "in-progress",
+      "in-review",
+      "in-qa",
+      "awaiting-pr",
+      "done",
+      "blocked"
+    ],
+    "source": "artifacts/system-architect/story-enabler.artifact.schema.json"
+  }
+]

@@ -1,0 +1,514 @@
+{
+  "source": "conf/workspace.conf.yaml",
+  "nodes": [
+    {
+      "slug": "portfolio",
+      "description": "Workspace root folder.",
+      "children": [
+        {
+          "slug": "portfolio-manifest.yaml",
+          "description": "Portfolio manifest and ART/product registry.",
+          "artifact": "portfolio-manifest",
+          "template": "layers/portfolio/actors/value-management-officer/artifacts/portfolio-manifest",
+          "cardinality": "1"
+        },
+        {
+          "slug": "strategic-themes.md",
+          "description": "Portfolio-level strategic themes.",
+          "artifact": "strategic-themes",
+          "template": "layers/portfolio/actors/business-owner/artifacts/strategic-themes",
+          "cardinality": "1"
+        },
+        {
+          "slug": "portfolio-vision.md",
+          "description": "Portfolio vision.",
+          "artifact": "portfolio-vision",
+          "template": "layers/portfolio/actors/business-owner/artifacts/portfolio-vision",
+          "cardinality": "1"
+        },
+        {
+          "slug": "portfolio-roadmap.md",
+          "description": "Portfolio roadmap.",
+          "artifact": "portfolio-roadmap",
+          "template": "layers/portfolio/actors/business-owner/artifacts/portfolio-roadmap",
+          "cardinality": "1"
+        },
+        {
+          "slug": "budget-allocation.md",
+          "description": "Strategic Investment Planning allocation record.",
+          "artifact": "budget-allocation",
+          "template": "layers/portfolio/actors/value-management-officer/artifacts/budget-allocation",
+          "cardinality": "1"
+        },
+        {
+          "slug": "budget-allocation.feasibility-review.md",
+          "description": "Feasibility challenge of the Strategic Investment Planning allocation.",
+          "artifact": "feasibility-review",
+          "template": "layers/team/actors/developer/artifacts/feasibility-review",
+          "cardinality": "0..1"
+        },
+        {
+          "slug": "portfolio-kanban.md",
+          "description": "Portfolio Kanban rendered from Epic frontmatter.",
+          "artifact": "portfolio-kanban",
+          "template": "layers/portfolio/actors/value-management-officer/artifacts/portfolio-kanban",
+          "cardinality": "1"
+        },
+        {
+          "slug": "sync",
+          "description": "Portfolio Sync records.",
+          "children": [
+            {
+              "slug": "<sync-slug>.portfolio-sync.md",
+              "description": "One Portfolio Sync record.",
+              "artifact": "portfolio-sync",
+              "template": "layers/portfolio/actors/value-management-officer/artifacts/portfolio-sync",
+              "cardinality": "0..*"
+            }
+          ]
+        },
+        {
+          "slug": "reviews",
+          "description": "Strategic Portfolio Review decisions.",
+          "children": [
+            {
+              "slug": "<review-slug>.portfolio-review.md",
+              "description": "One portfolio review decision.",
+              "artifact": "portfolio-review-decision",
+              "template": "layers/portfolio/actors/value-management-officer/artifacts/portfolio-review-decision",
+              "cardinality": "0..*"
+            }
+          ]
+        },
+        {
+          "slug": "portfolio-backlog",
+          "description": "Portfolio-scoped epics backlog.",
+          "children": [
+            {
+              "slug": "<epic-slug>",
+              "description": "Epic folder.",
+              "children": [
+                {
+                  "slug": "<epic-slug>.epic.md",
+                  "description": "Portfolio-scoped epic.",
+                  "artifact": "epic",
+                  "template": "layers/portfolio/actors/business-owner/artifacts/epic",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "<epic-slug>.epic-enabler.md",
+                  "description": "Portfolio-scoped enabler epic.",
+                  "artifact": "epic-enabler",
+                  "template": "layers/portfolio/actors/enterprise-architect/artifacts/epic-enabler",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "<epic-slug>.lean-business-case.md",
+                  "description": "Lean business case for the epic.",
+                  "artifact": "lean-business-case",
+                  "template": "layers/portfolio/actors/business-owner/artifacts/lean-business-case",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "<epic-slug>.feasibility-review.md",
+                  "description": "Feasibility challenge of the Epic and Lean Business Case.",
+                  "artifact": "feasibility-review",
+                  "template": "layers/team/actors/developer/artifacts/feasibility-review",
+                  "cardinality": "0..1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "art",
+          "description": "Agile Release Train (ART) workspace (one folder per ART slug).",
+          "children": [
+            {
+              "slug": "<art-slug>",
+              "description": "ART folder.",
+              "children": [
+                {
+                  "slug": "art-manifest.yaml",
+                  "description": "ART manifest and registry entry.",
+                  "artifact": "art-manifest",
+                  "template": "layers/program/actors/release-train-engineer/artifacts/art-manifest",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "program-kanban.md",
+                  "description": "Program Kanban rendered from Feature frontmatter.",
+                  "artifact": "program-kanban",
+                  "template": "layers/program/actors/release-train-engineer/artifacts/program-kanban",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "releases",
+                  "description": "Release on Demand records, decoupled from PI cadence.",
+                  "children": [
+                    {
+                      "slug": "<release-slug>",
+                      "description": "One release subject.",
+                      "children": [
+                        {
+                          "slug": "<release-slug>.release-on-demand.md",
+                          "description": "Product Manager release decision.",
+                          "artifact": "release-on-demand",
+                          "template": "layers/program/actors/product-manager/artifacts/release-on-demand",
+                          "cardinality": "1"
+                        },
+                        {
+                          "slug": "<release-slug>.operability-review.md",
+                          "description": "Operator Continuous Deployment readiness for this release.",
+                          "artifact": "operability-review",
+                          "template": "layers/team/actors/operator/artifacts/operability-review",
+                          "cardinality": "1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "slug": "improvement-backlog",
+                  "description": "ART-scoped continuous improvement backlog.",
+                  "children": [
+                    {
+                      "slug": "<pain-point-slug>",
+                      "description": "Pain point folder.",
+                      "children": [
+                        {
+                          "slug": "<pain-point-slug>.pain-point.md",
+                          "description": "Improvement pain point.",
+                          "artifact": "pain-point",
+                          "template": "layers/program/actors/release-train-engineer/artifacts/pain-point",
+                          "cardinality": "1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "slug": "program-backlog",
+                  "description": "ART-scoped program backlog.",
+                  "children": [
+                    {
+                      "slug": "<feature-slug>",
+                      "description": "Feature folder.",
+                      "children": [
+                        {
+                          "slug": "<feature-slug>.feature.md",
+                          "description": "Program-scoped feature.",
+                          "artifact": "feature",
+                          "template": "layers/program/actors/product-manager/artifacts/feature",
+                          "cardinality": "1"
+                        },
+                        {
+                          "slug": "<feature-slug>.feature-enabler.md",
+                          "description": "Program-scoped enabler feature.",
+                          "artifact": "feature-enabler",
+                          "template": "layers/program/actors/system-architect/artifacts/feature-enabler",
+                          "cardinality": "1"
+                        },
+                        {
+                          "slug": "<adr-slug>.adr.md",
+                          "description": "Architecture decision records.",
+                          "artifact": "adr",
+                          "template": "layers/program/actors/system-architect/artifacts/adr",
+                          "cardinality": "0..*"
+                        },
+                        {
+                          "slug": "<feature-slug>.feasibility-review.md",
+                          "description": "Feasibility challenge from Feature Backlog Refinement or Architectural Runway Extension.",
+                          "artifact": "feasibility-review",
+                          "template": "layers/team/actors/developer/artifacts/feasibility-review",
+                          "cardinality": "0..1"
+                        },
+                        {
+                          "slug": "<feature-slug>.architecture-review.md",
+                          "description": "Architecture challenge from Feature Backlog Refinement (not an ADR).",
+                          "artifact": "architecture-review",
+                          "template": "layers/program/actors/system-architect/artifacts/architecture-review",
+                          "cardinality": "0..1"
+                        },
+                        {
+                          "slug": "<feature-slug>.operability-review.md",
+                          "description": "Operability challenge from Architectural Runway Extension.",
+                          "artifact": "operability-review",
+                          "template": "layers/team/actors/operator/artifacts/operability-review",
+                          "cardinality": "0..1"
+                        },
+                        {
+                          "slug": "<feature-slug>.security-review.md",
+                          "description": "Security challenge from Feature Backlog Refinement or Architectural Runway Extension.",
+                          "artifact": "security-review",
+                          "template": "layers/team/actors/security-expert/artifacts/security-review",
+                          "cardinality": "0..1"
+                        },
+                        {
+                          "slug": "<feature-slug>.ux-review.md",
+                          "description": "UX challenge from Feature Backlog Refinement.",
+                          "artifact": "ux-review",
+                          "template": "layers/team/actors/ux-designer/artifacts/ux-review",
+                          "cardinality": "0..1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "slug": "teams",
+                  "description": "Teams belonging to the ART.",
+                  "children": [
+                    {
+                      "slug": "<team-slug>",
+                      "description": "Team folder.",
+                      "children": [
+                        {
+                          "slug": "team-manifest.yaml",
+                          "description": "Team manifest and registry entry.",
+                          "artifact": "team-manifest",
+                          "template": "layers/team/actors/scrum-master/artifacts/team-manifest",
+                          "cardinality": "1"
+                        },
+                        {
+                          "slug": "team-backlog",
+                          "description": "Team-scoped backlog.",
+                          "children": [
+                            {
+                              "slug": "<story-slug>",
+                              "description": "Story folder.",
+                              "children": [
+                                {
+                                  "slug": "<story-slug>.story.md",
+                                  "description": "Team-scoped story.",
+                                  "artifact": "story",
+                                  "template": "layers/team/actors/product-owner/artifacts/story",
+                                  "cardinality": "1"
+                                },
+                                {
+                                  "slug": "<story-slug>.story-enabler.md",
+                                  "description": "Team-scoped enabler story.",
+                                  "artifact": "story-enabler",
+                                  "template": "layers/program/actors/system-architect/artifacts/story-enabler",
+                                  "cardinality": "1"
+                                },
+                                {
+                                  "slug": "<story-slug>.qa-signoff.md",
+                                  "description": "QA signoff.",
+                                  "artifact": "qa-signoff",
+                                  "template": "layers/team/actors/quality-engineer/artifacts/qa-signoff",
+                                  "cardinality": "1"
+                                },
+                                {
+                                  "slug": "<story-slug>.code-change.md",
+                                  "description": "Pair-programming code-change record.",
+                                  "artifact": "code-change",
+                                  "template": "layers/team/actors/developer/artifacts/code-change",
+                                  "cardinality": "0..1"
+                                },
+                                {
+                                  "slug": "<story-slug>.feasibility-review.md",
+                                  "description": "Feasibility challenge from Team Backlog Refinement.",
+                                  "artifact": "feasibility-review",
+                                  "template": "layers/team/actors/developer/artifacts/feasibility-review",
+                                  "cardinality": "0..1"
+                                },
+                                {
+                                  "slug": "<story-slug>.ux-review.md",
+                                  "description": "UX challenge from Team Backlog Refinement.",
+                                  "artifact": "ux-review",
+                                  "template": "layers/team/actors/ux-designer/artifacts/ux-review",
+                                  "cardinality": "0..1"
+                                },
+                                {
+                                  "slug": "<story-slug>.architecture-review.md",
+                                  "description": "Architecture challenge from Team Backlog Refinement (not an ADR).",
+                                  "artifact": "architecture-review",
+                                  "template": "layers/program/actors/system-architect/artifacts/architecture-review",
+                                  "cardinality": "0..1"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "slug": "daily",
+                          "description": "Team Sync records.",
+                          "children": [
+                            {
+                              "slug": "<daily-slug>.team-sync.md",
+                              "description": "One Team Sync record.",
+                              "artifact": "team-sync",
+                              "template": "layers/team/actors/scrum-master/artifacts/team-sync",
+                              "cardinality": "0..*"
+                            }
+                          ]
+                        },
+                        {
+                          "slug": "iteration-retrospective.md",
+                          "description": "Iteration Retrospective record.",
+                          "artifact": "iteration-retrospective",
+                          "template": "layers/team/actors/scrum-master/artifacts/iteration-retrospective",
+                          "cardinality": "0..1"
+                        },
+                        {
+                          "slug": "iteration-review.md",
+                          "description": "Iteration Review record.",
+                          "artifact": "iteration-review",
+                          "template": "layers/team/actors/scrum-master/artifacts/iteration-review",
+                          "cardinality": "0..1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "slug": "pi-<pi-slug>",
+                  "description": "PI folder.",
+                  "children": [
+                    {
+                      "slug": "objectives.md",
+                      "description": "PI objectives.",
+                      "artifact": "objectives",
+                      "template": "layers/program/actors/release-train-engineer/artifacts/objectives",
+                      "cardinality": "1"
+                    },
+                    {
+                      "slug": "objectives.feasibility-review.md",
+                      "description": "Feasibility challenge of the committed PI Objectives.",
+                      "artifact": "feasibility-review",
+                      "template": "layers/team/actors/developer/artifacts/feasibility-review",
+                      "cardinality": "0..1"
+                    },
+                    {
+                      "slug": "risks.md",
+                      "description": "PI risks.",
+                      "artifact": "risks",
+                      "template": "layers/program/actors/release-train-engineer/artifacts/risks",
+                      "cardinality": "1"
+                    },
+                    {
+                      "slug": "art-sync.md",
+                      "description": "ART Sync reconcile record.",
+                      "artifact": "art-sync",
+                      "template": "layers/program/actors/release-train-engineer/artifacts/art-sync",
+                      "cardinality": "0..1"
+                    },
+                    {
+                      "slug": "system-demo.md",
+                      "description": "System Demo / Demo Gate packet.",
+                      "artifact": "system-demo",
+                      "template": "layers/program/actors/release-train-engineer/artifacts/system-demo",
+                      "cardinality": "0..1"
+                    },
+                    {
+                      "slug": "iterations",
+                      "description": "PI iterations.",
+                      "children": [
+                        {
+                          "slug": "<iteration-slug>",
+                          "description": "Iteration folder.",
+                          "children": [
+                            {
+                              "slug": "plan.md",
+                              "description": "Iteration plan (includes Progress and Done sections directly; there is no separate progress artifact).",
+                              "artifact": "plan",
+                              "template": "layers/team/actors/scrum-master/artifacts/plan",
+                              "cardinality": "1"
+                            },
+                            {
+                              "slug": "plan.feasibility-review.md",
+                              "description": "Feasibility challenge of the Iteration Plan.",
+                              "artifact": "feasibility-review",
+                              "template": "layers/team/actors/developer/artifacts/feasibility-review",
+                              "cardinality": "0..1"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "products",
+          "description": "Product definitions (not backlogs).",
+          "children": [
+            {
+              "slug": "<product-slug>",
+              "description": "Product folder (one per product slug).",
+              "children": [
+                {
+                  "slug": "product-manifest.yaml",
+                  "description": "Product manifest and registry entry.",
+                  "artifact": "product-manifest",
+                  "template": "layers/portfolio/actors/value-management-officer/artifacts/product-manifest",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "product-vision.md",
+                  "description": "Product vision.",
+                  "artifact": "product-vision",
+                  "template": "layers/program/actors/product-manager/artifacts/product-vision",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "product-roadmap.md",
+                  "description": "Product roadmap.",
+                  "artifact": "product-roadmap",
+                  "template": "layers/program/actors/product-manager/artifacts/product-roadmap",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "architecture-vision.md",
+                  "description": "Architecture vision.",
+                  "artifact": "architecture-vision",
+                  "template": "layers/portfolio/actors/enterprise-architect/artifacts/architecture-vision",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "architecture-vision.security-review.md",
+                  "description": "Security challenge of the Architectural Vision NFR backbone.",
+                  "artifact": "security-review",
+                  "template": "layers/team/actors/security-expert/artifacts/security-review",
+                  "cardinality": "0..1"
+                },
+                {
+                  "slug": "architecture-vision.operability-review.md",
+                  "description": "Operability challenge of the Architectural Vision.",
+                  "artifact": "operability-review",
+                  "template": "layers/team/actors/operator/artifacts/operability-review",
+                  "cardinality": "0..1"
+                },
+                {
+                  "slug": "nfr-list.md",
+                  "description": "Product Nonfunctional Requirements register. Canonical enduring constraints; Features and Stories only trace.",
+                  "artifact": "nfr-list",
+                  "template": "layers/program/actors/system-architect/artifacts/nfr-list",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "architecture-runway.md",
+                  "description": "Architecture runway.",
+                  "artifact": "architecture-runway",
+                  "template": "layers/program/actors/system-architect/artifacts/architecture-runway",
+                  "cardinality": "1"
+                },
+                {
+                  "slug": "architecture-runway.operability-review.md",
+                  "description": "Operability challenge of Architecture Runway.",
+                  "artifact": "operability-review",
+                  "template": "layers/team/actors/operator/artifacts/operability-review",
+                  "cardinality": "0..1"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

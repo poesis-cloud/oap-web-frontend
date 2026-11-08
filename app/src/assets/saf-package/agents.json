@@ -1,0 +1,100 @@
+[
+  {
+    "slug": "business-owner",
+    "name": "Business Owner",
+    "kind": "specialist",
+    "description": "Framework-owned business owner specialist for strategic themes, business epics, hypothesis shaping, leading indicators, and WSJF ranking inside the SAFe framework.",
+    "source": "agents/business-owner.agent.md"
+  },
+  {
+    "slug": "developer",
+    "name": "Developer",
+    "kind": "specialist",
+    "description": "Framework-owned software implementation specialist created for this SAFe framework. Use for story implementation, coding, tests, refactors, feasibility checks, and Driver or Navigator execution inside the framework.",
+    "source": "agents/developer.agent.md"
+  },
+  {
+    "slug": "enterprise-architect",
+    "name": "Enterprise Architect",
+    "kind": "specialist",
+    "description": "Framework-owned enterprise architecture specialist for portfolio-level runway, NFR backbone, feature seeding, and enabler epic authoring inside the SAFe framework.",
+    "source": "agents/enterprise-architect.agent.md"
+  },
+  {
+    "slug": "operator",
+    "name": "Operator",
+    "kind": "specialist",
+    "description": "Framework-owned platform and operations specialist for CI/CD, Helm, deployment topology, environment configuration, infrastructure runway, and observability operations inside the SAFe framework.",
+    "source": "agents/operator.agent.md"
+  },
+  {
+    "slug": "product-manager",
+    "name": "Product Manager",
+    "kind": "specialist",
+    "description": "**SAFe AUTHOR SKILL \u2014 PM hat.** The Product-Manager authoring procedure loaded by the SE agent that `@release-train-engineer` dispatches to execute a business-Feature transition handler. USE FOR: deriving business Features from an approved Epic (`Feature \u2205\u2192funnel`); refining a business Feature to acceptance criteria + WSJF + the `structurant` flag (`funnel\u2192refined`); setting `parentEpic`. DO NOT USE FOR: enabler Features (use `system-architect`); deciding any \u2605 gate (Central Supervisor); authoring Epics (use `business-owner`) or Stories (use `product-owner`); ADRs (use `system-architect`). Loaded explicitly by dispatch prompt: `Acting as PM \u2014 load skills/product-manager, execute handler \"<Feature@state>\"`.",
+    "source": "agents/product-manager.agent.md"
+  },
+  {
+    "slug": "product-owner",
+    "name": "Product Owner",
+    "kind": "specialist",
+    "description": "Framework-owned product owner specialist for business story derivation, acceptance criteria, story grooming, and Definition-of-Ready preparation inside the SAFe framework.",
+    "source": "agents/product-owner.agent.md"
+  },
+  {
+    "slug": "quality-engineer",
+    "name": "Quality Engineer",
+    "kind": "specialist",
+    "description": "Framework-owned quality specialist for QA acceptance, DoD verification, escaped-defect checks, sign-off artifacts, and testability review inside the SAFe framework.",
+    "source": "agents/quality-engineer.agent.md"
+  },
+  {
+    "slug": "release-train-engineer",
+    "name": "Release Train Engineer",
+    "kind": "orchestrator",
+    "description": "Release Train Engineer \u2014 program / ART orchestrator for the SAFe-shaped AI team. Receives approved Epics from @value-management-officer, derives + refines Features (Program Kanban), runs the architecture runway (\u2605 Architecture Gate) and PI Planning, dispatches @scrum-master for iteration execution, merges PRs (\u2605 PR Gate), and stages the Demo Gate (\u2605 Demo Gate). Dispatches the framework specialist bench and @developer / @quality-engineer as subagents. Halts only at the human approval gates (Architecture / PR / Demo). Never writes production code.",
+    "source": "agents/release-train-engineer.agent.md"
+  },
+  {
+    "slug": "scrum-master",
+    "name": "Scrum Master",
+    "kind": "orchestrator",
+    "description": "Scrum Master \u2014 iteration/team-layer orchestrator for the SAFe-shaped AI team. Runs Iteration Planning, Story grooming (PO hat), the pair-programming micro-cycle (HUDDLE -> DRIVE -> CRITIQUE -> ACCEPT/REJECT -> SWAP), the Team Kanban, WIP limits, Daily/Review/Retro, QA acceptance, and \u2605 PR Gate packet preparation. Dispatched by @release-train-engineer for execution, or invoked directly for iteration work. Never writes production code; never decides scope.",
+    "source": "agents/scrum-master.agent.md"
+  },
+  {
+    "slug": "security-expert",
+    "name": "Security Expert",
+    "kind": "specialist",
+    "description": "Framework-owned security specialist for trust boundaries, threat modeling, authentication and authorization concerns, secrets handling, compliance risk, and pre-merge security verdicts inside the SAFe framework.",
+    "source": "agents/security-expert.agent.md"
+  },
+  {
+    "slug": "system-architect",
+    "name": "System Architect",
+    "kind": "specialist",
+    "description": "Framework-owned system architecture specialist for ADR authoring, decision inventories, enabler feature and story authoring, and architecture runway execution inside the SAFe framework.",
+    "source": "agents/system-architect.agent.md"
+  },
+  {
+    "slug": "tech-writer",
+    "name": "Tech Writer",
+    "kind": "specialist",
+    "description": "Framework-owned documentation specialist for ADR polish, epic and feature prose, framework documentation, gate packet readability, and developer-facing documentation inside the SAFe framework.",
+    "source": "agents/tech-writer.agent.md"
+  },
+  {
+    "slug": "ux-designer",
+    "name": "Ux Designer",
+    "kind": "specialist",
+    "description": "Framework-owned UX specialist for user journeys, workflow affordances, UI and interaction review, and user-facing feature refinement inside the SAFe framework.",
+    "source": "agents/ux-designer.agent.md"
+  },
+  {
+    "slug": "value-management-officer",
+    "name": "Value Management Officer",
+    "kind": "orchestrator",
+    "description": "Value Management Officer \u2014 portfolio-layer orchestrator and single entry point for the SAFe-shaped AI team. The operational arm of Lean Portfolio Management (LPM): the portfolio-level analog of the Release Train Engineer and Scrum Master. Drives Strategic Themes + Epics through the Portfolio Kanban (funnel -> portfolio-backlog -> implementing -> done), facilitates the \u2605 Epic Gate with the Business-Owner / Enterprise-Architect hats, owns Portfolio Init, ART registration, portfolio risk, Epic cost roll-up, and the Epics GitHub board, then dispatches @release-train-engineer per ART for Feature breakdown, PI, and execution. Never writes production code.",
+    "source": "agents/value-management-officer.agent.md"
+  }
+]

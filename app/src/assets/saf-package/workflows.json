@@ -1,0 +1,2099 @@
+[
+  {
+    "slug": "architectural-vision",
+    "layer": "portfolio",
+    "description": "Purpose: establish the portfolio architectural runway and NFR backbone. Act: Demand. Orchestrator: Value Management Officer. In-scope mains: architecture-vision. Challenges: security (NFR backbone), operability (not evaluated). Evaluate: architecture-vision; KO reiterates the EA owner step. Use when: portfolio NFR backbone, target ARTs, enabler Epic seeds, Architectural Vision itself. Refuse ART ADRs (architectural-runway-extension). Refuse Epic hypothesis (epic-lean-business-case). Strategic Portfolio Review may confirm this main during Cadence; it does not replace this practice.",
+    "orchestrator": "value-management-officer",
+    "predecessors": [
+      "epic-lean-business-case"
+    ],
+    "steps": [
+      {
+        "slug": "ea-draft",
+        "description": "Main artifact draft \u2014 Enterprise Architect authors the Architectural Vision and NFR backbone.",
+        "actor": "enterprise-architect",
+        "artifact": "architecture-vision",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-architectural-vision-draft"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-security-nfr",
+        "description": "Challenge packet \u2014 Security Expert security-review of the portfolio NFR backbone. Not itself challenged.",
+        "actor": "security-expert",
+        "artifact": "security-review",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-ea-draft",
+            "kind": "precondition",
+            "step": "ea-draft"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-operability",
+        "description": "Challenge packet \u2014 Operator operability-review of the Architectural Vision. Not itself challenged.",
+        "actor": "operator",
+        "artifact": "operability-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-ea-draft",
+            "kind": "precondition",
+            "step": "ea-draft"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite",
+        "description": "Owner rewrite \u2014 Enterprise Architect commits Architectural Vision after the challenge packets.",
+        "actor": "enterprise-architect",
+        "artifact": "architecture-vision",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-security-nfr",
+            "kind": "precondition",
+            "step": "challenge-security-nfr"
+          },
+          {
+            "slug": "after-challenge-operability",
+            "kind": "precondition",
+            "step": "challenge-operability"
+          }
+        ],
+        "instructions": [
+          "portfolio-architectural-vision-rewrite"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/architectural-vision.workflow.conf.yaml"
+  },
+  {
+    "slug": "epic-lean-business-case",
+    "layer": "portfolio",
+    "description": "Purpose: write a portfolio bet. Act: Demand. Orchestrator: Value Management Officer. In-scope mains the intent requires: epic, lean-business-case, epic-enabler (sibling, not a review; catalog still walks; out-of-scope siblings get explicit-none). Challenge: Developer feasibility-review (not evaluated). Evaluate: those mains; KO reiterates that main's owner step. Use when: new bet, thicken Epic/LBC, portfolio-sized impact, kill/pivot as a rewrite of that Epic. Do not use for Feature/Story grain (Refuse).",
+    "orchestrator": "value-management-officer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "draft-epic",
+        "description": "Main artifact draft \u2014 Business Owner authors the business Epic hypothesis.",
+        "actor": "business-owner",
+        "artifact": "epic",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-epic-lean-business-case-draft-epic"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "discovery-and-draft",
+        "description": "Main artifact draft \u2014 Business Owner authors the Lean Business Case after discovery.",
+        "actor": "business-owner",
+        "artifact": "lean-business-case",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-epic",
+            "kind": "precondition",
+            "step": "draft-epic"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-lean-business-case-discovery-open-items-recorded-or-explicitly-none"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "draft-enabler-epic",
+        "description": "Main artifact draft \u2014 Enterprise Architect sibling Enabler Epic (technical counter-proposal, not a review packet).",
+        "actor": "enterprise-architect",
+        "artifact": "epic-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-epic",
+            "kind": "precondition",
+            "step": "draft-epic"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-lean-business-case-draft-enabler-epic"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the Lean Business Case and Enabler Epic. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-discovery-and-draft",
+            "kind": "precondition",
+            "step": "discovery-and-draft"
+          },
+          {
+            "slug": "after-draft-enabler-epic",
+            "kind": "precondition",
+            "step": "draft-enabler-epic"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite",
+        "description": "Owner rewrite \u2014 Business Owner commits the Lean Business Case after the feasibility challenge.",
+        "actor": "business-owner",
+        "artifact": "lean-business-case",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-discovery-and-draft",
+            "kind": "precondition",
+            "step": "discovery-and-draft"
+          },
+          {
+            "slug": "after-draft-enabler-epic",
+            "kind": "precondition",
+            "step": "draft-enabler-epic"
+          },
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-lean-business-case-owner-rewrites-case"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/epic-lean-business-case.workflow.conf.yaml"
+  },
+  {
+    "slug": "portfolio-sync",
+    "layer": "portfolio",
+    "description": "Purpose: cadence snapshot of portfolio risks, WIP, Kanban. Act: Cadence or Inspect. Orchestrator: Value Management Officer. Dispatch: portfolio-sync mediation record. Manifests and Kanban are projections, not mains. Evaluate: nothing as a bet. An impediment that is Epic-sized is a later Demand, not this workflow writing an Epic. Do not Evaluate the minutes.",
+    "orchestrator": "value-management-officer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "sync",
+        "description": "Mediation record \u2014 Value Management Officer records the Portfolio Sync. Not itself challenged.",
+        "actor": "value-management-officer",
+        "artifact": "portfolio-sync",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-portfolio-sync-business-owner-priority-or-risk-view-recorded"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-portfolio-manifest",
+        "description": "Operational projection \u2014 Value Management Officer updates the portfolio manifest from the sync.",
+        "actor": "value-management-officer",
+        "artifact": "portfolio-manifest",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-sync",
+            "kind": "precondition",
+            "step": "sync"
+          }
+        ],
+        "instructions": [
+          "portfolio-portfolio-sync-update-portfolio-manifest"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-product-manifest",
+        "description": "Operational projection \u2014 Value Management Officer updates product manifests from the sync.",
+        "actor": "value-management-officer",
+        "artifact": "product-manifest",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-portfolio-manifest",
+            "kind": "precondition",
+            "step": "update-portfolio-manifest"
+          }
+        ],
+        "instructions": [
+          "portfolio-portfolio-sync-update-product-manifest"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-portfolio-kanban",
+        "description": "Operational projection \u2014 Value Management Officer refreshes Portfolio Kanban from Epic frontmatter.",
+        "actor": "value-management-officer",
+        "artifact": "portfolio-kanban",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-sync",
+            "kind": "precondition",
+            "step": "sync"
+          }
+        ],
+        "instructions": [
+          "portfolio-portfolio-sync-update-portfolio-kanban"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/portfolio-sync.workflow.conf.yaml"
+  },
+  {
+    "slug": "strategic-investment-planning",
+    "layer": "portfolio",
+    "description": "Purpose: allocate or guardrail value-stream / ART funding. Act: Cadence (or Evaluate of the last allocation). Orchestrator: Value Management Officer. Dispatch: budget-allocation. Challenge: Developer feasibility-review (not evaluated). Evaluate: the allocation only. Not Demand \u2014 do not mint an Epic. Use when: funding shift, guardrail change. Do not use for a new bet (Demand epic-lean-business-case).",
+    "orchestrator": "value-management-officer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "draft",
+        "description": "Main artifact draft \u2014 Business Owner proposes the value-stream / ART budget allocation.",
+        "actor": "business-owner",
+        "artifact": "budget-allocation",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "strategic-investment-planning-draft-allocation"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the draft allocation. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft",
+            "kind": "precondition",
+            "step": "draft"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "commit",
+        "description": "Owner rewrite \u2014 Business Owner commits the allocation after the feasibility challenge.",
+        "actor": "business-owner",
+        "artifact": "budget-allocation",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "strategic-investment-planning-commit-allocation"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/strategic-investment-planning.workflow.conf.yaml"
+  },
+  {
+    "slug": "strategic-portfolio-review",
+    "layer": "portfolio",
+    "description": "Purpose: keep, pivot, stop, or re-rank portfolio bets. Act: Cadence. Orchestrator: Value Management Officer. Dispatch mains: strategic-themes, portfolio-vision, portfolio-roadmap, architecture-vision (EA sibling main). portfolio-review-decision is mediation, not a main and not evaluated. Evaluate: the four mains. Not Demand \u2014 kill/pivot of one Epic as a rewrite is epic-lean-business-case Demand.",
+    "orchestrator": "value-management-officer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "rerank",
+        "description": "Main artifact rewrite \u2014 Business Owner re-ranks Strategic Themes.",
+        "actor": "business-owner",
+        "artifact": "strategic-themes",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-strategic-portfolio-review-update-strategic-themes"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-portfolio-vision",
+        "description": "Main artifact rewrite \u2014 Business Owner updates Portfolio Vision after the theme rerank.",
+        "actor": "business-owner",
+        "artifact": "portfolio-vision",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-rerank",
+            "kind": "precondition",
+            "step": "rerank"
+          }
+        ],
+        "instructions": [
+          "portfolio-strategic-portfolio-review-update-portfolio-vision"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-portfolio-roadmap",
+        "description": "Main artifact rewrite \u2014 Business Owner updates Portfolio Roadmap after the vision rewrite.",
+        "actor": "business-owner",
+        "artifact": "portfolio-roadmap",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-portfolio-vision",
+            "kind": "precondition",
+            "step": "update-portfolio-vision"
+          }
+        ],
+        "instructions": [
+          "portfolio-strategic-portfolio-review-update-portfolio-roadmap"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-architecture-vision",
+        "description": "Main artifact challenge-as-sibling \u2014 Enterprise Architect restates Architecture Vision against the new Portfolio Vision.",
+        "actor": "enterprise-architect",
+        "artifact": "architecture-vision",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-portfolio-vision",
+            "kind": "precondition",
+            "step": "update-portfolio-vision"
+          }
+        ],
+        "instructions": [
+          "portfolio-strategic-portfolio-review-update-architecture-vision"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "decide",
+        "description": "Mediation record \u2014 Business Owner records the kill/pivot/continue decision. Not itself challenged.",
+        "actor": "business-owner",
+        "artifact": "portfolio-review-decision",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-rerank",
+            "kind": "precondition",
+            "step": "rerank"
+          },
+          {
+            "slug": "after-update-portfolio-roadmap",
+            "kind": "precondition",
+            "step": "update-portfolio-roadmap"
+          },
+          {
+            "slug": "after-update-architecture-vision",
+            "kind": "precondition",
+            "step": "update-architecture-vision"
+          }
+        ],
+        "instructions": [
+          "portfolio-strategic-portfolio-review-human-decides-pivots"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/strategic-portfolio-review.workflow.conf.yaml"
+  },
+  {
+    "slug": "architectural-runway-extension",
+    "layer": "program",
+    "description": "Purpose: extend ART architectural runway. Orchestrator: Release Train Engineer. In-scope mains: nfr-list, adr, architecture-runway. nfr-list is the product singleton at products/<product-slug>/nfr-list.md, not a Feature-folder file. It is a precondition for ADR production. Same workflow for ADR needed, new or changed product NFR, runway gap, structurant architecture. Challenges of that packet: security, operability, feasibility (not evaluated). Evaluate: those mains; KO reiterates that main's owner step. Late-seeded Enabler Feature forces Feature refinement replay before the Architecture Gate is restaged. Refuse Feature AC/WSJF shaping (that is feature-backlog-refinement). Refuse portfolio NFR backbone (that is architectural-vision). PI Planning only confirms runway; it does not author it.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [
+      "feature-backlog-refinement"
+    ],
+    "steps": [
+      {
+        "slug": "author-nfrs",
+        "description": "Main artifact draft \u2014 System Architect records the NFR list before any ADR.",
+        "actor": "system-architect",
+        "artifact": "nfr-list",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-architectural-runway-extension-author-nfrs"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "author-adr",
+        "description": "Main artifact draft \u2014 System Architect records one ADR after the NFR list exists.",
+        "actor": "system-architect",
+        "artifact": "adr",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-author-nfrs",
+            "kind": "precondition",
+            "step": "author-nfrs"
+          }
+        ],
+        "instructions": [
+          "program-architectural-runway-extension-author-adr"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-security",
+        "description": "Challenge packet \u2014 Security Expert security-review of the NFR/ADR packet. Not itself challenged.",
+        "actor": "security-expert",
+        "artifact": "security-review",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-author-adr",
+            "kind": "precondition",
+            "step": "author-adr"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-operability",
+        "description": "Challenge packet \u2014 Operator operability-review of the NFR/ADR packet. Not itself challenged.",
+        "actor": "operator",
+        "artifact": "operability-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-author-adr",
+            "kind": "precondition",
+            "step": "author-adr"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the NFR/ADR packet. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-author-adr",
+            "kind": "precondition",
+            "step": "author-adr"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite",
+        "description": "Owner rewrite \u2014 System Architect commits Architecture Runway after the three challenge packets.",
+        "actor": "system-architect",
+        "artifact": "architecture-runway",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-security",
+            "kind": "precondition",
+            "step": "challenge-security"
+          },
+          {
+            "slug": "after-challenge-operability",
+            "kind": "precondition",
+            "step": "challenge-operability"
+          },
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "program-architectural-runway-extension-rewrite-architecture-runway"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/architectural-runway-extension.workflow.conf.yaml"
+  },
+  {
+    "slug": "art-sync",
+    "layer": "program",
+    "description": "Purpose: mid-PI inspect of dependencies and impediments. Act: Cadence or Inspect. Orchestrator: Release Train Engineer. Dispatch: art-sync mediation record. Kanban and ART manifest are projections. Evaluate: nothing as product. A Feature-sized impediment is a later Demand, not this workflow writing a Feature. Do not Evaluate the minutes.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "facilitate",
+        "description": "Mediation record \u2014 Release Train Engineer records the ART Sync. Not itself challenged.",
+        "actor": "release-train-engineer",
+        "artifact": "art-sync",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-art-sync-facilitator-authors-no-owner-content",
+          "program-art-sync-scope-architecture-operator-reconcile-recorded"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-program-kanban",
+        "description": "Operational projection \u2014 Release Train Engineer refreshes Program Kanban from the sync.",
+        "actor": "release-train-engineer",
+        "artifact": "program-kanban",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-facilitate",
+            "kind": "precondition",
+            "step": "facilitate"
+          }
+        ],
+        "instructions": [
+          "program-art-sync-update-program-kanban"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "update-art-manifest",
+        "description": "Operational projection \u2014 Release Train Engineer updates the ART manifest from the sync.",
+        "actor": "release-train-engineer",
+        "artifact": "art-manifest",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-facilitate",
+            "kind": "precondition",
+            "step": "facilitate"
+          }
+        ],
+        "instructions": [
+          "program-art-sync-update-art-manifest"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/art-sync.workflow.conf.yaml"
+  },
+  {
+    "slug": "feature-backlog-refinement",
+    "layer": "program",
+    "description": "Purpose: write a PI-ready Feature. Act: Demand. Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Same workflow for new Feature, thicken AC/WSJF, Feature-sized impact of changing X, Feature-sized UX/security gap, Enabler Feature sibling. Challenges of those mains: feasibility, architecture-review (SA challenge, not an ADR), security, UX. Evaluate: those mains; KO reiterates that main's owner step. Refuse Epic/Story grain. Refuse ADR, NFR list, and runway \u2014 those are architectural-runway-extension. Do not invent Impact Analysis.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [
+      "epic-lean-business-case",
+      "feature-derivation"
+    ],
+    "steps": [
+      {
+        "slug": "draft-business",
+        "description": "Main artifact draft \u2014 Product Manager authors the business Feature.",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-feature-backlog-refinement-draft-business-feature"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "draft-enabler",
+        "description": "Main artifact draft \u2014 System Architect sibling Enabler Feature (not a review packet).",
+        "actor": "system-architect",
+        "artifact": "feature-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-business",
+            "kind": "precondition",
+            "step": "draft-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-author-enabler-feature"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-business",
+            "kind": "precondition",
+            "step": "draft-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-architecture",
+        "description": "Challenge packet \u2014 System Architect architecture-review of the Feature/Enabler. Not an ADR.",
+        "actor": "system-architect",
+        "artifact": "architecture-review",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-business",
+            "kind": "precondition",
+            "step": "draft-business"
+          },
+          {
+            "slug": "after-draft-enabler",
+            "kind": "precondition",
+            "step": "draft-enabler"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-security",
+        "description": "Challenge packet \u2014 Security Expert security-review. Not itself challenged.",
+        "actor": "security-expert",
+        "artifact": "security-review",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-business",
+            "kind": "precondition",
+            "step": "draft-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-ux",
+        "description": "Challenge packet \u2014 UX Designer ux-review. Not itself challenged.",
+        "actor": "ux-designer",
+        "artifact": "ux-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-business",
+            "kind": "precondition",
+            "step": "draft-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite-business",
+        "description": "Owner rewrite \u2014 Product Manager commits the Feature after the four challenge packets.",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-architecture",
+            "kind": "precondition",
+            "step": "challenge-architecture"
+          },
+          {
+            "slug": "after-challenge-security",
+            "kind": "precondition",
+            "step": "challenge-security"
+          },
+          {
+            "slug": "after-challenge-ux",
+            "kind": "precondition",
+            "step": "challenge-ux"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-only-owner-writes-business-feature"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite-enabler",
+        "description": "Owner rewrite \u2014 System Architect commits the Enabler Feature after the challenge packets.",
+        "actor": "system-architect",
+        "artifact": "feature-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          },
+          {
+            "slug": "after-challenge-architecture",
+            "kind": "precondition",
+            "step": "challenge-architecture"
+          },
+          {
+            "slug": "after-challenge-security",
+            "kind": "precondition",
+            "step": "challenge-security"
+          },
+          {
+            "slug": "after-challenge-ux",
+            "kind": "precondition",
+            "step": "challenge-ux"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-only-owner-writes-enabler-feature"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/feature-backlog-refinement.workflow.conf.yaml"
+  },
+  {
+    "slug": "feature-derivation",
+    "layer": "program",
+    "description": "Purpose: split an approved Epic into ART Features (SAFe: Portfolio Epics split into Features on the ART backlog). Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Product Manager derives the business Feature; System Architect derives the Enabler Feature. No challenge protocol here \u2014 derived items then enter feature-backlog-refinement. Evaluate: those mains. Refuse Feature AC/WSJF thickening and NFR traces (that is refinement). Refuse ADR/NFR register (that is architectural-runway-extension). There is no Feature-to-Story derivation workflow; teams split Features into Stories in team-backlog-refinement.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [
+      "epic-lean-business-case"
+    ],
+    "steps": [
+      {
+        "slug": "derive-business",
+        "description": "Main artifact draft \u2014 Product Manager derives a business Feature from the approved Epic.",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-feature-derivation-derive-business"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "derive-enabler",
+        "description": "Main artifact draft \u2014 System Architect derives the sibling Enabler Feature from the approved Epic.",
+        "actor": "system-architect",
+        "artifact": "feature-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-derive-business",
+            "kind": "precondition",
+            "step": "derive-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-derivation-derive-enabler"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/feature-derivation.workflow.conf.yaml"
+  },
+  {
+    "slug": "inspect-and-adapt",
+    "layer": "program",
+    "description": "Purpose: PI quantitative/qualitative improve. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: pain-point mediation records. Do not Evaluate pain-points. A resulting Feature or Enabler is a later Demand (feature-backlog-refinement), not I&A writing a Feature.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "metrics-review",
+        "description": "Mediation record \u2014 Release Train Engineer records quantitative/qualitative pain-points. Not itself challenged.",
+        "actor": "release-train-engineer",
+        "artifact": "pain-point",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-inspect-and-adapt-metrics-review"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "pi-retrospective",
+        "description": "Mediation record \u2014 Release Train Engineer records retrospective pain-points. Not itself challenged.",
+        "actor": "release-train-engineer",
+        "artifact": "pain-point",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-metrics-review",
+            "kind": "precondition",
+            "step": "metrics-review"
+          }
+        ],
+        "instructions": [
+          "program-inspect-and-adapt-retrospective"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/inspect-and-adapt.workflow.conf.yaml"
+  },
+  {
+    "slug": "pi-planning",
+    "layer": "program",
+    "description": "Purpose: ART commit for the PI. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: confirm product-vision, product-roadmap, feature intent, architecture-runway; write objectives. Challenge: Developer feasibility-review of drafted Objectives (not evaluated). risks is ROAM mediation, not a main. Evaluate: objectives (and a confirmed main only if the user KOs that intent). \"I want SSO\" here is Refuse \u2014 Demand feature-backlog-refinement first.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [
+      "feature-backlog-refinement"
+    ],
+    "steps": [
+      {
+        "slug": "confirm-product-vision",
+        "description": "Main artifact confirm \u2014 Product Manager restates product vision for this PI.",
+        "actor": "product-manager",
+        "artifact": "product-vision",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-pi-planning-confirm-product-vision"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "confirm-product-roadmap",
+        "description": "Main artifact confirm \u2014 Product Manager restates the product roadmap for this PI.",
+        "actor": "product-manager",
+        "artifact": "product-roadmap",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-confirm-product-vision",
+            "kind": "precondition",
+            "step": "confirm-product-vision"
+          }
+        ],
+        "instructions": [
+          "program-pi-planning-confirm-product-roadmap"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "confirm-intent",
+        "description": "Main artifact confirm \u2014 Product Manager restates Feature intent that this PI will commit against.",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-confirm-product-roadmap",
+            "kind": "precondition",
+            "step": "confirm-product-roadmap"
+          }
+        ],
+        "instructions": [
+          "program-pi-planning-confirm-feature-intent"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "confirm-runway",
+        "description": "Main artifact confirm \u2014 System Architect restates Architecture Runway capacity for this PI.",
+        "actor": "system-architect",
+        "artifact": "architecture-runway",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-pi-planning-confirm-architecture-runway"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "draft-objectives",
+        "description": "Main artifact draft \u2014 Release Train Engineer proposes committed and stretch PI Objectives.",
+        "actor": "release-train-engineer",
+        "artifact": "objectives",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-confirm-intent",
+            "kind": "precondition",
+            "step": "confirm-intent"
+          },
+          {
+            "slug": "after-confirm-runway",
+            "kind": "precondition",
+            "step": "confirm-runway"
+          }
+        ],
+        "instructions": [
+          "program-pi-planning-draft-pi-objectives"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the drafted PI Objectives. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-objectives",
+            "kind": "precondition",
+            "step": "draft-objectives"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "commit-objectives",
+        "description": "Owner rewrite \u2014 Release Train Engineer commits PI Objectives after the feasibility challenge.",
+        "actor": "release-train-engineer",
+        "artifact": "objectives",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "program-pi-planning-commit-pi-objectives"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "record-risks",
+        "description": "Mediation ledger \u2014 Product Manager records ROAM risks. Not a main artifact; not challenged.",
+        "actor": "product-manager",
+        "artifact": "risks",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-commit-objectives",
+            "kind": "precondition",
+            "step": "commit-objectives"
+          }
+        ],
+        "instructions": [
+          "program-pi-planning-record-roam-risks"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/pi-planning.workflow.conf.yaml"
+  },
+  {
+    "slug": "release-on-demand",
+    "layer": "program",
+    "description": "Purpose: ship an accepted increment off-cadence. Act: Advance. Orchestrator: Release Train Engineer. Dispatch: release-on-demand after Operator operability-review (not evaluated). Evaluate: the release decision. Refuse: \"fix prod\" with no Story \u2014 SM Demand first. Not Demand \u2014 do not mint a Feature.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [
+      "system-demo"
+    ],
+    "steps": [
+      {
+        "slug": "confirm-deployment",
+        "description": "Challenge packet \u2014 Operator operability-review of Continuous Deployment readiness. Not itself challenged.",
+        "actor": "operator",
+        "artifact": "operability-review",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 4.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-release-on-demand-confirm-deployment"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "commit-release",
+        "description": "Owner rewrite \u2014 Product Manager commits the release-on-demand decision after the operability challenge.",
+        "actor": "product-manager",
+        "artifact": "release-on-demand",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-confirm-deployment",
+            "kind": "precondition",
+            "step": "confirm-deployment"
+          }
+        ],
+        "instructions": [
+          "program-release-on-demand-commit-release"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/release-on-demand.workflow.conf.yaml"
+  },
+  {
+    "slug": "system-demo",
+    "layer": "program",
+    "description": "Purpose: inspect the integrated increment; human demo gate. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: system-demo mediation / gate record. Evaluate: the increment shown (Stories/Features), not the minutes.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "facilitate",
+        "description": "Mediation record \u2014 Release Train Engineer records the System Demo / demo gate. Not itself challenged.",
+        "actor": "release-train-engineer",
+        "artifact": "system-demo",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-system-demo-facilitator-authors-no-owner-content",
+          "program-system-demo-human-decides-gate"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/system-demo.workflow.conf.yaml"
+  },
+  {
+    "slug": "iteration-planning",
+    "layer": "team",
+    "description": "Purpose: commit the iteration. Act: Cadence. Orchestrator: Scrum Master. Dispatch: confirm team-manifest; write plan. Challenge: Developer feasibility-review of the drafted plan (not evaluated). Evaluate: the plan. Not Demand \u2014 a new bug or Story is team-backlog-refinement.",
+    "orchestrator": "scrum-master",
+    "predecessors": [
+      "team-backlog-refinement"
+    ],
+    "steps": [
+      {
+        "slug": "confirm-team-manifest",
+        "description": "Main artifact confirm \u2014 Scrum Master restates team capacity and membership for this iteration.",
+        "actor": "scrum-master",
+        "artifact": "team-manifest",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-iteration-planning-confirm-team-manifest"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "draft-plan",
+        "description": "Main artifact draft \u2014 Scrum Master proposes Iteration Goals and the selected Story list.",
+        "actor": "scrum-master",
+        "artifact": "plan",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-confirm-team-manifest",
+            "kind": "precondition",
+            "step": "confirm-team-manifest"
+          }
+        ],
+        "instructions": [
+          "team-iteration-planning-draft-iteration-plan"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the drafted Iteration Plan. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft-plan",
+            "kind": "precondition",
+            "step": "draft-plan"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "commit-plan",
+        "description": "Owner rewrite \u2014 Scrum Master commits the Iteration Plan after the feasibility challenge.",
+        "actor": "scrum-master",
+        "artifact": "plan",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "team-iteration-planning-commit-iteration-plan"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/iteration-planning.workflow.conf.yaml"
+  },
+  {
+    "slug": "iteration-retrospective",
+    "layer": "team",
+    "description": "Purpose: team qualitative improve. Act: Cadence. Orchestrator: Scrum Master. Dispatch: iteration-retrospective mediation record. Evaluate: nothing as a Story. A resulting Story is a later Demand. Do not Evaluate minutes.",
+    "orchestrator": "scrum-master",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "facilitate",
+        "description": "Mediation record \u2014 Scrum Master records the Iteration Retrospective. Not itself challenged.",
+        "actor": "scrum-master",
+        "artifact": "iteration-retrospective",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-retrospective-facilitator-authors-no-owner-content"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/iteration-retrospective.workflow.conf.yaml"
+  },
+  {
+    "slug": "iteration-review",
+    "layer": "team",
+    "description": "Purpose: inspect the increment at iteration end. Act: Cadence. Orchestrator: Scrum Master. Dispatch: iteration-review mediation record. Evaluate: the increment shown, not the minutes.",
+    "orchestrator": "scrum-master",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "review",
+        "description": "Mediation record \u2014 Scrum Master records the Iteration Review. Not itself challenged.",
+        "actor": "scrum-master",
+        "artifact": "iteration-review",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-iteration-review-facilitator-authors-no-owner-content"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/iteration-review.workflow.conf.yaml"
+  },
+  {
+    "slug": "pair-programming",
+    "layer": "team",
+    "description": "Purpose: implement an already-OK Story. Act: Advance. Orchestrator: Scrum Master. Dispatch: code-change (driver). Navigator authors no second artifact. Built-In Quality of the code is verification qa-signoff, not an in-pair packet. Evaluate: not the code-change as a Demand; \"this isn't what I meant\" is KO of the Story (Demand rewrite) or stay in Advance. Not Demand \u2014 do not mint a Story.",
+    "orchestrator": "scrum-master",
+    "predecessors": [
+      "iteration-planning"
+    ],
+    "steps": [
+      {
+        "slug": "drive",
+        "description": "Main artifact \u2014 Developer records the pair-programming code-change. Challenged later by verification, not by a navigator packet.",
+        "actor": "developer",
+        "artifact": "code-change",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 8.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-pair-programming-drive-code-change"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/pair-programming.workflow.conf.yaml"
+  },
+  {
+    "slug": "team-backlog-refinement",
+    "layer": "team",
+    "description": "Purpose: write a ready-enough Story, including splitting a Feature into Stories (SAFe: teams split Features into Stories; there is no named Story-derivation ceremony). Orchestrator: Scrum Master. In-scope mains: story, story-enabler. Same workflow for new Story, bug, spike, debt slice, thicken AC, split. Challenges of those mains: feasibility, UX, architecture-review (SA challenge, not an ADR). Evaluate: those mains; KO reiterates that main's owner step. Refuse Feature/Epic grain. Refuse ADR and the product NFR register (hand off to RTE architectural-runway-extension). Stories inherit NFR applicability from the parent Feature; they do not define NFRs. Do not invent Bug Intake.",
+    "orchestrator": "scrum-master",
+    "predecessors": [
+      "feature-backlog-refinement"
+    ],
+    "steps": [
+      {
+        "slug": "draft",
+        "description": "Main artifact draft \u2014 Product Owner authors the business Story.",
+        "actor": "product-owner",
+        "artifact": "story",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-story-backlog-refinement-discovery-open-items-recorded-or-explicitly-none"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "draft-enabler",
+        "description": "Main artifact draft \u2014 System Architect sibling Enabler Story (not a review packet).",
+        "actor": "system-architect",
+        "artifact": "story-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft",
+            "kind": "precondition",
+            "step": "draft"
+          }
+        ],
+        "instructions": [
+          "team-backlog-refinement-author-story-enabler"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-feasibility",
+        "description": "Challenge packet \u2014 Developer feasibility-review of the Story and Enabler Story. Not itself challenged.",
+        "actor": "developer",
+        "artifact": "feasibility-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 8.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft",
+            "kind": "precondition",
+            "step": "draft"
+          },
+          {
+            "slug": "after-draft-enabler",
+            "kind": "precondition",
+            "step": "draft-enabler"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-ux",
+        "description": "Challenge packet \u2014 UX Designer ux-review of the Story. Not itself challenged.",
+        "actor": "ux-designer",
+        "artifact": "ux-review",
+        "capabilities": {
+          "deep-reasoning": 8.0,
+          "coding": 2.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft",
+            "kind": "precondition",
+            "step": "draft"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "challenge-architecture",
+        "description": "Challenge packet \u2014 System Architect architecture-review of the Story. Not an ADR.",
+        "actor": "system-architect",
+        "artifact": "architecture-review",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 3.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 6.0
+        },
+        "conditions": [
+          {
+            "slug": "after-draft",
+            "kind": "precondition",
+            "step": "draft"
+          },
+          {
+            "slug": "after-draft-enabler",
+            "kind": "precondition",
+            "step": "draft-enabler"
+          }
+        ],
+        "instructions": [
+          "program-feature-backlog-refinement-challenger-writes-no-owner-content"
+        ],
+        "skills": []
+      },
+      {
+        "slug": "owner-rewrite",
+        "description": "Owner rewrite \u2014 Product Owner commits the Story after the challenge packets.",
+        "actor": "product-owner",
+        "artifact": "story",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          },
+          {
+            "slug": "after-challenge-ux",
+            "kind": "precondition",
+            "step": "challenge-ux"
+          },
+          {
+            "slug": "after-challenge-architecture",
+            "kind": "precondition",
+            "step": "challenge-architecture"
+          }
+        ],
+        "instructions": [
+          "team-backlog-refinement-owner-rewrites-story"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/team-backlog-refinement.workflow.conf.yaml"
+  },
+  {
+    "slug": "team-sync",
+    "layer": "team",
+    "description": "Purpose: daily inspect-and-adapt of the iteration. Act: Cadence. Orchestrator: Scrum Master. Dispatch: team-sync mediation record. Evaluate: nothing as a Story. Fallout Demand goes to team-backlog-refinement. Do not Evaluate minutes.",
+    "orchestrator": "scrum-master",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "facilitate",
+        "description": "Mediation record \u2014 Scrum Master records the Team Sync. Not itself challenged.",
+        "actor": "scrum-master",
+        "artifact": "team-sync",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-daily-sync-facilitator-authors-no-owner-content",
+          "team-daily-sync-driver-navigator-status-recorded"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/team-sync.workflow.conf.yaml"
+  },
+  {
+    "slug": "verification",
+    "layer": "team",
+    "description": "Purpose: is this Story done. Act: Advance. Orchestrator: Scrum Master. Dispatch: qa-signoff, which IS the challenge of Story and code-change. Do not Evaluate the signoff. Evaluate: Story done-ness. Security is not a second verification actor. Not Demand.",
+    "orchestrator": "scrum-master",
+    "predecessors": [
+      "pair-programming"
+    ],
+    "steps": [
+      {
+        "slug": "verify",
+        "description": "Challenge packet \u2014 Quality Engineer qa-signoff of the Story / code-change. Not itself challenged.",
+        "actor": "quality-engineer",
+        "artifact": "qa-signoff",
+        "capabilities": {
+          "deep-reasoning": 4.0,
+          "coding": 8.0,
+          "tool-use": 8.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 2.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 7.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-verification-record-qa-signoff"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/team/verification.workflow.conf.yaml"
+  }
+]
