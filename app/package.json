@@ -1,0 +1,50 @@
+{
+  "name": "oap-web-frontend",
+  "version": "0.2.0",
+  "private": true,
+  "description": "SAI (Systemic Agentic Interface) web application: a collaborative workspace of humans and agents working in framed, auditable SAF workflows. Frontend over mocked backends.",
+  "license": "Apache-2.0",
+  "packageManager": "npm@10.9.4",
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "start": "ng serve --host 127.0.0.1 --port 4400",
+    "build": "ng build",
+    "build:dev": "ng build --configuration development",
+    "test": "ng test",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,html,css,json}\" \"tools/**/*.{mjs,py}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,css,json}\"",
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "smoke": "node tools/smoke.mjs",
+    "saf:import": "python3 tools/import-saf-package.py"
+  },
+  "dependencies": {
+    "@angular/animations": "^21.2.17",
+    "@angular/common": "^21.2.17",
+    "@angular/compiler": "^21.2.17",
+    "@angular/core": "^21.2.17",
+    "@angular/forms": "^21.2.17",
+    "@angular/platform-browser": "^21.2.17",
+    "@angular/router": "^21.2.17",
+    "@primeuix/themes": "^2.0.3",
+    "primeicons": "^7.0.0",
+    "primeng": "^21.1.9",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.18",
+    "@angular/cli": "^21.2.18",
+    "@angular/compiler-cli": "^21.2.17",
+    "@tailwindcss/postcss": "^4.3.2",
+    "jsdom": "^28.0.0",
+    "postcss": "^8.5.16",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

@@ -1,0 +1,321 @@
+/* SAI global styles: Tailwind 4 utilities + PrimeNG (Aura) bridged to the SAI tokens, like OIP.
+   The layer order lets Tailwind utilities override PrimeNG component styles. */
+@layer theme, base, primeng, components, utilities;
+
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+@import './sai-tokens.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  --font-sans: var(--sai-font-ui);
+  --font-mono: var(--sai-font-mono);
+
+  --color-bg: var(--sai-bg);
+  --color-surface: var(--sai-surface);
+  --color-surface-muted: var(--sai-surface-muted);
+  --color-surface-sunken: var(--sai-surface-sunken);
+  --color-ink: var(--sai-text);
+  --color-ink-muted: var(--sai-text-muted);
+  --color-ink-light: var(--sai-text-light);
+  --color-line: var(--sai-border);
+  --color-line-hair: var(--sai-border-hairline);
+  --color-line-strong: var(--sai-border-strong);
+  --color-primary: var(--sai-primary);
+  --color-primary-hover: var(--sai-primary-hover);
+  --color-primary-tint: var(--sai-primary-tint);
+  --color-primary-tint-text: var(--sai-primary-tint-text);
+  --color-ok: var(--sai-ok);
+  --color-ok-tint: var(--sai-ok-tint);
+  --color-warn: var(--sai-warn);
+  --color-warn-tint: var(--sai-warn-tint);
+  --color-fail: var(--sai-fail);
+  --color-fail-tint: var(--sai-fail-tint);
+  --color-info: var(--sai-info);
+  --color-info-tint: var(--sai-info-tint);
+  --color-gate: var(--sai-gate);
+  --color-gate-tint: var(--sai-gate-tint);
+  --color-ai: var(--sai-ai);
+  --color-ai-tint: var(--sai-ai-tint);
+  --color-sidebar: var(--sai-sidebar-bg);
+  --color-sidebar-text: var(--sai-sidebar-text);
+  --color-sidebar-section: var(--sai-sidebar-section);
+  --color-sidebar-active: var(--sai-sidebar-active-bg);
+  --color-sidebar-active-text: var(--sai-sidebar-active-text);
+
+  --radius-input: var(--sai-radius-input);
+  --radius-card: var(--sai-radius-card);
+  --shadow-card: var(--sai-shadow-card);
+  --shadow-raised: var(--sai-shadow-raised);
+}
+
+/* Self-hosted fonts (SIL OFL): no request leaves the instance. */
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/hanken-grotesk-latin-ext-wght-normal.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* PrimeNG bridge to the SAI tokens (same approach as OIP). */
+:root {
+  --p-font-family: var(--sai-font-ui);
+  --p-primary-color: var(--sai-primary);
+  --p-primary-hover-color: var(--sai-primary-hover);
+  --p-primary-active-color: var(--sai-primary-hover);
+  --p-primary-contrast-color: #ffffff;
+  --p-highlight-background: var(--sai-primary-tint);
+  --p-highlight-color: var(--sai-primary-tint-text);
+  --p-highlight-focus-background: var(--sai-primary-tint);
+  --p-highlight-focus-color: var(--sai-primary-tint-text);
+  --p-text-color: var(--sai-text);
+  --p-text-muted-color: var(--sai-text-muted);
+  --p-text-hover-color: var(--sai-text);
+  --p-content-background: var(--sai-surface);
+  --p-content-hover-background: var(--sai-surface-sunken);
+  --p-content-border-color: var(--sai-border);
+  --p-content-border-radius: var(--sai-radius-input);
+  --p-content-color: var(--sai-text);
+  --p-content-hover-color: var(--sai-text);
+  --p-overlay-popover-background: var(--sai-surface);
+  --p-overlay-popover-border-color: var(--sai-border);
+  --p-overlay-modal-background: var(--sai-surface);
+  --p-overlay-modal-border-color: var(--sai-border);
+  --p-overlay-select-background: var(--sai-surface);
+  --p-overlay-select-border-color: var(--sai-border);
+  --p-form-field-background: var(--sai-surface);
+  --p-form-field-color: var(--sai-text);
+  --p-form-field-border-color: var(--sai-border-strong);
+  --p-form-field-hover-border-color: var(--sai-primary);
+  --p-form-field-focus-border-color: var(--sai-primary);
+  --p-form-field-placeholder-color: var(--sai-text-light);
+  --p-form-field-border-radius: var(--sai-radius-input);
+  --p-focus-ring-color: color-mix(in srgb, var(--sai-primary) 30%, transparent);
+  --p-focus-ring-width: 3px;
+  --p-button-primary-background: var(--sai-primary);
+  --p-button-primary-border-color: var(--sai-primary);
+  --p-button-primary-hover-background: var(--sai-primary-hover);
+  --p-button-primary-hover-border-color: var(--sai-primary-hover);
+  --p-button-border-radius: var(--sai-radius-input);
+  --p-tag-font-size: 0.72rem;
+  --p-tag-padding: 0.15rem 0.5rem;
+  --p-tree-background: transparent;
+  --p-tree-node-selected-background: var(--sai-primary-tint);
+  --p-tree-node-selected-color: var(--sai-primary-tint-text);
+  --p-tree-node-hover-background: var(--sai-surface-sunken);
+  --p-tree-padding: 0.25rem;
+  --p-tree-node-padding: 0.2rem 0.4rem;
+  --p-tree-node-gap: 0.1rem;
+  --p-tree-node-toggle-button-size: 1.4rem;
+  --p-tree-indent: 0.9rem;
+  --p-tabs-tab-padding: 0.6rem 0.9rem;
+  --p-tabs-tablist-background: transparent;
+  --p-tabs-tabpanel-background: transparent;
+  --p-tabs-tabpanel-padding: 0;
+  --p-drawer-background: var(--sai-surface);
+  --p-drawer-border-color: var(--sai-border);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--sai-font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--sai-bg);
+  color: var(--sai-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+a {
+  color: var(--sai-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--sai-font-mono);
+}
+code {
+  font-size: 0.86em;
+  background: var(--sai-surface-sunken);
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--sai-surface-sunken);
+  border: 1px solid var(--sai-border);
+  border-radius: var(--sai-radius-input);
+  overflow: auto;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--sai-primary) 35%, transparent);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+/* ---- Reusable SAI pieces (kept small; Tailwind utilities do the rest) ---- */
+.sai-card {
+  background: var(--sai-surface);
+  border: 1px solid var(--sai-border-hairline);
+  border-radius: var(--sai-radius-card);
+  box-shadow: var(--sai-shadow-card);
+}
+.sai-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sai-text-muted);
+}
+.sai-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--sai-text-muted);
+  border: 1px dashed var(--sai-border-strong);
+  border-radius: var(--sai-radius-card);
+}
+.sai-progress {
+  height: 6px;
+  background: var(--sai-surface-sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.sai-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--sai-primary);
+  border-radius: 999px;
+  transition: width 300ms ease;
+}
+.sai-progress.is-gate > span {
+  background: var(--sai-gate);
+}
+.sai-progress.is-ok > span {
+  background: var(--sai-ok);
+}
+.sai-progress.is-fail > span {
+  background: var(--sai-fail);
+}
+.sai-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--sai-text-muted);
+  font-size: 0.86rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  user-select: none;
+}
+.sai-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.sai-fold > summary::before {
+  content: '▸';
+  display: inline-block;
+  transition: transform 120ms ease;
+  color: var(--sai-text-light);
+}
+.sai-fold[open] > summary::before {
+  transform: rotate(90deg);
+}
+.sai-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.sai-table th,
+.sai-table td {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--sai-border);
+  vertical-align: top;
+}
+.sai-table th {
+  color: var(--sai-text-muted);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* PrimeNG tree: file-explorer density. */
+.p-tree .p-tree-node-content {
+  border-radius: 6px;
+}
+.p-tree .p-tree-node-label {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
