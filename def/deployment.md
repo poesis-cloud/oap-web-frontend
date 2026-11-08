@@ -10,6 +10,23 @@ Question from Nicolas (2026-11-08): how do we put this mock online so that the t
 - The preview is as public as the code; the privacy argument of the table below no longer applies to this repository.
 - The workflow file lives under `def/ci/preview.yaml` until a token with the `workflow` scope moves it to `.github/workflows/` (the push of 2026-11-08 was refused for that file with the current token).
 
+## Deploy from this repository (decision of Nicolas, 2026-11-08 21:45): checklist
+
+Everything is in the branch `Nicolas`; three one-time actions remain, none of which the assistant's account or token can do (`namasa-web` has push, not admin; the `gh` token has no `workflow` scope; the attempts were refused on 2026-11-08):
+
+1. **Enable Pages** (repository admin, e.g. Clément): Settings → Pages → Build and deployment → Source: **GitHub Actions**. Then Settings → Environments → `github-pages` → Deployment branches: add **`Nicolas`** (the environment is created restricted to the default branch).
+2. **Put the workflow in place** (Nicolas, 30 seconds):
+   ```bash
+   source /Users/namasa/Projects/Poesis-Project/.tools/poesis-env.sh
+   gh auth refresh -h github.com -s workflow            # one-time: adds the workflow scope to the token
+   cd /Users/namasa/Projects/Poesis-Project/POESIS-SAI/oap-web-frontend
+   git mv def/ci/preview.yaml .github/workflows/preview.yaml
+   git commit -s -m "ci: preview workflow in place" && git push origin Nicolas
+   ```
+3. **Deploy**: Actions → `oap-frontend-preview` → Run workflow → branch `Nicolas`, `deploy = pages`, `base_href = /oap-web-frontend/`. The site answers at **`https://poesis-cloud.github.io/oap-web-frontend/`** (deep links work: the build copies `index.html` to `404.html`). For `https://oap-preview.poesis.cloud/`: Settings → Pages → Custom domain, and a `CNAME oap-preview → poesis-cloud.github.io` at GoDaddy; then redeploy with `base_href = /`.
+
+After step 2, every push of `Nicolas` verifies and builds the branch and keeps the site as the artifact `oap-frontend-preview`; to redeploy Pages on every push, change the `pages` job condition from `workflow_dispatch` to `push` (one line).
+
 ## Facts checked on 2026-11-08 at 20:55 (read-only, `gh api`, `dig`)
 
 | Fact | Value | Consequence |
