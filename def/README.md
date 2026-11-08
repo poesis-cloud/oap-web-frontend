@@ -1,4 +1,4 @@
-# SAI Web Frontend — design-time definitions
+# OAP Web Frontend — design-time definitions
 
 Design-time material for the SAI web application: product study, screen mockups, and design
 references. The main [README](../README.md) stays short and points here.
@@ -12,6 +12,7 @@ references. The main [README](../README.md) stays short and points here.
 | [saf-integration.md](saf-integration.md) | what SAF provides, mapping of harness functions to the views, what slice 1 simulates |
 | [security.md](security.md) | threat model, controls, what is not secured yet |
 | [testing.md](testing.md) | test levels, acceptance traceability, results |
-| [adr/](adr/) | ADR-001 stack · ADR-002 (superseded) · ADR-003 core and ports · ADR-004 SAF contracts · ADR-005 (superseded) · **ADR-006 OIP UI stack** · **ADR-007 mocked backends** |
+| [deployment.md](deployment.md) | how to put the mock online for team previews: checked facts (GitHub Free plan, private repository), options, recommendation (Azure Static Web Apps Free), the preview workflow |
+| [adr/](adr/) | ADR-001 stack · ADR-002 (superseded) · ADR-003 core and ports · ADR-004 SAF contracts · ADR-005 (superseded) · **ADR-006 OIP UI stack** · **ADR-007 mocked backends** · **ADR-008 Organization surface, gates as conversations, cost and time** |
 
-Normative sources are the GitHub issues: affordance poesis#40, capability oap#1 and its features, saf#6; plus Clément's direction of 2026-11-08 (three surfaces, mocked backends, OIP stack). These documents derive from them.
+Normative sources are the GitHub issues: affordance poesis#40, capability oap#1 and its features, saf#6; plus Clément's directions of 2026-11-08 (four surfaces including Organization, mocked backends, OIP stack, Specialized SAFe configuration first, decisions are gates and gates are conversations, cost and time of runs, end-to-end analysis). The product name in the UI is Organization Agentic Platform (OAP); SAI remains the name of the capability in the issues. These documents derive from them.

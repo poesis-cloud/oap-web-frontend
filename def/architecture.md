@@ -1,4 +1,4 @@
-# SAI Web Frontend — architecture (revised 2026-11-08 evening)
+# OAP Web Frontend — architecture (revised 2026-11-08 night)
 
 Design-time material for the SAI web application. Normative sources, in order: affordance [poesis#40](https://github.com/poesis-cloud/poesis/issues/40) (rules R2–R18, constraints C1–C6), capability [oap#1](https://github.com/poesis-cloud/oap/issues/1) (features F1–F18, lifecycles), the feature issues of the three product repositories, [saf#6](https://github.com/poesis-cloud/saf/issues/6) "SAF for SAI", the SAF harness specification (`saf-agentic-harness/def/core/spec.md`). This document derives from them and never overrides them.
 
@@ -32,17 +32,20 @@ SAI is a collaborative workspace of humans and agents working in framed, auditab
 ## 3. Layers
 
 ```
-features/        Presentation: Angular standalone components (workspace, conversations, supervisor + run detail)
+features/        Presentation: Angular standalone components (workspace, organization, conversations, supervisor + run detail)
 shared/          Artifact viewer, data tree (JSON/YAML), Markdown view, gate card, badges
 state/           Signal store: re-reads application views after each command, drives the mock scheduler, streams answers, toasts
 core/
-  application/   Use cases (SaiApplication), addressee rule, board derivation, workspace tree from the structure map, data tree
+  application/   Use cases (SaiApplication), addressee rule, board derivation, workspace tree from the structure map, data tree,
+                 organization view (folder, categories, history, gap to nominal), analysis (cost in euros, durations, subjects)
   domain/        Entities, value objects, lifecycles (workspace, conversation, thread, proposal, run, gate, notification)
   ports/         One file per backend: workspace-manager, conversation-manager, agent-runtime, iam, model-gateway
   saf/           Mirrors of the harness contracts, model-resolution rule, frontmatter reader, YAML subset reader
 infrastructure/
-  mock-world.ts  Composition root of the mocks
-  <backend>/     One folder per mocked backend (ADR-007)
+  mock-world.ts  Composition root of the mocks (INSTANCE: Specialized configuration, SAFe pack)
+  <backend>/     One folder per mocked backend (ADR-007); workspace-manager/organization-sources.ts fetches the SAF
+                 organization files (public/saf-package/organization-sources.json, ~850 kB, not bundled) before bootstrap
+                 so that the mocked workspace git holds them under organization/ from its nominal import (ADR-008)
 ```
 
 `core/` imports nothing from Angular. The presentation layer never implements a rule; it calls the application and renders. UI kit: PrimeNG + Tailwind on the OIP token names (ADR-006).
@@ -52,8 +55,9 @@ infrastructure/
 1. **Intent → launch proposal.** A human posts in a conversation. The addressee rule (F17-R4) routes to Copilot, to a mentioned agent or to the orchestrator of a `/workflow`. The responder answers within scope or returns a launch proposal (at most one pending per thread, F17-R2).
 2. **Confirmation → run.** A human participant confirms. The runtime launches a run of the workflow on the organization at the current workspace commit (F4-R11). The conversation shows the run link.
 3. **Run.** The runtime advances step by step on the harness lifecycle; each delivered artifact is one validated commit attributed to the step session (F14-R2); journal entries follow the harness log-entry contract; usage records are attributed per step (F3).
-4. **★ Gate → validation conversation.** After the last step, the organization's gate opens; the run waits (F4-R3). SAI opens a *validation conversation* about the artifact, invites the holders of the gate role and the requester with the agents of the run, and notifies them (S22). Holders decide there, in Supervisor, on the board card or in the run detail. Rejection with a comment reroutes to rework; approval commits the acceptance (ADR accepted, Feature leaves `arch-pending`); a reservation records a pain point (F1-R11). The decision closes the validation conversation.
-5. **History.** Board, artifact versions, run detail, journal and usage are all read from the workspace state and history; nothing is a UI-side database (F14-R4).
+4. **★ Gate → gate conversation.** After the last step, the organization's gate opens; the run waits (F4-R3). OAP opens the *gate conversation* about the artifact, invites the holders of the gate role and the requester with the agents of the run, and notifies them (S22). **The decision is taken only in that conversation** (Clément, 2026-11-08: decisions are gates, gates are conversations); Supervisor, the board card and the run detail show the gate and lead to it. Rejection with a comment reroutes to rework; approval commits the acceptance (ADR accepted, Feature leaves `arch-pending`); a reservation records a pain point (F1-R11). The decision closes the gate conversation.
+5. **Cost and time.** The model gateway rates every usage record (euros per million tokens; fictitious bands in the mock); the analysis module derives per run the cost, the duration, the time waiting for humans at gates versus agents at work, and groups the runs by **subject** (the work item whose folder holds the run's artifacts) across workflows (Supervisor › Analysis).
+6. **History.** Board, artifact versions, run detail, journal and usage are all read from the workspace state and history; nothing is a UI-side database (F14-R4).
 
 ## 5. Non-goals of this build
 
