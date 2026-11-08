@@ -17,7 +17,7 @@ The mock bundles the SAF organization sources (Apache-2.0, public repositories) 
 ## What the branch provides already
 
 - `app/` builds as a static site that works at a domain root or under a sub-path (`ng build --base-href /oap-web-frontend/`): relative asset URLs, fonts bundled, SPA fallback (`404.html` copy for Pages, `staticwebapp.config.json` for Azure).
-- `.github/workflows/preview.yaml` on the branch `Nicolas`: on every push, clean install (`npm ci`), type check, unit tests, production build, and the site uploaded as the workflow artifact **`oap-frontend-preview`** (members download it from the run page and serve it locally with any static server, for 14 days).
+- `def/ci/preview.yaml` (to move to `.github/workflows/` with a `workflow`-scoped token) on the branch `Nicolas`: on every push, clean install (`npm ci`), type check, unit tests, production build, and the site uploaded as the workflow artifact **`oap-frontend-preview`** (members download it from the run page and serve it locally with any static server, for 14 days).
 - Two **manual** deployment jobs (`workflow_dispatch`, input `deploy`): `pages` and `swa`. They stay inert until someone runs them on purpose.
 - `tools/smoke.mjs --dist dist-subpath --base /oap-web-frontend` walks the built site under a sub-path, to prove the hosting layout.
 

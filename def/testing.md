@@ -34,6 +34,6 @@ Direct Vitest invocation, useful on a constrained machine: `./node_modules/.bin/
 - `ng build` (production): PASS; initial bundle 960 kB raw / 209 kB transferred, within the budgets of ADR-006 (the organization sources, 853 kB, are a fetched asset, not part of the bundle).
 - `tools/smoke.mjs`: 12 steps PASS, 34 screenshots, 0 console error.
 - Clean install from the lock file (`npm ci` in an empty folder, `.npmrc` with `legacy-peer-deps`): PASS, 493 packages; production build on that install: see `../../evidence/` (CI simulation).
-- `.github/workflows/preview.yaml` runs the same type check, tests and build on every push of the branch `Nicolas`.
+- `def/ci/preview.yaml` (to move to `.github/workflows/` with a `workflow`-scoped token) runs the same type check, tests and build on every push of the branch `Nicolas`.
 
 Earlier in the evening (three surfaces): 10 files, 44 tests; 944 kB / 205 kB; 11 steps, 26 screenshots.
