@@ -1,8 +1,11 @@
 @if (conversation(); as c) {
   <div class="pane-bar bg-surface">
     <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/conversation" ariaLabel="Back to the list" styleClass="md:!hidden" />
-    @if (c.kind === 'validation') {
-      <span class="text-gate" aria-label="gate conversation">★</span>
+    @if (pinnedGate()) {
+      <span class="text-gate" aria-label="a gate waits here">★</span>
+    }
+    @if (session()) {
+      <span class="rounded-full bg-ai-tint px-2 py-0.5 text-[11px] font-semibold text-ai" title="Worker session of a run step">session</span>
     }
     @if (renaming()) {
       <input pInputText size="small" class="max-w-xs" [ngModel]="draftTitle()" (ngModelChange)="draftTitle.set($event)" (keydown.enter)="rename(c)" (keydown.escape)="renaming.set(false)" aria-label="Conversation title" />
@@ -12,6 +15,12 @@
     }
     @if (c.status !== 'open') {
       <sai-status [status]="c.status" />
+    }
+    @if (session(); as sess) {
+      <a class="text-xs text-ink-muted" [routerLink]="['/supervision', 'runs', sess.run.id]">{{ sess.run.workflowSlug | title }} · {{ sess.run.workflowInstanceId }}</a>
+      @if (sess.step?.status; as st) {
+        <sai-status [status]="st" />
+      }
     }
     <span class="pane-spacer"></span>
     <div class="flex items-center -space-x-1.5" aria-label="Participants">
@@ -59,17 +68,17 @@
               @for (a of quickAgents; track a) {
                 <button type="button" class="sai-chip" (click)="insert('@' + a + ' ')">&#64;{{ a }}</button>
               }
-              @if (c.kind === 'work') {
+              @if (!session() && !pinnedGate()) {
                 <button type="button" class="sai-chip" (click)="insert('/architectural-runway-extension ')">/architectural-runway-extension</button>
               }
             </div>
-            <textarea pTextarea id="composer" rows="1" class="w-full" [ngModel]="draft()" (ngModelChange)="draft.set($event)" name="draft" [placeholder]="c.kind === 'validation' ? 'Discuss the artifact with the reviewers; @agent asks an agent of the run' : 'Write to the workspace; @agent addresses an agent, /workflow launches one'" (keydown.enter)="onEnter($event, c)" [disabled]="!store.aiNoticeAcknowledged()" aria-label="Message"></textarea>
+            <textarea pTextarea id="composer" rows="1" class="w-full" [ngModel]="draft()" (ngModelChange)="draft.set($event)" name="draft" [placeholder]="session() ? 'Ask the agent of this session; it answers within its scope' : pinnedGate() ? 'Discuss the artifact with the reviewers; the orchestrator answers, @agent asks an agent of the run' : 'Write to the workspace; @agent addresses an agent, /workflow launches one'" (keydown.enter)="onEnter($event, c)" [disabled]="!store.aiNoticeAcknowledged()" aria-label="Message"></textarea>
           </div>
           <p-button icon="pi pi-send" type="submit" [rounded]="true" ariaLabel="Send" pTooltip="Send (Enter)" tooltipPosition="top" [disabled]="!draft().trim() || !store.aiNoticeAcknowledged()" />
         </form>
       } @else {
         <div class="border-t border-line px-5 py-3 text-center text-sm text-ink-muted">
-          {{ c.status === 'closed' ? 'This gate is decided; the conversation is closed.' : 'This conversation is archived. Restore it to continue.' }}
+          {{ c.status === 'closed' ? 'This conversation is closed.' : 'This conversation is archived. Restore it to continue.' }}
         </div>
       }
     </div>
@@ -131,8 +140,8 @@
     @if (m.kind === 'system') {
       <div class="py-1 text-center text-xs text-ink-muted">
         {{ m.content }}
-        @if (m.refs.validationConversationId) {
-          <a [routerLink]="['/conversation', m.refs.validationConversationId]">Open the gate conversation</a>
+        @if (m.refs.sessionConversationId) {
+          <a [routerLink]="['/conversation', m.refs.sessionConversationId]">Open the session</a>
         }
       </div>
     } @else {
@@ -157,14 +166,11 @@
           } @else if (m.kind === 'run-link') {
             <ng-container *ngTemplateOutlet="runCard; context: { $implicit: runOf(m), m: m }" />
           } @else if (m.kind === 'gate') {
+            <div class="sai-bubble border-l-4 border-l-gate">{{ m.content }}</div>
             @if (gateOf(m); as g) {
-              @if (c.kind === 'validation') {
-                <div class="sai-bubble">{{ m.content }}</div>
-              } @else {
-                <sai-gate-flow [run]="g.run" [gate]="g.gate" (review)="viewing.set($event)" />
+              @if (g.gate.status !== 'pending') {
+                <div class="mt-2"><sai-gate-flow [run]="g.run" [gate]="g.gate" (review)="viewing.set($event)" /></div>
               }
-            } @else {
-              <div class="sai-bubble">{{ m.content }}</div>
             }
           } @else {
             <div class="sai-bubble">{{ visible(m) }}@if (m.streaming === 'streaming') {<span class="animate-pulse text-ai" aria-hidden="true">▍</span>}</div>

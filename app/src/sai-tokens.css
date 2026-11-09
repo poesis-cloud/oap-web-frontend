@@ -1,114 +1,130 @@
 /* ============================================================================
-   SAI UI — design tokens (v2, aligned with the OIP indigo system)
-   Imported once at the app root. Every colour, space, radius and shadow in the
-   UI comes from a token below — no hard-coded hex values in components.
-   The names mirror `oip-web-frontend/app/src/itip-tokens.css` so that SAI,
-   embedded in OIP later (F11), reads as one product. Tokens SAI adds: ★ gate
-   (gold) and AI (violet) accents, status tones.
+   OAP design tokens — the Poesis "Deep Field" system (poesis.cloud, 2026-11-09)
+   Dark-first, luminous: deep-space surfaces, hairline borders, a teal→cyan accent,
+   indigo for AI, gold for ★ gates. System fonts, no webfont. Every colour, radius and
+   shadow of the application comes from here; components never hard-code values.
+   Token names keep the `--sai-` prefix (shared with the OIP mapping); values are Poesis.
    ============================================================================ */
 
 :root {
-  /* ---- Brand / primary (indigo, shared with OIP) ---- */
-  --sai-primary: #4f46e5;
-  --sai-primary-hover: #4338ca;
-  --sai-primary-tint: #eef2ff;
-  --sai-primary-tint-border: #dfe3ff;
-  --sai-primary-tint-text: #4338ca;
+  color-scheme: dark;
+
+  /* ---- Type ---- */
+  --sai-font-ui: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Helvetica, Roboto, Noto, Arial, sans-serif;
+  --sai-font-mono: 'SFMono-Regular', Menlo, Consolas, 'Roboto Mono', monospace;
 
   /* ---- Surfaces ---- */
-  --sai-bg: #f5f6f8;
-  --sai-surface: #ffffff;
-  --sai-surface-muted: #fafbfc;
-  --sai-surface-sunken: #f1f3f6;
+  --sai-bg: #070a12;
+  --sai-surface: #0b1120;
+  --sai-surface-muted: #0d1426;
+  --sai-surface-sunken: #111a2e;
+  --sai-aura:
+    radial-gradient(60rem 40rem at 18% -12%, rgba(45, 212, 191, 0.1), transparent 60%),
+    radial-gradient(48rem 32rem at 92% 0%, rgba(129, 140, 248, 0.08), transparent 60%);
 
-  /* ---- Sidebar (dark shell, same in both themes) ---- */
-  --sai-sidebar-bg: #0f1729;
-  --sai-sidebar-text: #94a3b8;
-  --sai-sidebar-section: #4b5a73;
-  --sai-sidebar-active-bg: rgba(79, 70, 229, 0.18);
-  --sai-sidebar-active-border: #4f46e5;
-  --sai-sidebar-active-text: #e0e7ff;
+  /* ---- Side menu ---- */
+  --sai-sidebar-bg: #080c16;
+  --sai-sidebar-text: #c3cdde;
+  --sai-sidebar-section: #8493a9;
+  --sai-sidebar-active-bg: rgba(45, 212, 191, 0.12);
+  --sai-sidebar-active-border: #2dd4bf;
+  --sai-sidebar-active-text: #5eead4;
 
-  /* ---- Text ---- */
-  --sai-text: #0f172a;
-  --sai-text-muted: #64748b;
-  --sai-text-light: #94a3b8;
+  /* ---- Ink ---- */
+  --sai-text: #eaf0fa;
+  --sai-text-soft: #c3cdde;
+  --sai-text-muted: #8493a9;
+  --sai-text-light: #66748f;
 
-  /* ---- Borders ---- */
-  --sai-border: #e6e8ec;
-  --sai-border-hairline: #eef0f3;
-  --sai-border-strong: #d3d8e0;
+  /* ---- Lines ---- */
+  --sai-border: rgba(255, 255, 255, 0.09);
+  --sai-border-hairline: rgba(255, 255, 255, 0.06);
+  --sai-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ---- Accent (teal → cyan) ---- */
+  --sai-primary: #2dd4bf;
+  --sai-primary-hover: #5eead4;
+  --sai-primary-contrast: #06201c;
+  --sai-primary-tint: rgba(45, 212, 191, 0.12);
+  --sai-primary-tint-border: rgba(45, 212, 191, 0.3);
+  --sai-primary-tint-text: #5eead4;
 
   /* ---- Semantics ---- */
-  --sai-ok: #16a34a;
-  --sai-ok-tint: #dcfce7;
-  --sai-warn: #d97706;
-  --sai-warn-tint: #fef3c7;
-  --sai-fail: #dc2626;
-  --sai-fail-tint: #fee2e2;
-  --sai-info: #2563eb;
-  --sai-info-tint: #dbeafe;
+  --sai-ok: #34d399;
+  --sai-ok-tint: rgba(52, 211, 153, 0.14);
+  --sai-warn: #fbbf24;
+  --sai-warn-tint: rgba(251, 191, 36, 0.14);
+  --sai-fail: #f87171;
+  --sai-fail-tint: rgba(248, 113, 113, 0.14);
+  --sai-info: #38bdf8;
+  --sai-info-tint: rgba(56, 189, 248, 0.14);
 
-  /* ---- SAI accents: ★ gate (gold), AI (violet) ---- */
-  --sai-gate: #a16207;
-  --sai-gate-tint: #fef9c3;
-  --sai-ai: #6d28d9;
-  --sai-ai-tint: #ede9fe;
-
-  /* ---- Typography ---- */
-  --sai-font-ui: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --sai-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* ---- Accents of the product: ★ gate (gold), AI (indigo) ---- */
+  --sai-gate: #f5c451;
+  --sai-gate-tint: rgba(245, 196, 81, 0.14);
+  --sai-ai: #a5b4fc;
+  --sai-ai-tint: rgba(129, 140, 248, 0.16);
+  --sai-folder: #c9a86a;
 
   /* ---- Radius ---- */
-  --sai-radius-input: 9px;
-  --sai-radius-card: 13px;
+  --sai-radius-input: 10px;
+  --sai-radius-card: 16px;
   --sai-radius-pill: 9999px;
 
-  /* ---- Shadows ---- */
-  --sai-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 26px -14px rgba(15, 23, 42, 0.16);
-  --sai-shadow-raised: 0 6px 24px -8px rgba(15, 23, 42, 0.14);
-  --sai-shadow-modal: 0 30px 60px -15px rgba(15, 23, 42, 0.4);
+  /* ---- Depth ---- */
+  --sai-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+  --sai-shadow-raised: 0 14px 40px rgba(0, 0, 0, 0.45);
+  --sai-shadow-modal: 0 30px 60px rgba(0, 0, 0, 0.6);
 
   /* ---- Motion ---- */
   --sai-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
-  --sai-dur: 0.18s;
+  --sai-dur: 0.16s;
 }
 
-/* Dark theme: set data-theme="dark" on <html>. Surfaces by elevation + hairline borders. */
-[data-theme='dark'] {
-  --sai-bg: #0a0f1c;
-  --sai-surface: #141b2d;
-  --sai-surface-muted: #1a2236;
-  --sai-surface-sunken: #111827;
+/* Light theme, for those who prefer it: same system, lifted. The side menu stays dark (brand). */
+[data-theme='light'] {
+  color-scheme: light;
 
-  --sai-text: #eaeef6;
-  --sai-text-muted: #9aa5b8;
-  --sai-text-light: #94a3b8;
+  --sai-bg: #f4f6fa;
+  --sai-surface: #ffffff;
+  --sai-surface-muted: #f9fafc;
+  --sai-surface-sunken: #eef2f7;
+  --sai-aura:
+    radial-gradient(60rem 40rem at 18% -12%, rgba(13, 148, 136, 0.08), transparent 60%),
+    radial-gradient(48rem 32rem at 92% 0%, rgba(79, 70, 229, 0.06), transparent 60%);
 
-  --sai-border: #2a3450;
-  --sai-border-hairline: #232c42;
-  --sai-border-strong: #38456a;
+  --sai-text: #0b1120;
+  --sai-text-soft: #334155;
+  --sai-text-muted: #5b6b84;
+  --sai-text-light: #8493a9;
 
-  --sai-primary: #818cf8;
-  --sai-primary-hover: #a5b4fc;
-  --sai-primary-tint: #1f2547;
-  --sai-primary-tint-border: #37407b;
-  --sai-primary-tint-text: #b7bef7;
+  --sai-border: rgba(11, 17, 32, 0.1);
+  --sai-border-hairline: rgba(11, 17, 32, 0.06);
+  --sai-border-strong: rgba(11, 17, 32, 0.18);
 
-  --sai-ok: #4ade80;
-  --sai-ok-tint: #14532d;
-  --sai-warn: #fbbf24;
-  --sai-warn-tint: #451a03;
-  --sai-fail: #f87171;
-  --sai-fail-tint: #450a0a;
-  --sai-info: #60a5fa;
-  --sai-info-tint: #1e3a8a;
+  --sai-primary: #0f766e;
+  --sai-primary-hover: #115e59;
+  --sai-primary-contrast: #ffffff;
+  --sai-primary-tint: rgba(13, 148, 136, 0.1);
+  --sai-primary-tint-border: rgba(13, 148, 136, 0.3);
+  --sai-primary-tint-text: #0f766e;
 
-  --sai-gate: #facc15;
-  --sai-gate-tint: #3b2f0a;
-  --sai-ai: #c4b5fd;
-  --sai-ai-tint: #2e1065;
+  --sai-ok: #059669;
+  --sai-ok-tint: rgba(5, 150, 105, 0.12);
+  --sai-warn: #d97706;
+  --sai-warn-tint: rgba(217, 119, 6, 0.12);
+  --sai-fail: #dc2626;
+  --sai-fail-tint: rgba(220, 38, 38, 0.1);
+  --sai-info: #0284c7;
+  --sai-info-tint: rgba(2, 132, 199, 0.12);
 
-  --sai-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 30px -14px rgba(0, 0, 0, 0.65);
-  --sai-shadow-raised: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --sai-gate: #a16207;
+  --sai-gate-tint: rgba(161, 98, 7, 0.12);
+  --sai-ai: #4f46e5;
+  --sai-ai-tint: rgba(79, 70, 229, 0.1);
+  --sai-folder: #b08a3c;
+
+  --sai-shadow-card: 0 1px 2px rgba(11, 17, 32, 0.05), 0 10px 26px -14px rgba(11, 17, 32, 0.18);
+  --sai-shadow-raised: 0 6px 24px -8px rgba(11, 17, 32, 0.16);
+  --sai-shadow-modal: 0 30px 60px -15px rgba(11, 17, 32, 0.4);
 }

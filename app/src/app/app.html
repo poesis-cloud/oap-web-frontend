@@ -131,6 +131,7 @@
       <span class="text-ink-muted">Agent runs</span>
       <p-button [label]="store.runsPaused() ? 'Resume' : 'Pause'" [icon]="store.runsPaused() ? 'pi pi-play' : 'pi pi-pause'" size="small" [text]="true" severity="secondary" (onClick)="store.toggleRunsPaused()" />
     </div>
+    <p-button label="Run the demo scenario" icon="pi pi-play" size="small" [outlined]="true" (onClick)="runScenario(); userMenu.hide()" />
     <p class="m-0 text-xs text-ink-light">Workspace manager, conversation manager, agent runtime, PIS IAM and model gateway are simulated in this browser. Agents are scripted; no model is called.</p>
   </div>
 </p-popover>

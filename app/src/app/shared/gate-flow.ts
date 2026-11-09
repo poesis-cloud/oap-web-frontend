@@ -12,10 +12,10 @@ type Step = 'notified' | 'review' | 'decide' | 'finalized';
 
 /**
  * The ★ gate as a visible, four-step journey (Clément, 2026-11-09: notification → gate →
- * artifact review → validation → finalization must feel natural at each step). The decision
- * is taken only inside the gate conversation (`mode="decide"`); elsewhere the flow shows where
- * things stand and leads to that conversation. The runtime applies the decision; the UI never
- * writes.
+ * artifact review → validation → finalization must feel natural at each step). The gate is the
+ * orchestrator's message in the conversation that launched the run; the decision is taken only
+ * there (`mode="decide"`); elsewhere the flow shows where things stand and leads to that
+ * conversation. The runtime applies the decision; the UI never writes.
  */
 @Component({
   selector: 'sai-gate-flow',
@@ -142,7 +142,7 @@ export class GateFlow {
   private readonly openedAt = Date.now();
 
   readonly mayDecide = computed(() => holdsRole(this.store.tenant(), this.store.session().userId, this.gate().holderRole));
-  readonly conversationId = computed(() => this.store.validationConversationFor(this.gate().id)?.id ?? null);
+  readonly conversationId = computed(() => this.store.gateConversationFor(this.gate().id)?.id ?? null);
   readonly current = computed((): Step => {
     if (this.gate().status !== 'pending') return 'finalized';
     if (this.mode() === 'decide' && this.mayDecide() && this.reviewed()) return 'decide';

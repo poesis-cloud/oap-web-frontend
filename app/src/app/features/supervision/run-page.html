@@ -47,6 +47,8 @@
         @if (current(); as s) {
           @if (s.kind === 'orchestrator' && conversationId()) {
             <p-button label="Join the conversation" icon="pi pi-comments" size="small" [routerLink]="['/conversation', conversationId()]" />
+          } @else if (sessionConversationId(); as id) {
+            <p-button label="Open the session conversation" icon="pi pi-comments" size="small" [routerLink]="['/conversation', id]" />
           }
           @if (s.step?.artifactPath; as path) {
             <p-button icon="pi pi-file" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Open the artifact" pTooltip="Open the artifact" tooltipPosition="bottom" (onClick)="viewing.set(path)" />
@@ -93,7 +95,7 @@
             </section>
           } @else {
             <section class="sai-card mb-4 p-4 text-sm">
-              <p class="m-0 text-ink-muted">The orchestrator session sequences the steps on the SAF harness lifecycle and talks in the launching conversation. Each step runs in its own worker session.</p>
+              <p class="m-0 text-ink-muted">The orchestrator session sequences the steps on the SAF harness lifecycle; its conversation is the one that launched the run, where its ★ gate waits for a decision. Each step runs in its own worker session, with its own conversation.</p>
             </section>
           }
           @if (showLog()) {

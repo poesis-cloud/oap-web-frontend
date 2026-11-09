@@ -21,6 +21,7 @@ import { createMockWorld, DEMO_WORKSPACE_ID, INSTANCE, type MockWorld } from '..
 import { OrganizationSourcesHolder } from './organization-sources-holder';
 
 const TICK_MS = 900;
+export const SCENARIO_INTENT = 'Design a secure REST API for customer subscriptions.';
 const STREAM_CHARS_PER_FRAME = 9;
 const STREAM_FRAME_MS = 24;
 
@@ -34,7 +35,10 @@ const STREAM_FRAME_MS = 24;
 @Injectable({ providedIn: 'root' })
 export class SaiStore {
   private readonly messages = inject(MessageService);
-  private readonly world: MockWorld = createMockWorld({ sources: inject(OrganizationSourcesHolder).sources });
+  private readonly world: MockWorld = createMockWorld({
+    sources: inject(OrganizationSourcesHolder).sources,
+    seedScenario: true,
+  });
   private readonly version = signal(0);
   private readonly streamProgress = signal<Record<string, number>>({});
   private readonly streamTimers = new Map<string, ReturnType<typeof setInterval>>();
@@ -139,7 +143,7 @@ export class SaiStore {
     const me = this.session().userId;
     if (holdsRole(this.tenant(), me, gate.holderRole)) return 'holder';
     if (run.launchedBy.kind === 'human' && run.launchedBy.userId === me) return 'requester';
-    const conversation = this.validationConversationFor(gate.id);
+    const conversation = this.gateConversationFor(gate.id);
     if (conversation?.participants.some((p) => p.status === 'joined' && p.actor.kind === 'human' && p.actor.userId === me)) return 'participant';
     return 'observer';
   }
@@ -179,13 +183,29 @@ export class SaiStore {
     }
   }
 
-  validationConversationFor(gateId: string): Conversation | null {
+  /** The conversation a gate lives in: the one that launched the run. */
+  gateConversationFor(gateId: string): Conversation | null {
     this.version();
     try {
-      return this.app.validationConversationFor(this.session(), gateId);
+      return this.app.gateConversationFor(this.session(), gateId);
     } catch {
       return null;
     }
+  }
+
+  /** The worker session conversation of a run step (one session = one conversation). */
+  sessionConversation(runId: string, stepSlug: string): Conversation | null {
+    this.version();
+    try {
+      return this.app.sessionConversation(this.session(), runId, stepSlug);
+    } catch {
+      return null;
+    }
+  }
+
+  /** The demonstration scenario: a conversation whose intent leads to a launch proposal. */
+  runScenario(): Conversation | null {
+    return this.startConversation('Subscriptions API', SCENARIO_INTENT);
   }
 
   /** Visible length of a streaming agent message; undefined once fully shown. */
@@ -367,7 +387,7 @@ export class SaiStore {
           this.toast(
             'warn',
             `★ ${event.gate.label}`,
-            'A validation conversation was opened; the run waits for a decision.',
+            'The orchestrator waits for a decision in the conversation that launched the run.',
           );
           break;
         case 'commit-gate-reverted':

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Tooltip } from 'primeng/tooltip';
 import { formatDuration, formatEuros, runSegments, spanPercent, type RunMetrics, type Share, type SubjectAnalysis } from '../../core/application/analysis';
@@ -24,6 +24,7 @@ type View = 'runs' | 'statistics';
 })
 export class RunsPage {
   readonly store = inject(SaiStore);
+  private readonly router = inject(Router);
   readonly view = signal<View>('runs');
   readonly status = signal<StatusFilter>('all');
   readonly role = signal<RoleFilter>('all');
@@ -80,6 +81,10 @@ export class RunsPage {
   }
   duration(ms: number): string {
     return formatDuration(ms);
+  }
+  runScenario(): void {
+    const conversation = this.store.runScenario();
+    if (conversation) void this.router.navigate(['/conversation', conversation.id]);
   }
   isActive(run: Run): boolean {
     return run.status === 'queued' || run.status === 'running';

@@ -31,7 +31,11 @@ import { seedWorkspace } from './workspace-manager/seed-workspace';
 
 export class MonotonicClock implements Clock {
   private last = 0;
-  constructor(private readonly source: () => number = () => Date.now()) {}
+  /** Swappable: the seeded scenario runs on a scripted, back-dated source, then real time resumes. */
+  source: () => number;
+  constructor(source: () => number = () => Date.now()) {
+    this.source = source;
+  }
   now(): string {
     let ms = this.source();
     if (ms <= this.last) ms = this.last + 1;
@@ -100,10 +104,17 @@ export interface MockWorld {
   readonly organization: OrganizationPackage;
 }
 
+export const SCENARIO_INTENT = 'Design a secure REST API for customer subscriptions.';
+
 export function createMockWorld(
-  options: { now?: () => number; sources?: OrganizationSources | null } = {},
+  options: { now?: () => number; sources?: OrganizationSources | null; seedScenario?: boolean } = {},
 ): MockWorld {
   const clock = new MonotonicClock(options.now);
+  // With a seeded scenario, the whole history (nominal import, backlog, yesterday's run) is
+  // back-dated on a scripted clock; real time resumes once the scenario is in place.
+  const scripted = options.seedScenario ? { t: Date.now() - 27 * 3_600_000 } : null;
+  const realSource = clock.source;
+  if (scripted) clock.source = () => (scripted.t += 9_000);
   const ids = new SequentialIds();
   const organization = loadSafePackage();
   const sources = options.sources ?? null;
@@ -175,7 +186,7 @@ export function createMockWorld(
     responder: new ScriptedAgents(),
     gateway,
   });
-  return {
+  const world: MockWorld = {
     app,
     session: { userId: DEMO_USER_ID, tenantId: DEMO_TENANT_ID },
     memberSession: { userId: DEMO_MEMBER_WITHOUT_ROLE, tenantId: DEMO_TENANT_ID },
@@ -190,4 +201,58 @@ export function createMockWorld(
     workspace,
     organization,
   };
+  if (scripted) {
+    try {
+      seedScenario(world, scripted);
+    } finally {
+      clock.source = realSource;
+    }
+  }
+  return world;
+}
+
+/**
+ * A workspace with history on first load (Clément, 2026-11-09: "did you see the scenario that
+ * creates run data?"): one run completed yesterday with a rejected then approved gate, and one
+ * run waiting at its ★ gate for the current user. The scripted clock back-dates it all so that
+ * durations, costs and the explorer's history read naturally; real time resumes afterwards.
+ */
+function seedScenario(world: MockWorld, scripted: { t: number }): void {
+  const advanceUntil = (runId: string, done: (status: string) => boolean): void => {
+    for (let i = 0; i < 80; i += 1) {
+      const run = world.app.run(world.adminSession, runId);
+      if (done(run.status)) return;
+      world.app.advanceRuns(DEMO_WORKSPACE_ID);
+    }
+  };
+  {
+    // Yesterday: Priya launched the scenario; Alex rejected the first ADR; Priya approved the rework.
+    const first = world.app.startConversation(world.adminSession, DEMO_WORKSPACE_ID, 'Subscriptions API', SCENARIO_INTENT);
+    const proposal = first.proposals.find((p) => p.status === 'proposed');
+    if (proposal) {
+      const { run } = world.app.confirmProposal(world.adminSession, first.id, proposal.id);
+      advanceUntil(run.id, (status) => status === 'waiting-for-gate');
+      const gate = world.app.run(world.adminSession, run.id).gates.find((g) => g.status === 'pending');
+      if (gate) world.app.decideGate(world.session, run.id, gate.id, 'rejected', 'Partners need mTLS, not only bearer tokens.', 240);
+      advanceUntil(run.id, (status) => status === 'waiting-for-gate');
+      const second = world.app.run(world.adminSession, run.id).gates.find((g) => g.status === 'pending');
+      if (second) world.app.decideGate(world.adminSession, run.id, second.id, 'approved', null, 180);
+      advanceUntil(run.id, (status) => status === 'succeeded' || status === 'failed');
+    }
+    // Yesterday's notifications are read.
+    for (const member of world.tenant.members) world.app.markAllNotificationsRead({ userId: member.userId, tenantId: DEMO_TENANT_ID });
+    // This morning: a second launch, now waiting at its gate for the holders of the role (Alex among them).
+    scripted.t = Date.now() - 2 * 3_600_000;
+    const next = world.app.startConversation(
+      world.adminSession,
+      DEMO_WORKSPACE_ID,
+      'Partner sandbox API',
+      'Design a secure REST API for the partner sandbox, reusing the subscriptions ADR.',
+    );
+    const nextProposal = next.proposals.find((p) => p.status === 'proposed');
+    if (nextProposal) {
+      const { run } = world.app.confirmProposal(world.adminSession, next.id, nextProposal.id);
+      advanceUntil(run.id, (status) => status === 'waiting-for-gate');
+    }
+  }
 }

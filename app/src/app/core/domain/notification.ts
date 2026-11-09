@@ -11,7 +11,7 @@ import type {
 
 /**
  * A notification to a human (S22, F18-R4): a gate waits for them, a run ended, a budget
- * alert, an invitation to a validation conversation. Notifications are conversation-manager
+ * alert, an invitation to the conversation where a gate waits. Notifications are conversation-manager
  * data (F17); they never carry workspace content, only links to it.
  */
 export type NotificationKind =

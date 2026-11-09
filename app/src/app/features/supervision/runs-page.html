@@ -55,7 +55,10 @@
 
       @if (view() === 'runs') {
         @if (rows().length === 0) {
-          <div class="p-10 text-center text-sm text-ink-muted">No run here. A run is one workflow executed by the SAF harness; it starts from a confirmed launch proposal in a conversation.</div>
+          <div class="flex flex-col items-center gap-3 p-10 text-center text-sm text-ink-muted">
+            <span>No run here. A run is one workflow executed by the SAF harness; it starts from a confirmed launch proposal in a conversation.</span>
+            <p-button label="Run the demo scenario" icon="pi pi-play" size="small" (onClick)="runScenario()" />
+          </div>
         } @else {
           <div class="sai-card">
             @for (m of rows(); track m.run.id) {

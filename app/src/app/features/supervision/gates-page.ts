@@ -53,7 +53,10 @@ interface GateRow {
             </div>
           }
           @if (rows().length === 0) {
-            <div class="p-10 text-center text-sm text-ink-muted">No gate here. Every decision of this workspace is taken at a ★ gate, inside its conversation.</div>
+            <div class="flex flex-col items-center gap-3 p-10 text-center text-sm text-ink-muted">
+              <span>No gate here. Every decision of this workspace is taken at a ★ gate, in the conversation that launched the run.</span>
+              <p-button label="Run the demo scenario" icon="pi pi-play" size="small" (onClick)="runScenario()" />
+            </div>
           } @else {
             <div class="sai-card overflow-x-auto">
               <table class="sai-table">
@@ -119,7 +122,7 @@ export class GatesPage {
           run,
           gate,
           role: this.store.myRoleInGate(run, gate),
-          conversationId: this.store.validationConversationFor(gate.id)?.id ?? null,
+          conversationId: this.store.gateConversationFor(gate.id)?.id ?? null,
         })),
       )
       .sort((a, b) => {
@@ -148,6 +151,10 @@ export class GatesPage {
   }
   fileName(path: string): string {
     return fileName(path);
+  }
+  runScenario(): void {
+    const conversation = this.store.runScenario();
+    if (conversation) void this.router.navigate(['/conversation', conversation.id]);
   }
   open(row: GateRow): void {
     if (row.conversationId) void this.router.navigate(['/conversation', row.conversationId]);

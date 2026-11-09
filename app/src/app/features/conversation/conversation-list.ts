@@ -9,7 +9,7 @@ import { AgoPipe, actorLabel, fileName } from '../../shared/ui';
 import { initialsOf } from '../../app';
 import { SaiStore } from '../../state/sai-store';
 
-type Filter = 'all' | 'work' | 'validation';
+type Filter = 'all' | 'mine' | 'session';
 
 @Component({
   selector: 'sai-conversation-list',
@@ -38,18 +38,18 @@ type Filter = 'all' | 'work' | 'validation';
     <div class="pane-body">
       @for (c of filtered(); track c.id) {
         <a class="sai-item" [routerLink]="['/conversation', c.id]" routerLinkActive="is-on">
-          @if (c.kind === 'validation') {
-            <span class="relative grid h-9 w-9 flex-none place-items-center rounded-full bg-gate-tint text-gate" aria-label="gate">★
+          @if (c.kind === 'session') {
+            <span class="grid h-9 w-9 flex-none place-items-center rounded-lg bg-ai-tint text-[11px] font-bold text-ai" aria-label="agent session">{{ agentInitials(c) }}</span>
+          } @else {
+            <span class="relative grid h-9 w-9 flex-none place-items-center rounded-full bg-primary-tint text-[11px] font-bold text-primary-tint-text">{{ initials(c) }}
               @if (waitsForMe(c)) {
-                <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-gate sai-pulse" aria-label="waits for your decision"></span>
+                <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-gate sai-pulse" aria-label="a gate waits for your decision"></span>
               }
             </span>
-          } @else {
-            <span class="grid h-9 w-9 flex-none place-items-center rounded-full bg-primary-tint text-[11px] font-bold text-primary-tint-text">{{ initials(c) }}</span>
           }
           <span class="sai-item-main">
             <span class="flex items-baseline justify-between gap-2">
-              <span class="sai-item-title">{{ plainTitle(c) }}</span>
+              <span class="sai-item-title">@if (waitsForMe(c)) {<span class="text-gate">★ </span>}{{ plainTitle(c) }}</span>
               <span class="sai-item-meta">{{ lastAt(c) | ago }}</span>
             </span>
             <span class="sai-item-sub">
@@ -73,8 +73,8 @@ export class ConversationList {
   readonly store = inject(SaiStore);
   readonly filters: { value: Filter; label: string }[] = [
     { value: 'all', label: 'All' },
-    { value: 'work', label: 'Work' },
-    { value: 'validation', label: '★ Gates' },
+    { value: 'mine', label: 'Mine' },
+    { value: 'session', label: 'Agent sessions' },
   ];
   readonly filter = signal<Filter>('all');
   readonly query = signal('');
@@ -82,17 +82,29 @@ export class ConversationList {
   readonly filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
     const f = this.filter();
+    const me = this.store.session().userId;
     return [...this.store.conversations()]
-      .filter((c) => (f === 'all' || c.kind === f) && (!q || c.title.toLowerCase().includes(q)))
+      .filter(
+        (c) =>
+          (f === 'all' ||
+            (f === 'session' && c.kind === 'session') ||
+            (f === 'mine' &&
+              c.kind === 'work' &&
+              c.participants.some((p) => p.status === 'joined' && p.actor.kind === 'human' && p.actor.userId === me))) &&
+          (!q || c.title.toLowerCase().includes(q)),
+      )
       .sort((a, b) => this.lastAt(b).localeCompare(this.lastAt(a)));
   });
 
   plainTitle(c: Conversation): string {
     return c.title.replace(/^★\s*/, '');
   }
-  /** A gate conversation whose gate is pending and which the current user may decide. */
+  /** A conversation where a ★ gate waits for the current user's decision. */
   waitsForMe(c: Conversation): boolean {
-    return c.kind === 'validation' && c.status === 'open' && this.store.gatesWaitingForMe().some((w) => w.gate.id === c.gateRef?.gateId);
+    return this.store.gatesWaitingForMe().some((w) => w.conversationId === c.id);
+  }
+  agentInitials(c: Conversation): string {
+    return initialsOf(actorLabel({ kind: 'agent', slug: c.sessionRef?.agent ?? 'agent' }));
   }
   last(c: Conversation): string {
     const m = c.messages.at(-1);

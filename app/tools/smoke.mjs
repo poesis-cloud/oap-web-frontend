@@ -197,9 +197,10 @@ async function main() {
       console.log(`✓ ${name}`);
     };
 
-    await step('Supervision › Gates, empty', async () => {
+    await step('Supervision › Gates, with the seeded scenario (one gate waits for the user)', async () => {
       await cdp.goto('/supervision/gates');
-      report.screenshots.push(await cdp.shot('01-gates-empty'));
+      await cdp.waitFor(`document.querySelector('sai-gate-flow') && document.body.textContent.includes('Decide in the gate conversation')`, 'seeded gate');
+      report.screenshots.push(await cdp.shot('01-gates'));
     });
     await step('Workspace › Explorer: tree, directory like GitHub, viewer over the listing', async () => {
       await cdp.nav('/workspace/explorer');
@@ -253,15 +254,15 @@ async function main() {
       await cdp.waitFor(`document.querySelector('.runcard')`, 'run card');
       report.screenshots.push(await cdp.shot('11-chat-run-started'));
     });
-    await step('Gate: raised, notified, reviewed in the viewer, rejected in its conversation', async () => {
-      await cdp.waitFor(`document.body.textContent.includes('Open the gate conversation')`, 'gate raised', 60000);
+    await step('Gate: the orchestrator ends the workflow with the gate in this conversation; reviewed in the viewer, rejected here', async () => {
+      await cdp.waitFor(`[...document.querySelectorAll('sai-gate-flow button')].some(b => b.textContent.includes('Open the artifact'))`, 'gate raised in the launching conversation', 60000);
       await sleep(600);
       report.screenshots.push(await cdp.shot('12-chat-gate-raised'));
       await cdp.click('button[aria-label="Notifications"]');
       await cdp.waitFor(`document.querySelector('p-popover') && document.body.textContent.includes('waits for your decision')`, 'notification popover');
       report.screenshots.push(await cdp.shot('13-notifications'));
       await cdp.click('.p-popover button', 'waits for your decision');
-      await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/conversation/conv-'))}) && document.querySelector('sai-gate-flow')`, 'gate conversation', 10000);
+      await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/conversation/conv-'))}) && document.querySelector('sai-gate-flow')`, 'conversation with the gate', 10000);
       await sleep(400);
       report.screenshots.push(await cdp.shot('14-gate-conversation-review'));
       await cdp.click('sai-gate-flow button', 'Open the artifact');
@@ -272,7 +273,7 @@ async function main() {
       report.screenshots.push(await cdp.shot('16-gate-decide'));
       await cdp.type('sai-gate-flow textarea', 'Partners need mTLS, not only bearer tokens.');
       await cdp.click('sai-gate-flow button', 'Reject');
-      await cdp.waitFor(`document.body.textContent.includes('This gate is decided')`, 'gate decided', 10000);
+      await cdp.waitFor(`document.body.textContent.includes('Gate rejected')`, 'gate decided', 10000);
       report.screenshots.push(await cdp.shot('17-gate-rejected'));
     });
     await step('Supervision › Gates leads to the second gate; approved in its conversation', async () => {
@@ -287,7 +288,7 @@ async function main() {
       await cdp.click('button[aria-label="Close"]');
       await cdp.waitFor(`document.querySelector('sai-gate-flow textarea')`, 'decision step');
       await cdp.click('sai-gate-flow button', 'Approve');
-      await cdp.waitFor(`document.body.textContent.includes('This gate is decided')`, 'second gate decided', 10000);
+      await cdp.waitFor(`document.body.textContent.includes('Gate approved')`, 'second gate decided', 10000);
       report.screenshots.push(await cdp.shot('19-gate-approved'));
     });
     await step('Supervision › Runs: list, statistics, run sessions and log', async () => {
@@ -303,11 +304,14 @@ async function main() {
       await sleep(400);
       report.screenshots.push(await cdp.shot('22-run-overview'));
       await cdp.click('.pane.is-list .sai-item', 'author-adr');
-      await cdp.waitFor(`document.body.textContent.includes('worker session of this step')`, 'session');
+      await cdp.waitFor(`document.body.textContent.includes('worker session of this step') && document.body.textContent.includes('Open the session conversation')`, 'session');
       report.screenshots.push(await cdp.shot('23-run-session'));
       await cdp.click('button[aria-label="Session log"]');
       await cdp.waitFor(`document.querySelector('.sai-table') && document.body.textContent.includes('resolve-step-model') || document.body.textContent.includes('No log entry')`, 'session log');
       report.screenshots.push(await cdp.shot('24-run-session-log'));
+      await cdp.click('button', 'Open the session conversation');
+      await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/conversation/conv-'))}) && document.body.textContent.includes('session') && document.body.textContent.includes('Delivered')`, 'session conversation', 10000);
+      report.screenshots.push(await cdp.shot('24b-session-conversation'));
     });
     await step('Workspace › Board and Supervision › Organization', async () => {
       await cdp.nav('/workspace/board');
@@ -355,8 +359,8 @@ async function main() {
       await sleep(300);
       report.screenshots.push(await cdp.shot('37-light-runs'));
       await cdp.nav('/conversation');
-      await cdp.click('.sai-item', 'Architecture Gate');
-      await cdp.waitFor(`document.querySelector('sai-gate-flow')`, 'gate conversation');
+      await cdp.click('.sai-item', 'Subscriptions API');
+      await cdp.waitFor(`document.querySelector('sai-gate-flow')`, 'conversation with gates');
       await sleep(300);
       report.screenshots.push(await cdp.shot('38-light-gate-conversation'));
     });

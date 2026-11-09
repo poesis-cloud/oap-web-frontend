@@ -78,7 +78,7 @@ export interface Session {
 export interface WaitingGate {
   readonly run: Run;
   readonly gate: Gate;
-  /** The validation conversation opened for this gate, when the user takes part in it. */
+  /** The conversation the gate lives in (the one that launched the run), when the user takes part in it. */
   readonly conversationId: ConversationId | null;
 }
 
@@ -90,7 +90,9 @@ export interface WaitingGate {
  * - only a holder of the organization-declared role decides a gate (F4-R3);
  * - humans never write to the workspace from SAI; only runs do, through the runtime (F17-R6);
  * - a workspace and its conversations are visible only to members of its tenant (F17-R7);
- * - a raised ★ gate opens a validation conversation and invites the holders of its role.
+ * - a raised ★ gate is the orchestrator's message in the launching conversation; the holders of
+ *   its role are invited there and decide there (Clément, 2026-11-09);
+ * - every worker session of a run is a conversation of its own (one session = one conversation).
  */
 export class SaiApplication {
   private readonly acknowledgedNotices = new Set<UserId>();
@@ -236,29 +238,38 @@ export class SaiApplication {
   gatesWaitingFor(session: Session, workspaceId: WorkspaceId): WaitingGate[] {
     const tenant = this.tenant(session);
     const me = Actor.key(Actor.human(session.userId));
-    const validations = this.deps.conversations.listByWorkspace(workspaceId).filter((c) => c.kind === 'validation');
     return this.runs(session, workspaceId)
       .map((run) => ({ run, gate: pendingGate(run) }))
       .filter((entry): entry is { run: Run; gate: Gate } => entry.gate !== undefined)
       .filter(({ gate }) => holdsRole(tenant, session.userId, gate.holderRole))
       .map(({ run, gate }) => {
-        const conversation = validations.find((c) => c.gateRef?.gateId === gate.id);
+        const conversation = this.deps.conversations.get(run.conversationId);
         const visible =
           conversation?.participants.some((p) => p.status === 'joined' && Actor.key(p.actor) === me) ?? false;
         return { run, gate, conversationId: visible && conversation ? conversation.id : null };
       });
   }
 
-  /** The validation conversation of a gate, if the user takes part in it. */
-  validationConversationFor(session: Session, gateId: GateId): Conversation | null {
+  /** The conversation a gate lives in (the run's launching conversation), if the user takes part in it. */
+  gateConversationFor(session: Session, gateId: GateId): Conversation | null {
     const run = this.runs(session, this.runWorkspace(gateId) ?? '').find((r) => r.gates.some((g) => g.id === gateId));
     if (!run) return null;
-    const conversation = this.deps.conversations
-      .listByWorkspace(run.workspaceId)
-      .find((c) => c.gateRef?.gateId === gateId);
-    if (!conversation) return null;
     try {
-      return this.conversation(session, conversation.id);
+      return this.conversation(session, run.conversationId);
+    } catch {
+      return null;
+    }
+  }
+
+  /** The worker session conversation of a run step, if any (one session = one conversation). */
+  sessionConversation(session: Session, runId: RunId, stepSlug: string): Conversation | null {
+    const run = this.run(session, runId);
+    const found = this.deps.conversations
+      .listByWorkspace(run.workspaceId)
+      .find((c) => c.sessionRef?.runId === runId && c.sessionRef.stepSlug === stepSlug);
+    if (!found) return null;
+    try {
+      return this.conversation(session, found.id);
     } catch {
       return null;
     }
@@ -306,7 +317,7 @@ export class SaiApplication {
     const conversation = this.newConversation({
       workspaceId,
       kind: 'work',
-      gateRef: null,
+      sessionRef: null,
       subject,
       title: title.trim() || 'Untitled conversation',
       createdBy: me,
@@ -429,10 +440,22 @@ export class SaiApplication {
     }
     this.deps.conversations.save(conversation);
 
-    // In a validation conversation humans talk to each other about the artifact; agents answer
-    // only when addressed (R15: no free chat, and the gate decision is the human's).
-    if (conversation.kind === 'validation' && parsed.addressee.kind === 'dispatcher') {
-      return conversation;
+    // Who answers when nobody is addressed: in a session conversation, the session's agent; in a
+    // conversation whose run waits at a ★ gate, the orchestrator of that run; otherwise Copilot.
+    let addressee = parsed.addressee;
+    let gateWaiting: Gate | undefined;
+    if (addressee.kind === 'dispatcher') {
+      if (conversation.sessionRef) {
+        addressee = { kind: 'agent', agent: conversation.sessionRef.agent };
+      } else {
+        const runs = this.deps.workspaceRead.runs(workspace.id).filter((r) => r.conversationId === conversation.id);
+        const waiting = runs.find((r) => pendingGate(r) !== undefined);
+        if (waiting) {
+          gateWaiting = pendingGate(waiting);
+          const orchestrator = findWorkflow(organization, waiting.workflowSlug)?.orchestrator;
+          if (orchestrator) addressee = { kind: 'agent', agent: orchestrator };
+        }
+      }
     }
     const responses = this.deps.responder.respond({
       conversation,
@@ -446,7 +469,8 @@ export class SaiApplication {
         workspace.id,
         this.deps.workspaceRead.runs(workspace.id),
       ),
-      addressee: parsed.addressee,
+      addressee,
+      pendingGate: gateWaiting,
     });
     conversation = this.applyResponses(conversation, threadId, message.id, responses, organization);
     this.deps.conversations.save(conversation);
@@ -737,7 +761,7 @@ export class SaiApplication {
   private newConversation(spec: {
     workspaceId: WorkspaceId;
     kind: Conversation['kind'];
-    gateRef: Conversation['gateRef'];
+    sessionRef: Conversation['sessionRef'];
     subject: ArtifactPath | null;
     title: string;
     createdBy: ActorRef;
@@ -752,7 +776,7 @@ export class SaiApplication {
       id: conversationId,
       workspaceId: spec.workspaceId,
       kind: spec.kind,
-      gateRef: spec.gateRef,
+      sessionRef: spec.sessionRef,
       subject: spec.subject,
       title: spec.title,
       createdBy: spec.createdBy,
@@ -960,9 +984,11 @@ export class SaiApplication {
   }
 
   /**
-   * Mirrors runtime events into conversations and notifications: the launching conversation
-   * gets the gate prompt and the run end; a raised ★ gate opens a validation conversation with
-   * the holders of its role, the requester and the agents of the run; decisions close it.
+   * Mirrors runtime events into conversations and notifications. The launching conversation is
+   * the orchestrator's session: it gets a notice per step (linking the worker session
+   * conversation), the ★ gate as the orchestrator's message awaiting a decision (holders of the
+   * role are invited there and notified) and the run end. Each worker session is a conversation
+   * where the agent exposes its reasoning (one session = one conversation).
    */
   private reflectEvents(run: Run, events: readonly RuntimeEvent[]): void {
     const launching = this.deps.conversations.get(run.conversationId);
@@ -980,58 +1006,93 @@ export class SaiApplication {
 
     for (const event of events) {
       switch (event.kind) {
-        case 'gate-raised': {
-          const gate = event.gate;
-          messages.push(
-            this.systemMessage(
-              threadId,
-              Actor.agent(orchestrator),
-              `★ ${gate.label} is open. Review ${gate.artifactPath} and decide; the run waits.`,
-              { runId: run.id, gateId: gate.id },
-              'gate',
-              event.at,
-            ),
-          );
-          if (!tenant || !workspace) break;
-          const holders = tenant.members.filter((m) => m.roles.includes(gate.holderRole)).map((m) => m.userId);
-          const author = run.steps.find((s) => s.artifactPath === gate.artifactPath)?.actor ?? null;
-          const humans = [...new Set([...holders, ...(launcher ? [launcher] : [])])];
-          const validation = this.newConversation({
+        case 'step-started': {
+          const step = run.steps.find((st) => st.stepSlug === event.stepSlug);
+          if (!step || !organization) break;
+          const agentName = findAgent(organization, event.actor)?.name ?? event.actor;
+          const definition = workflow?.steps.find((st) => st.slug === event.stepSlug);
+          const sessionConversation = this.newConversation({
             workspaceId: run.workspaceId,
-            kind: 'validation',
-            gateRef: { runId: run.id, gateId: gate.id, artifactPath: gate.artifactPath },
-            subject: gate.artifactPath,
-            title: `★ ${gate.label} · ${artifactFileName(gate.artifactPath)}`,
-            createdBy: Actor.agent(orchestrator),
-            participants: [
-              ...humans.map((u) => Actor.human(u)),
-              Actor.agent(orchestrator),
-              ...(author ? [Actor.agent(author)] : []),
-            ],
+            kind: 'session',
+            sessionRef: { runId: run.id, sessionId: step.sessionId, stepSlug: step.stepSlug, agent: event.actor },
+            subject: null,
+            title: `${step.stepSlug} · ${agentName}`,
+            createdBy: Actor.agent(event.actor),
+            participants: [Actor.agent(event.actor), Actor.agent(orchestrator), ...(launcher ? [Actor.human(launcher)] : [])],
           });
+          const attempt = step.attempt > 1 ? ` This is attempt ${step.attempt}, after the gate asked for rework.` : '';
           const opening = this.systemMessage(
-            mainThread(validation).id,
-            Actor.agent(orchestrator),
-            `Run ${run.workflowInstanceId} reached ★ ${gate.label}. Holders of the role "${gate.holderRole}" review ${gate.artifactPath} and decide here: approve, approve with a reservation, or reject with a comment the agents can act on. The run waits; nothing is auto-approved.`,
-            { runId: run.id, gateId: gate.id },
-            'gate',
+            mainThread(sessionConversation).id,
+            Actor.agent(event.actor),
+            `Session ${step.sessionId} started for step ${step.stepSlug} of ${run.workflowInstanceId}. I produce one ${definition?.artifact ?? 'artifact'} from ${definition?.description ? definition.description.trim() : 'the workflow inputs'}.${attempt} Ask me here if you want to steer the work; the harness checks everything I write before it becomes workspace state.`,
+            { runId: run.id },
+            'text',
             event.at,
           );
-          this.deps.conversations.save({ ...validation, messages: [opening] });
+          this.deps.conversations.save({ ...sessionConversation, messages: [opening] });
           messages.push(
             this.systemMessage(
               threadId,
               Actor.agent(orchestrator),
-              `A validation conversation “${validation.title}” was opened with ${humans.length} invited reviewer${humans.length === 1 ? '' : 's'}.`,
-              {
-                runId: run.id,
-                gateId: gate.id,
-                validationConversationId: validation.id,
-              },
+              `Step ${step.stepSlug} started: ${agentName} works in its own session.`,
+              { runId: run.id, sessionConversationId: sessionConversation.id },
               'system',
               event.at,
             ),
           );
+          break;
+        }
+        case 'commit-gate-reverted': {
+          this.appendToSession(run, event.stepSlug, (agent) =>
+            this.systemMessage(
+              '',
+              Actor.agent(agent),
+              `The harness rejected my write: ${event.reason}. I correct the artifact and retry.`,
+              { runId: run.id },
+              'text',
+              event.at,
+            ),
+          );
+          break;
+        }
+        case 'step-delivered': {
+          const step = run.steps.find((st) => st.stepSlug === event.stepSlug);
+          this.appendToSession(
+            run,
+            event.stepSlug,
+            (agent) =>
+              this.systemMessage(
+                '',
+                Actor.agent(agent),
+                `Delivered ${artifactFileName(event.artifactPath)}${step?.commitSha ? ` (commit ${step.commitSha.slice(0, 7)})` : ''}: the harness validated it against its contract. Session ended.`,
+                { runId: run.id, artifactPath: event.artifactPath },
+                'text',
+                event.at,
+              ),
+            event.artifactPath,
+          );
+          break;
+        }
+        case 'gate-raised': {
+          const gate = event.gate;
+          if (!tenant || !workspace) break;
+          const holders = tenant.members.filter((m) => m.roles.includes(gate.holderRole)).map((m) => m.userId);
+          const humans = [...new Set([...holders, ...(launcher ? [launcher] : [])])];
+          // The gate is the orchestrator's answer at the end of the workflow, in this conversation.
+          messages.push(
+            this.systemMessage(
+              threadId,
+              Actor.agent(orchestrator),
+              `The workflow is complete and waits at ★ ${gate.label}. Holders of the role "${gate.holderRole}": review ${artifactFileName(gate.artifactPath)} and decide here, to close the workflow: approve, approve with a reservation, or reject with a comment the agents will act on. Nothing is auto-approved.`,
+              { runId: run.id, gateId: gate.id, artifactPath: gate.artifactPath },
+              'gate',
+              event.at,
+            ),
+          );
+          // Holders join the conversation and are notified; the launcher already takes part.
+          let current = this.deps.conversations.get(run.conversationId) ?? launching;
+          for (const userId of holders) current = this.join(current, Actor.human(userId));
+          this.deps.conversations.save(current);
           for (const userId of humans) {
             const isHolder = holders.includes(userId);
             this.notify(
@@ -1040,12 +1101,7 @@ export class SaiApplication {
               'gate-invitation',
               `★ ${gate.label} waits for ${isHolder ? 'your decision' : 'a decision'}`,
               `${artifactFileName(gate.artifactPath)} from run ${run.workflowInstanceId}. ${isHolder ? 'You hold the role ' + gate.holderRole + '.' : 'You launched the run.'}`,
-              {
-                conversationId: validation.id,
-                runId: run.id,
-                gateId: gate.id,
-                artifactPath: gate.artifactPath,
-              },
+              { conversationId: run.conversationId, runId: run.id, gateId: gate.id, artifactPath: gate.artifactPath },
               event.at,
             );
           }
@@ -1061,27 +1117,6 @@ export class SaiApplication {
                 : 'Gate approved. Artifacts accepted without manual fixing (R14).';
           const by = gate.decidedBy ?? Actor.agent(orchestrator);
           messages.push(this.systemMessage(threadId, by, text, { runId: run.id, gateId: gate.id }, 'system', event.at));
-          const validation = this.deps.conversations
-            .listByWorkspace(run.workspaceId)
-            .find((c) => c.gateRef?.gateId === gate.id);
-          if (validation && validation.status === 'open') {
-            const status = transition('conversation', CONVERSATION_TRANSITIONS, validation.status, 'closed');
-            this.deps.conversations.save({
-              ...validation,
-              status,
-              messages: [
-                ...validation.messages,
-                this.systemMessage(
-                  mainThread(validation).id,
-                  by,
-                  `${text} This validation is closed.`,
-                  { runId: run.id, gateId: gate.id },
-                  'system',
-                  event.at,
-                ),
-              ],
-            });
-          }
           const decider = gate.decidedBy?.kind === 'human' ? gate.decidedBy.userId : null;
           if (launcher && launcher !== decider) {
             this.notify(
@@ -1090,7 +1125,7 @@ export class SaiApplication {
               'gate-decided',
               `★ ${gate.label} ${gate.status.replace(/-/g, ' ')}`,
               text,
-              { conversationId: validation?.id, runId: run.id, gateId: gate.id },
+              { conversationId: run.conversationId, runId: run.id, gateId: gate.id },
               event.at,
             );
           }
@@ -1147,6 +1182,25 @@ export class SaiApplication {
       const current = this.deps.conversations.get(run.conversationId) ?? launching;
       this.deps.conversations.save({ ...current, messages: [...current.messages, ...messages] });
     }
+  }
+
+  /** Appends the agent's own message to the worker session conversation of a step. */
+  private appendToSession(
+    run: Run,
+    stepSlug: string,
+    build: (agent: string) => Message,
+    subject: ArtifactPath | null = null,
+  ): void {
+    const conversation = this.deps.conversations
+      .listByWorkspace(run.workspaceId)
+      .find((c) => c.sessionRef?.runId === run.id && c.sessionRef.stepSlug === stepSlug);
+    if (!conversation) return;
+    const message = { ...build(conversation.sessionRef!.agent), threadId: mainThread(conversation).id };
+    this.deps.conversations.save({
+      ...conversation,
+      subject: subject ?? conversation.subject,
+      messages: [...conversation.messages, message],
+    });
   }
 
   private notify(

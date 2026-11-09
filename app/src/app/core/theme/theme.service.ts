@@ -3,7 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 
 const THEME_STORAGE_KEY = 'sai-theme';
 
-/** Light/dark theme on `data-theme`, remembered per browser (same pattern as OIP). */
+/** Dark-first (Poesis brand) with a light theme on `data-theme`, remembered per browser. */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
@@ -12,7 +12,7 @@ export class ThemeService {
 
   constructor() {
     const saved = this.readSaved();
-    this.setDark(saved !== null ? saved === 'dark' : this.systemPrefersDark());
+    this.setDark(saved !== null ? saved === 'dark' : true);
   }
 
   toggle(): void {
@@ -27,14 +27,6 @@ export class ThemeService {
       globalThis.localStorage?.setItem(THEME_STORAGE_KEY, value);
     } catch {
       // Storage can be unavailable (private window, embedded widget): the theme still applies.
-    }
-  }
-
-  private systemPrefersDark(): boolean {
-    try {
-      return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
-    } catch {
-      return false;
     }
   }
 

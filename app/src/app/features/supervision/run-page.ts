@@ -24,8 +24,9 @@ interface SessionRow {
 /**
  * One run, interactive (Clément, 2026-11-09): its sessions on the left (the orchestrator and
  * one worker session per step), the selected session in the centre with its model, tokens,
- * cost, time, artifact (viewer), harness log, and the conversation to join; the gates as
- * flows; statistics for the run.
+ * cost, time, artifact (viewer), harness log, and its conversation to join (one session = one
+ * conversation: the orchestrator's is the launching conversation, each worker has its own);
+ * the gates as flows; statistics for the run.
  */
 @Component({
   selector: 'sai-run-page',
@@ -69,6 +70,13 @@ export class RunPage {
     return path ? (this.store.artifacts().find((a) => a.path === path) ?? null) : null;
   });
   readonly conversationId = computed(() => this.run()?.conversationId ?? null);
+  /** The worker session conversation of the selected step, if it started. */
+  readonly sessionConversationId = computed(() => {
+    const s = this.current();
+    const run = this.run();
+    if (!s || !run || s.kind !== 'worker') return null;
+    return this.store.sessionConversation(run.id, s.key)?.id ?? null;
+  });
 
   euros(value: number | null | undefined): string {
     return formatEuros(value);

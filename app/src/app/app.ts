@@ -118,6 +118,12 @@ export class App {
     return this.segments()[0] === entry.key;
   }
 
+  /** Starts the demonstration conversation: intent → proposal → launch → gate. */
+  runScenario(): void {
+    const conversation = this.store.runScenario();
+    if (conversation) void this.router.navigate(['/conversation', conversation.id]);
+  }
+
   open(notification: Notification, popover: Popover): void {
     if (notification.readAt === null) this.store.markNotificationRead(notification.id);
     popover.hide();

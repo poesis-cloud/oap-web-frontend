@@ -14,6 +14,7 @@
   min-height: 0;
   background: var(--sai-sidebar-bg);
   color: var(--sai-sidebar-text);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 .brand {
   display: flex;
@@ -30,10 +31,10 @@
 }
 .brand-name {
   font-size: 14.5px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.2;
   color: #fff;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .brand-sub {
   font-size: 11px;
@@ -87,7 +88,7 @@
 }
 .menu-item.is-active .pi {
   opacity: 1;
-  color: #c7d2fe;
+  color: var(--sai-sidebar-active-text);
 }
 .menu-item .menu-label {
   flex: 1;
@@ -165,7 +166,7 @@
   height: 32px;
   border-radius: 999px;
   background: var(--sai-primary);
-  color: #fff;
+  color: var(--sai-primary-contrast);
   font-size: 12px;
   font-weight: 700;
   flex: none;

@@ -56,6 +56,16 @@ export class ScriptedAgents implements AgentResponderPort {
     if (addressee.kind === 'agent') {
       const agent = findAgent(organization, addressee.agent);
       if (!agent) return [];
+      if (context.pendingGate && agent.kind === 'orchestrator') {
+        const gate = context.pendingGate;
+        return [
+          {
+            kind: 'text',
+            agent: agent.slug,
+            content: `Noted. The workflow is complete and waits at ★ ${gate.label}: a holder of "${gate.holderRole}" approves, approves with a reservation, or rejects with a comment, and that closes it. I can answer questions about the artifact meanwhile; ask the authoring agent with @ for the detail of a step.`,
+          },
+        ];
+      }
       if (agent.kind === 'orchestrator') {
         const workflow = this.workflowFor(agent.slug, text, context);
         if (workflow) return this.proposeLaunch(workflow, context);

@@ -63,7 +63,10 @@ export interface Message {
     readonly runId?: RunId;
     readonly gateId?: GateId;
     readonly childThreadId?: ThreadId;
-    readonly validationConversationId?: ConversationId;
+    /** The worker session conversation a step notice points to. */
+    readonly sessionConversationId?: ConversationId;
+    /** The workspace artifact a gate or delivery message is about. */
+    readonly artifactPath?: string;
   };
   /** Streaming state of an agent answer (F1-R1); 'stopped' keeps the partial text. */
   readonly streaming: 'streaming' | 'done' | 'stopped';
@@ -83,24 +86,28 @@ export interface LaunchProposal {
 }
 
 /**
- * `work`: humans and agents build artifacts through launches and consultations.
- * `validation`: opened by SAI when a ★ gate is raised; the holders of the gate role, the
- * requester and the agents of the run are invited to review the artifact and decide (F4-R3).
+ * `work`: humans and agents build artifacts through launches and consultations; a run's
+ * orchestrator session **is** the conversation that launched it, and the ★ gate is the
+ * orchestrator's last message there, awaiting a decision (Clément, 2026-11-09).
+ * `session`: a worker session of a run step, where the agent exposes its reasoning and talks
+ * with the launcher or other actors (one session = one conversation).
  */
-export type ConversationKind = 'work' | 'validation';
+export type ConversationKind = 'work' | 'session';
 
-export interface GateRef {
+/** The harness session a `session` conversation stands for. */
+export interface SessionRef {
   readonly runId: RunId;
-  readonly gateId: GateId;
-  readonly artifactPath: string;
+  readonly sessionId: string;
+  readonly stepSlug: string;
+  readonly agent: string;
 }
 
 export interface Conversation {
   readonly id: ConversationId;
   readonly workspaceId: WorkspaceId;
   readonly kind: ConversationKind;
-  /** The gate a validation conversation is about; null for work conversations. */
-  readonly gateRef: GateRef | null;
+  /** The worker session this conversation exposes; null for work conversations. */
+  readonly sessionRef: SessionRef | null;
   /** The workspace artifact this conversation is about, when it has one (F5-R7 "Discuss"). */
   readonly subject: string | null;
   readonly title: string;

@@ -96,6 +96,8 @@ export interface ResponseContext {
   readonly organization: OrganizationPackage;
   readonly workItems: readonly WorkItem[];
   readonly addressee: Addressee;
+  /** The ★ gate this conversation waits on, when the orchestrator is addressed during a gate. */
+  readonly pendingGate?: Gate;
 }
 
 /** What an agent does with a human message, outside runs: answer in scope, propose a launch, consult, or decline. */

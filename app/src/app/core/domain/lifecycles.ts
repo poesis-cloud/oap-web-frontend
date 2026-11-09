@@ -23,7 +23,7 @@ export const WORKSPACE_TRANSITIONS: Table<WorkspaceStatus> = {
   archived: ['active'],
 };
 
-/** `closed` is terminal: a validation conversation closes with the gate decision it carried. */
+/** `closed` is terminal: a conversation closes with the gate decision it carried. */
 export const CONVERSATION_TRANSITIONS: Table<ConversationStatus> = {
   open: ['archived', 'closed'],
   archived: ['open'],

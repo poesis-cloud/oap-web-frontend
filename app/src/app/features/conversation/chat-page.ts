@@ -23,8 +23,10 @@ import { SaiStore } from '../../state/sai-store';
 /**
  * One conversation as a chat (F1; Clément, 2026-11-08: inspired by Teams). Messages grouped
  * with avatars, agents labelled AI with provenance, launch proposals and run cards inline, a
- * composer at the bottom. A gate conversation pins the gate flow at the top: the artifact
- * opens in the viewer over the thread, the decision is taken here.
+ * composer at the bottom. When a run launched here waits at its ★ gate, the gate flow is
+ * pinned at the top: the artifact opens in the viewer over the thread and the decision is taken
+ * here (2026-11-09: a gate is the orchestrator's message, not a conversation of its own). A
+ * worker session conversation shows its step and run in the bar.
  */
 @Component({
   selector: 'sai-chat-page',
@@ -63,12 +65,23 @@ export class ChatPage {
   }
 
   readonly quickAgents = ['system-architect', 'security-expert', 'developer', 'release-train-engineer'];
+  /** The ★ gate waiting in this conversation: the orchestrator's last word until a holder decides. */
   readonly pinnedGate = computed((): { run: Run; gate: Gate } | null => {
-    const ref = this.conversation()?.gateRef;
+    const c = this.conversation();
+    if (!c) return null;
+    for (const run of this.runsOf(c)) {
+      const gate = run.gates.find((g) => g.status === 'pending');
+      if (gate) return { run, gate };
+    }
+    return null;
+  });
+  /** The worker session this conversation exposes, with its run and step. */
+  readonly session = computed(() => {
+    const ref = this.conversation()?.sessionRef;
     if (!ref) return null;
     const run = this.store.run(ref.runId);
-    const gate = run?.gates.find((g) => g.id === ref.gateId);
-    return run && gate ? { run, gate } : null;
+    const step = run?.steps.find((st) => st.stepSlug === ref.stepSlug) ?? null;
+    return run ? { ref, run, step } : null;
   });
   readonly viewed = computed((): Artifact | null => {
     const path = this.viewing();
