@@ -14,9 +14,9 @@
             <p class="m-0 mb-3 text-sm text-ink-muted">The organization changes only through governed runs decided at a ★ gate. Each proposal opens a conversation with the orchestrator; nothing executes directly.</p>
             <div class="sai-actions">
               <p-button label="Propose a change" icon="pi pi-pencil" size="small" (onClick)="propose('change')" />
-              <p-button label="Propose an upgrade" icon="pi pi-refresh" size="small" [outlined]="true" (onClick)="propose('upgrade')" />
-              <p-button label="Propose a rollback" icon="pi pi-undo" size="small" [outlined]="true" severity="secondary" (onClick)="propose('rollback')" />
-              <p-button label="Propose to Poesis" icon="pi pi-send" size="small" [outlined]="true" severity="secondary" (onClick)="propose('poesis')" />
+              <p-button [disabled]="true" label="Upgrade · unavailable" icon="pi pi-refresh" size="small" [outlined]="true" (onClick)="propose('upgrade')" />
+              <p-button [disabled]="!store.organizationGap().length" label="Propose a rollback" icon="pi pi-undo" size="small" [outlined]="true" severity="secondary" (onClick)="propose('rollback')" />
+              <p-button [disabled]="true" label="Contribute · unavailable" icon="pi pi-send" size="small" [outlined]="true" severity="secondary" (onClick)="propose('poesis')" />
             </div>
           </section>
 
@@ -56,7 +56,7 @@
                 @for (g of gates(); track g.workflow.slug) {
                   <tr>
                     <td><span class="text-gate">★</span> {{ g.gate.label }}</td>
-                    <td><button type="button" class="text-primary" (click)="viewing.set(root + '/' + g.workflow.source)">{{ g.workflow.slug | title }}</button></td>
+                    <td>@if (g.workflow.source) { <button type="button" class="text-primary" (click)="viewing.set(root + '/' + g.workflow.source)">{{ g.workflow.slug | title }}</button> } @else { <a routerLink="/workspace/improvement">{{ g.workflow.slug | title }} · demo</a> }</td>
                     <td><code>{{ g.gate.holderRole }}</code></td>
                     <td>{{ holders(g.gate.holderRole) }}</td>
                   </tr>
@@ -104,7 +104,7 @@
           </section>
 
           <section class="sai-card p-4 text-sm">
-            <h2 class="sai-eyebrow mb-2">To create in SAF</h2>
+            <h2 class="sai-eyebrow mb-2">Learning workflows</h2><p class="text-xs text-ink-muted">Change, rollback and scorecard are frontend simulations awaiting the upstream contracts. Upgrade remains unavailable.</p><a routerLink="/workspace/improvement">Open Improvement →</a>
             <div class="flex flex-col gap-2">
               @for (w of organizationWorkflows; track w.slug) {
                 <div>

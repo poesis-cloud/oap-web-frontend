@@ -402,6 +402,13 @@
                       "cardinality": "0..1"
                     },
                     {
+                      "slug": "inspect-and-adapt.md",
+                      "description": "Inspect & Adapt record (metrics, pain-point candidates, triage).",
+                      "artifact": "inspect-and-adapt",
+                      "template": "layers/program/actors/release-train-engineer/artifacts/inspect-and-adapt",
+                      "cardinality": "0..1"
+                    },
+                    {
                       "slug": "iterations",
                       "description": "PI iterations.",
                       "children": [

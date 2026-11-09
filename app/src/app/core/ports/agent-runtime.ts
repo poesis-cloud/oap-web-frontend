@@ -95,6 +95,7 @@ export interface ResponseContext {
   readonly workspace: Workspace;
   readonly organization: OrganizationPackage;
   readonly workItems: readonly WorkItem[];
+  readonly runs: readonly Run[];
   readonly addressee: Addressee;
   /** The ★ gate this conversation waits on, when the orchestrator is addressed during a gate. */
   readonly pendingGate?: Gate;

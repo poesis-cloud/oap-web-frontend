@@ -1,3 +1,4 @@
+import { ChangeReview } from '../../shared/change-review';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -32,7 +33,7 @@ import { SaiStore } from '../../state/sai-store';
   selector: 'sai-chat-page',
   host: { class: 'flex h-full min-h-0 flex-col' },
   standalone: true,
-  imports: [NgTemplateOutlet, FormsModule, RouterLink, Button, Dialog, InputText, Popover, Select, Textarea, Tooltip, GateFlow, Viewer, ActorBadge, ProvenanceView, StatusBadge, ClockPipe, TitlePipe],
+  imports: [ChangeReview, NgTemplateOutlet, FormsModule, RouterLink, Button, Dialog, InputText, Popover, Select, Textarea, Tooltip, GateFlow, Viewer, ActorBadge, ProvenanceView, StatusBadge, ClockPipe, TitlePipe],
   templateUrl: './chat-page.html',
 })
 export class ChatPage {
@@ -46,6 +47,7 @@ export class ChatPage {
   readonly changing = signal<string | null>(null);
   readonly changeDraft = signal('');
   readonly asideDrafts: Record<string, string> = {};
+  readonly threadSummaries: Record<string, string> = {};
   readonly viewing = signal<string | null>(null);
   readonly infoOpen = signal(false);
   private readonly log = viewChild<ElementRef<HTMLElement>>('log');
@@ -80,7 +82,7 @@ export class ChatPage {
     const ref = this.conversation()?.sessionRef;
     if (!ref) return null;
     const run = this.store.run(ref.runId);
-    const step = run?.steps.find((st) => st.stepSlug === ref.stepSlug) ?? null;
+    const step = run?.steps.find((st) => st.sessionId === ref.sessionId) ?? null;
     return run ? { ref, run, step } : null;
   });
   readonly viewed = computed((): Artifact | null => {
@@ -185,6 +187,9 @@ export class ChatPage {
     if (!text) return;
     this.store.postMessage(c.id, t.id, text);
     this.asideDrafts[t.id] = '';
+  }
+  returnThread(c: Conversation, t: Thread): void {
+    if (this.store.returnChildThread(c.id, t.id, this.threadSummaries[t.id] ?? '')) this.threadSummaries[t.id] = '';
   }
   openAside(c: Conversation, m: Message): void {
     const purpose = window.prompt('What do you want to discuss aside?', 'Clarify this point');

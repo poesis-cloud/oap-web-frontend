@@ -22,13 +22,13 @@ describe('board view over the workspace (F5-R2, F14-R4)', () => {
   });
 
   it('matches SAF path patterns segment by segment', () => {
-    expect(matchPathPattern('art/*/program-backlog/*/*.adr.md', 'art/platform/program-backlog/x/y.adr.md')).toBe(true);
-    expect(matchPathPattern('art/*/program-backlog/*/*.adr.md', 'art/platform/program-backlog/x/deep/y.adr.md')).toBe(
+    expect(matchPathPattern('portfolio/art/*/program-backlog/*/*.adr.md', 'portfolio/art/platform/program-backlog/x/y.adr.md')).toBe(true);
+    expect(matchPathPattern('portfolio/art/*/program-backlog/*/*.adr.md', 'portfolio/art/platform/program-backlog/x/deep/y.adr.md')).toBe(
       false,
     );
     const world = createMockWorld();
-    expect(itemTypeForPath(world.organization, 'products/customer-platform/nfr-list.md')).toBeUndefined();
-    expect(itemTypeForPath(world.organization, 'art/platform/program-backlog/a/a.feature.md')?.slug).toBe('feature');
+    expect(itemTypeForPath(world.organization, 'portfolio/products/customer-platform/nfr-list.md')).toBeUndefined();
+    expect(itemTypeForPath(world.organization, 'portfolio/art/platform/program-backlog/a/a.feature.md')?.slug).toBe('feature');
   });
 
   it('never writes: the read port exposes no mutation to the views', () => {

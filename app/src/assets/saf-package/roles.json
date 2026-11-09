@@ -32,6 +32,7 @@
     "artifacts": [
       "art-manifest",
       "art-sync",
+      "inspect-and-adapt",
       "objectives",
       "pain-point",
       "program-kanban",
@@ -53,6 +54,7 @@
     "slug": "system-architect",
     "artifacts": [
       "adr",
+      "architecture-review",
       "architecture-runway",
       "feature-enabler",
       "nfr-list",

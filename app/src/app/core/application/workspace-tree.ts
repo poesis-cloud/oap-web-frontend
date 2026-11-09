@@ -60,19 +60,8 @@ export function hasPlaceholder(slug: string): boolean {
   return PLACEHOLDER.test(slug) && ((PLACEHOLDER.lastIndex = 0), true);
 }
 
-/**
- * The structure map's single root node ("Workspace root folder") is the workspace itself:
- * the SAF artifact schemas declare their path patterns relative to it (`art/<art>/program-backlog/...`), so the
- * root slug is not a path segment. This is an open point for SAF (see docs/10-open-questions).
- */
+/** SAF paths include the declared root slug (portfolio), like the artifact schemas. */
 export function rootNodes(structure: WorkspaceStructure): readonly StructureNode[] {
-  if (
-    structure.nodes.length === 1 &&
-    /workspace root/i.test(structure.nodes[0].description) &&
-    structure.nodes[0].children
-  ) {
-    return structure.nodes[0].children;
-  }
   return structure.nodes;
 }
 

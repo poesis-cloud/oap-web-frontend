@@ -2,19 +2,19 @@
   "id": "saf-agentic-organization",
   "name": "Poesis SAFe Agentic Organization",
   "license": "Apache-2.0",
-  "organizationVersion": "v0.1.0-78-g318d30a",
-  "harnessVersion": "v1.0.0-beta.1-6-g8ea39c4",
+  "organizationVersion": "v1.0.0-alpha.3",
+  "harnessVersion": "v1.0.0-alpha.3",
   "sourceRepositories": {
     "organization": "https://github.com/poesis-cloud/saf-agentic-organization",
     "harness": "https://github.com/poesis-cloud/saf-agentic-harness"
   },
   "counts": {
     "agents": 14,
-    "workflows": 20,
-    "modelProfiles": 20,
+    "workflows": 25,
+    "modelProfiles": 5,
     "itemTypes": 9,
-    "structureNodes": 76,
+    "structureNodes": 77,
     "roles": 14,
-    "sourceFiles": 176
+    "sourceFiles": 202
   }
 }

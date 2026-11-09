@@ -52,7 +52,7 @@ export function seedWorkspace(
     changes: {
       ...sources,
       'organization/package.json': JSON.stringify(manifest, null, 2),
-      'organization/README.md': `# Organization of this workspace\n\nNominal state imported from \`${spec.organization.id}\` ${spec.organization.version} (${spec.organization.license}): ${Object.keys(sources).length} files under \`organization/\` (agents, workflows, skills, instructions, artifact schemas and templates, configuration).\n\nIt changes only through governed \`organization-change\` and \`organization-upgrade\` runs (oap#1 F16, SAF SF11 and SF13), never by hand. This build does not run them yet.\n`,
+      'organization/README.md': `# Organization of this workspace\n\nNominal state imported from \`${spec.organization.id}\` ${spec.organization.version} (${spec.organization.license}): ${Object.keys(sources).length} files under \`organization/\` (agents, workflows, skills, instructions, artifact schemas and templates, configuration).\n\nIt changes only through governed \`organization-change\` and \`organization-upgrade\` runs (oap#1 F16, SAF SF11 and SF13), never by hand. Organization change and rollback are simulated in this frontend; package upgrades are not available yet.\n`,
     },
     tag: `nominal-import/${spec.organization.id}@${spec.organization.version}`,
     timestamp: importedAt,
@@ -67,9 +67,9 @@ export function seedWorkspace(
       stepSlug: null,
       author: { kind: 'installer' },
       changes: {
-        'products/customer-platform/product-manifest.yaml': `slug: customer-platform\nname: Customer Platform\nrepos:\n  - customer-platform-api\n  - platform-gateway\nowner: SE-Product-Manager\n`,
-        'products/customer-platform/product-vision.md': `---\nproduct: customer-platform\nrevised: ${date}\n---\n\n# Customer Platform — Product Vision\n\nOne platform for subscriptions, invoicing and partner integrations, operated for European customers with strict tenant isolation.\n\n## Horizon\n- Subscriptions API opened to partners\n- Invoicing export\n- Self-service portal\n`,
-        'art/platform/art-manifest.yaml': `slug: platform\nname: Platform ART\nteams:\n  - api-team\n  - portal-team\nproducts:\n  - customer-platform\n`,
+        'portfolio/products/customer-platform/product-manifest.yaml': `slug: customer-platform\nname: Customer Platform\nrepos:\n  - customer-platform-api\n  - platform-gateway\nowner: SE-Product-Manager\n`,
+        'portfolio/products/customer-platform/product-vision.md': `---\nproduct: customer-platform\nrevised: ${date}\n---\n\n# Customer Platform — Product Vision\n\nOne platform for subscriptions, invoicing and partner integrations, operated for European customers with strict tenant isolation.\n\n## Horizon\n- Subscriptions API opened to partners\n- Invoicing export\n- Self-service portal\n`,
+        'portfolio/art/platform/art-manifest.yaml': `slug: platform\nname: Platform ART\nteams:\n  - api-team\n  - portal-team\nproducts:\n  - customer-platform\n`,
       },
       timestamp: clock.now(),
     });
@@ -81,7 +81,7 @@ export function seedWorkspace(
       stepSlug: null,
       author: { kind: 'installer' },
       changes: {
-        'art/platform/program-backlog/customer-subscriptions-api/customer-subscriptions-api.feature.md': feature({
+        'portfolio/art/platform/program-backlog/customer-subscriptions-api/customer-subscriptions-api.feature.md': feature({
           id: 'F-12',
           title: 'Secure REST API for customer subscriptions',
           status: 'arch-pending',
@@ -95,7 +95,7 @@ export function seedWorkspace(
             'AC3. The API must expose export and erasure of billing-contact data within 30 days of a request.',
           ],
         }),
-        'art/platform/program-backlog/subscription-invoicing-export/subscription-invoicing-export.feature.md': feature({
+        'portfolio/art/platform/program-backlog/subscription-invoicing-export/subscription-invoicing-export.feature.md': feature({
           id: 'F-13',
           title: 'Subscription invoicing export',
           status: 'refined',
@@ -107,7 +107,7 @@ export function seedWorkspace(
             'AC1. Given a closed month, when the export runs, then every subscription change of the month appears exactly once.',
           ],
         }),
-        'art/platform/program-backlog/partner-sandbox/partner-sandbox.feature.md': feature({
+        'portfolio/art/platform/program-backlog/partner-sandbox/partner-sandbox.feature.md': feature({
           id: 'F-15',
           title: 'Partner sandbox environment',
           status: 'funnel',
@@ -116,14 +116,14 @@ export function seedWorkspace(
           description: 'A sandbox where partners try the subscriptions API with synthetic data before going live.',
           criteria: ['AC1. A partner can obtain sandbox credentials without a support ticket.'],
         }),
-        'art/platform/teams/api-team/team-backlog/subscription-read-endpoint/subscription-read-endpoint.story.md':
+        'portfolio/art/platform/teams/api-team/team-backlog/subscription-read-endpoint/subscription-read-endpoint.story.md':
           story({
             id: 'S-41',
             title: 'Read a subscription by id',
             status: 'in-progress',
             date,
           }),
-        'art/platform/teams/api-team/team-backlog/idempotency-key-store/idempotency-key-store.story.md': story({
+        'portfolio/art/platform/teams/api-team/team-backlog/idempotency-key-store/idempotency-key-store.story.md': story({
           id: 'S-42',
           title: 'Idempotency-Key store with 24 h TTL',
           status: 'ready',

@@ -3,7 +3,7 @@
     "slug": "epic",
     "label": "Epic",
     "pathPatterns": [
-      "portfolio-backlog/*/*.epic.md"
+      "portfolio/portfolio-backlog/*/*.epic.md"
     ],
     "statuses": [
       "funnel",
@@ -20,7 +20,7 @@
     "slug": "lean-business-case",
     "label": "Lean Business Case",
     "pathPatterns": [
-      "portfolio-backlog/*/*.lean-business-case.md"
+      "portfolio/portfolio-backlog/*/*.lean-business-case.md"
     ],
     "statuses": [
       "draft",
@@ -33,7 +33,7 @@
     "slug": "epic-enabler",
     "label": "Epic Enabler",
     "pathPatterns": [
-      "portfolio-backlog/*/*.epic-enabler.md"
+      "portfolio/portfolio-backlog/*/*.epic-enabler.md"
     ],
     "statuses": [
       "funnel",
@@ -42,7 +42,8 @@
       "portfolio-backlog",
       "implementing",
       "done",
-      "blocked"
+      "blocked",
+      "not-needed"
     ],
     "source": "artifacts/enterprise-architect/epic-enabler.artifact.schema.json"
   },
@@ -50,7 +51,7 @@
     "slug": "feature",
     "label": "Feature",
     "pathPatterns": [
-      "art/*/program-backlog/*/*.feature.md"
+      "portfolio/art/*/program-backlog/*/*.feature.md"
     ],
     "statuses": [
       "funnel",
@@ -68,7 +69,7 @@
     "slug": "story",
     "label": "Story",
     "pathPatterns": [
-      "art/*/teams/*/team-backlog/*/*.story.md"
+      "portfolio/art/*/teams/*/team-backlog/*/*.story.md"
     ],
     "statuses": [
       "backlog",
@@ -86,7 +87,7 @@
     "slug": "pain-point",
     "label": "Pain Point",
     "pathPatterns": [
-      "art/*/improvement-backlog/*/*.pain-point.md"
+      "portfolio/art/*/improvement-backlog/*/*.pain-point.md"
     ],
     "statuses": [
       "open",
@@ -102,7 +103,7 @@
     "slug": "adr",
     "label": "Adr",
     "pathPatterns": [
-      "art/*/program-backlog/*/*.adr.md"
+      "portfolio/art/*/program-backlog/*/*.adr.md"
     ],
     "statuses": [
       "proposed",
@@ -116,7 +117,7 @@
     "slug": "feature-enabler",
     "label": "Feature Enabler",
     "pathPatterns": [
-      "art/*/program-backlog/*/*.feature-enabler.md"
+      "portfolio/art/*/program-backlog/*/*.feature-enabler.md"
     ],
     "statuses": [
       "funnel",
@@ -126,7 +127,8 @@
       "committed",
       "in-progress",
       "done",
-      "blocked"
+      "blocked",
+      "not-needed"
     ],
     "source": "artifacts/system-architect/feature-enabler.artifact.schema.json"
   },
@@ -134,7 +136,7 @@
     "slug": "story-enabler",
     "label": "Story Enabler",
     "pathPatterns": [
-      "art/*/teams/*/team-backlog/*/*.story-enabler.md"
+      "portfolio/art/*/teams/*/team-backlog/*/*.story-enabler.md"
     ],
     "statuses": [
       "backlog",
@@ -144,7 +146,8 @@
       "in-qa",
       "awaiting-pr",
       "done",
-      "blocked"
+      "blocked",
+      "not-needed"
     ],
     "source": "artifacts/system-architect/story-enabler.artifact.schema.json"
   }

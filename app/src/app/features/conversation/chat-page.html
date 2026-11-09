@@ -44,6 +44,7 @@
       <div #log class="pane-body" role="log" aria-live="polite" aria-relevant="additions">
         <div class="mx-auto flex max-w-4xl flex-col gap-2 px-5 py-4 max-md:px-3">
           @if (pinnedGate(); as g) {
+            @if (g.run.workflowSlug === 'organization-change') { <sai-change-review [runId]="g.run.id" /> }
             <sai-gate-flow [run]="g.run" [gate]="g.gate" mode="decide" (review)="viewing.set($event)" />
           }
           @for (m of messagesOf(c, main(c).id); track m.id) {
@@ -139,7 +140,7 @@
   <ng-template #message let-m let-c="c" let-depth="depth">
     @if (m.kind === 'system') {
       <div class="py-1 text-center text-xs text-ink-muted">
-        {{ m.content }}
+        <span class="font-semibold">{{ label(m.author) }}</span> · {{ m.content }}
         @if (m.refs.sessionConversationId) {
           <a [routerLink]="['/conversation', m.refs.sessionConversationId]">Open the session</a>
         }
@@ -175,10 +176,11 @@
           } @else {
             <div class="sai-bubble">{{ visible(m) }}@if (m.streaming === 'streaming') {<span class="animate-pulse text-ai" aria-hidden="true">▍</span>}</div>
           }
+          @if (m.refs.artifactPath && m.kind !== 'gate') { <button type="button" class="sai-chip mt-2" (click)="viewing.set(m.refs.artifactPath)">Read {{ fileName(m.refs.artifactPath) }}</button> }
           @if (m.provenance && m.streaming !== 'streaming') {
             <sai-provenance [provenance]="m.provenance" />
           }
-          @if (m.author.kind === 'human' && depth < 2 && c.status === 'open') {
+          @if (depth < 3 && c.status === 'open') {
             <button type="button" class="sai-chip sai-aside mt-1" (click)="openAside(c, m)">Discuss aside</button>
           }
           @for (t of childThreadsOf(c, m.id); track t.id) {
@@ -192,12 +194,16 @@
                 @for (cm of messagesOf(c, t.id); track cm.id) {
                   <ng-container *ngTemplateOutlet="message; context: { $implicit: cm, c: c, depth: depth + 1 }" />
                 }
-                @if (t.status === 'open' || t.status === 'waiting') {
+                @if (c.status === 'open' && (t.status === 'open' || t.status === 'waiting')) {
                   <form class="flex flex-wrap items-center gap-2" (submit)="sendIn(c, t, $event)">
                     <input pInputText size="small" class="min-w-0 flex-1" [(ngModel)]="asideDrafts[t.id]" [name]="'aside-' + t.id" placeholder="Post in this thread" aria-label="Post in this thread" />
                     <p-button icon="pi pi-send" size="small" [rounded]="true" type="submit" ariaLabel="Post" />
                     <p-button label="Cancel thread" size="small" [text]="true" severity="secondary" (onClick)="store.cancelChildThread(c.id, t.id)" />
                   </form>
+                  <div class="flex flex-wrap items-center gap-2 border-t border-line pt-2">
+                    <input pInputText size="small" class="min-w-0 flex-1" [(ngModel)]="threadSummaries[t.id]" [name]="'summary-' + t.id" placeholder="Conclusion to return to the parent" aria-label="Thread conclusion" />
+                    <p-button label="Return conclusion" size="small" [outlined]="true" [disabled]="!threadSummaries[t.id]?.trim()" (onClick)="returnThread(c, t)" />
+                  </div>
                 }
               </div>
             </details>
@@ -223,7 +229,7 @@
             <dd class="m-0">{{ entry[1] }}</dd>
           }
         </dl>
-        @if (p.status === 'proposed') {
+        @if (p.status === 'proposed' && c.status === 'open') {
           @if (changing() === p.id) {
             <textarea pTextarea rows="2" class="w-full" [ngModel]="changeDraft()" (ngModelChange)="changeDraft.set($event)" [name]="'chg-' + p.id" aria-label="New intent"></textarea>
             <div class="sai-actions">

@@ -1,3 +1,4 @@
+import { ORGANIZATION_CHANGE_WORKFLOW } from '../../core/domain/improvement';
 import type { WorkspaceStructure } from '../../core/application/workspace-tree';
 import type {
   AgentDefinition,
@@ -150,12 +151,12 @@ export function loadSafePackage(): OrganizationPackage {
       'End-to-end software delivery with SAFe: intent → Epic → Feature → Story → ADR → code → PR → QA evidence, behind the ★ Architecture, PR and Demo gates (first vertical, poesis#40 Q3).',
     limitations: [
       'Gates, Copilot dispatcher, consultation scopes and launch inputs are declared by SAI pending the SAF interaction contract (saf#6 SF15).',
-      'The SAFe package is imported as the nominal organization; organization learning (F16) is not part of this slice.',
+      'Organization change and its holder role are frontend contract candidates; the imported SAF package remains unmodified until a simulated gate approves an instruction diff.',
       'Model profiles come from the SAF catalog; in this build no model is called (mocked agent runtime and model gateway).',
     ],
     dispatcher: 'copilot',
     agents,
-    workflows,
+    workflows: [...workflows, ORGANIZATION_CHANGE_WORKFLOW],
     itemTypes: itemTypesJson as ItemTypeDefinition[],
     modelProfiles: modelProfilesJson as ModelProfile[],
     workspaceStructure: workspaceStructureJson as WorkspaceStructure,

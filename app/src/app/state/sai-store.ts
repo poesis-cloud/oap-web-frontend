@@ -215,6 +215,15 @@ export class SaiStore {
 
   // -------------------------------------------------------------- commands
 
+  createWorkspace(name: string, packageId: string): string | null {
+    return this.command(() => {
+      const workspace = this.app.createWorkspace(this.session(), name, packageId);
+      this.workspaceId.set(workspace.id);
+      this.toast('success', 'Workspace created', 'The organization has been imported. Your workspace is ready.');
+      return workspace.id;
+    });
+  }
+
   startConversation(title: string, firstMessage: string | null, subject: string | null = null): Conversation | null {
     return this.command(() => {
       const conversation = this.app.startConversation(this.session(), this.workspaceId(), title, firstMessage, subject);
@@ -231,7 +240,7 @@ export class SaiStore {
     const texts: Record<typeof kind, { title: string; message: string }> = {
       change: {
         title: 'Organization change proposal',
-        message: 'I propose a change to the organization: adjust the author-adr step instructions so that ADRs name the partner authentication mode explicitly.',
+        message: 'I propose a change to the organization: add required frontmatter preflight checks to author-adr, based on the recorded commit-gate pain point.',
       },
       upgrade: {
         title: 'Organization upgrade proposal',
@@ -321,6 +330,14 @@ export class SaiStore {
     this.command(() => this.app.openChildThread(this.session(), conversationId, messageId, purpose));
   }
 
+  returnChildThread(conversationId: string, threadId: string, summary: string): boolean {
+    return this.command(() => { this.app.returnChildThread(this.session(), conversationId, threadId, summary); return true; }) ?? false;
+  }
+
+  startRetrospective(): Conversation | null {
+    return this.command(() => this.app.startRetrospective(this.session(), this.workspaceId()));
+  }
+
   cancelChildThread(conversationId: string, threadId: string): void {
     this.command(() => this.app.cancelChildThread(this.session(), conversationId, threadId));
   }
@@ -350,7 +367,7 @@ export class SaiStore {
 
   /** Advances active runs one unit (also used by the scheduler). */
   step(): void {
-    const events = this.app.advanceRuns(this.workspaceId());
+    const events = this.workspaces().flatMap(w => this.app.advanceRuns(w.id));
     if (events.length > 0) {
       this.reportEvents(events);
       this.bump();
@@ -421,7 +438,7 @@ export class SaiStore {
     if (this.scheduler || typeof setInterval !== 'function') return;
     this.scheduler = setInterval(() => {
       if (this.runsPaused()) return;
-      if (this.activeRuns().some((r) => r.status === 'queued' || r.status === 'running')) this.step();
+      this.step();
     }, TICK_MS);
   }
 

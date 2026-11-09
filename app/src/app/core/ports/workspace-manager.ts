@@ -3,6 +3,12 @@ import type { Run } from '../domain/run';
 import type { ArtifactPath, CommitSha, SessionId, TenantId, WorkspaceId } from '../domain/types';
 import type { Workspace } from '../domain/workspace';
 import type { JournalEntry } from '../saf/contracts';
+import type { OrganizationPackage } from '../domain/organization';
+
+/** The workspace manager provisions the repository and its nominal package import. */
+export interface WorkspaceProvisioner {
+  create(spec: { id: WorkspaceId; tenantId: TenantId; name: string; organization: OrganizationPackage }): Workspace;
+}
 
 /**
  * Port of the **workspace manager** backend (`oap-workspace-manager`): the hosted SAF

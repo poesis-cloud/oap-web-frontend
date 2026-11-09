@@ -1,3 +1,5 @@
+import { ADR_INSTRUCTION, PREFLIGHT_MARKER, type OrganizationChange } from '../../core/domain/improvement';
+import { prepareChange, changeArtifact, captureArtifact, applyChange } from './improvement-scripts';
 import type {
   Clock,
   DecideGateCommand,
@@ -44,6 +46,9 @@ import type { InMemoryWorkspace } from '../workspace-manager/in-memory-workspace
 
 interface Cursor {
   readonly organization: OrganizationPackage;
+  readonly inputs: Readonly<Record<string, string>>;
+  readonly change: OrganizationChange | null;
+  readonly preflight: boolean;
   readonly workflow: WorkflowDefinition;
   readonly context: ScriptContext;
   /** Steps whose first write was already reverted once (to showcase the commit gate once). */
@@ -80,6 +85,7 @@ export class MockAgentRuntime implements RuntimePort {
     const workflow = findWorkflow(command.organization, command.proposal.workflowSlug);
     if (!workflow)
       throw new DomainError('unknown-workflow', `Workflow ${command.proposal.workflowSlug} is not in the organization`);
+    if (!['architectural-runway-extension', 'improvement-backlog', 'organization-change'].includes(workflow.slug)) throw new DomainError('workflow-unavailable', 'This workflow is in the catalog but is not executable in the frontend simulation.');
     const organizationCommit = this.repository.head(command.workspace.id);
     if (!organizationCommit) throw new DomainError('workspace-empty', 'The workspace has no nominal import commit');
     const now = this.clock.now();
@@ -106,7 +112,9 @@ export class MockAgentRuntime implements RuntimePort {
       failure: null,
       partialArtifacts: [],
     };
+    const change = workflow.slug === 'organization-change' ? prepareChange(this.repository, command.workspace.id, runId, inputs) : null;
     this.cursors.set(runId, {
+      inputs, change, preflight: (this.repository.read(command.workspace.id, ADR_INSTRUCTION) ?? '').includes(PREFLIGHT_MARKER),
       organization: command.organization,
       workflow,
       context: {
@@ -268,8 +276,18 @@ export class MockAgentRuntime implements RuntimePort {
 
     // The write boundary: authorization, then the commit gate validates the staged bytes.
     const firstAdrAttempt =
-      step.artifact === 'adr' && cursor.context.revision === 1 && !cursor.revertedOnce.has(step.slug);
-    const artifact = scriptedArtifact(step.artifact, cursor.context, !firstAdrAttempt);
+      step.slug === 'author-adr' && !cursor.preflight && cursor.context.revision === 1 && !cursor.revertedOnce.has(step.slug);
+    let artifact = cursor.change
+      ? changeArtifact(step.artifact, cursor.change, cursor.context.gateComment)
+      : cursor.workflow.slug === 'improvement-backlog'
+        ? captureArtifact(this.repository, run, cursor.inputs, cursor.context.date)
+        : scriptedArtifact(step.artifact, cursor.context, !firstAdrAttempt);
+    if (step.artifact === 'feature') {
+      const path = `portfolio/art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
+      const content = this.repository.read(run.workspaceId, path);
+      if (!content) throw new DomainError('subject-missing', 'The Feature selected for this run no longer exists.');
+      artifact = { path, content: setFrontmatter(content, { adrs: [ADR_ID], architectureInventory: scriptedArtifact('adr', cursor.context).path }) };
+    }
     const tokens = STEP_TOKENS[step.slug] ?? { input: 3000, output: 600 };
     this.journal(run, 'check-step-authorization', stepRun.sessionId, run.orchestratorSessionId, { status: 'allowed' });
     const parsed = parseArtifact(artifact.content);
@@ -367,6 +385,8 @@ export class MockAgentRuntime implements RuntimePort {
     const cursor = this.cursor(command.runId);
     const gate = run.gates.find((g) => g.id === command.gateId);
     if (!gate) throw new DomainError('gate-missing', 'Gate not found');
+    // Validate before recording any decision, so a stale diff cannot partially commit.
+    const organizationChanges = cursor.change && command.decision !== 'rejected' ? applyChange(this.repository, run, cursor.change) : null;
     const now = this.clock.now();
     const status = transition('gate', GATE_TRANSITIONS, gate.status, command.decision);
     const decided: Gate = {
@@ -413,11 +433,12 @@ export class MockAgentRuntime implements RuntimePort {
     }
 
     // Acceptance is a validated write: the reviewed artifact and the item it serves change status.
-    const changes: Record<string, string> = {};
+    const changes: Record<string, string> = organizationChanges ?? {};
+    if (!cursor.change) {
     const adrPath = decided.artifactPath;
     const adrContent = this.repository.read(run.workspaceId, adrPath);
     if (adrContent) changes[adrPath] = setFrontmatter(adrContent, { status: 'accepted', decided: now.slice(0, 10) });
-    const featurePath = `art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
+    const featurePath = `portfolio/art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
     const featureContent = this.repository.read(run.workspaceId, featurePath);
     if (featureContent) {
       const parsed = parseArtifact(featureContent);
@@ -430,6 +451,11 @@ export class MockAgentRuntime implements RuntimePort {
       });
     }
     if (command.decision === 'approved-with-reservation' && command.comment) {
+      const pain = painPoint(cursor.context, command.comment, run.id, gate.label);
+      changes[pain.path] = pain.content;
+    }
+    }
+    if (cursor.change && command.decision === 'approved-with-reservation' && command.comment) {
       const pain = painPoint(cursor.context, command.comment, run.id, gate.label);
       changes[pain.path] = pain.content;
     }

@@ -1,3 +1,4 @@
+import { formatEuros, formatDuration } from '../core/application/analysis';
 import { Component, computed, input, Pipe, type PipeTransform } from '@angular/core';
 import { Avatar } from 'primeng/avatar';
 import { Tag } from 'primeng/tag';
@@ -219,4 +220,13 @@ export function actorLabel(
 
 export function fileName(path: string): string {
   return path.slice(path.lastIndexOf('/') + 1);
+}
+
+@Pipe({ name: 'eur', standalone: true })
+export class EurPipe implements PipeTransform {
+  transform(value: number | null | undefined): string { return formatEuros(value); }
+}
+@Pipe({ name: 'duration', standalone: true })
+export class DurationPipe implements PipeTransform {
+  transform(value: number): string { return formatDuration(value); }
 }

@@ -126,7 +126,7 @@ export function createMockWorld(
       { userId: DEMO_MEMBER_WITHOUT_ROLE, displayName: 'Sam Ortega', permission: 'member', roles: [] },
       { userId: DEMO_ADMIN_ID, displayName: 'Priya Nair', permission: 'administrator', roles: ['central-supervisor'] },
     ],
-    budget: { limitTokens: 120_000, alertAtRatio: 0.8 },
+    budget: { limitTokens: 200_000, alertAtRatio: 0.8 },
     euOnly: true,
   };
   const otherTenant: Tenant = {
@@ -178,6 +178,10 @@ export function createMockWorld(
     ids,
     identity: iam,
     workspaces,
+    provisioner: { create: spec => seedWorkspace(repository, workspaces, clock, {
+      ...spec, sources, withBacklog: false,
+      repository: `git://oap-instance.local/${spec.tenantId}/${spec.id}.git`,
+    }) },
     conversations,
     notifications,
     organizations: new StaticCatalog([organization]),
@@ -228,6 +232,7 @@ function seedScenario(world: MockWorld, scripted: { t: number }): void {
   {
     // Yesterday: Priya launched the scenario; Alex rejected the first ADR; Priya approved the rework.
     const first = world.app.startConversation(world.adminSession, DEMO_WORKSPACE_ID, 'Subscriptions API', SCENARIO_INTENT);
+    world.app.invite(world.adminSession, first.id, { kind: 'human', userId: DEMO_USER_ID });
     const proposal = first.proposals.find((p) => p.status === 'proposed');
     if (proposal) {
       const { run } = world.app.confirmProposal(world.adminSession, first.id, proposal.id);
@@ -249,10 +254,24 @@ function seedScenario(world: MockWorld, scripted: { t: number }): void {
       'Partner sandbox API',
       'Design a secure REST API for the partner sandbox, reusing the subscriptions ADR.',
     );
+    world.app.invite(world.adminSession, next.id, { kind: 'human', userId: DEMO_USER_ID });
     const nextProposal = next.proposals.find((p) => p.status === 'proposed');
     if (nextProposal) {
       const { run } = world.app.confirmProposal(world.adminSession, next.id, nextProposal.id);
       advanceUntil(run.id, (status) => status === 'waiting-for-gate');
     }
+    const source = world.app.runs(world.session, DEMO_WORKSPACE_ID).find(r => r.status === 'succeeded' && r.workflowSlug === 'architectural-runway-extension');
+    if (source) {
+      const capture = world.app.startConversation(world.session, DEMO_WORKSPACE_ID, 'Record ADR preflight friction', `/improvement-backlog Record the commit-gate rejection from ${source.id}`);
+      const proposal = capture.proposals.find(p => p.status === 'proposed');
+      if (proposal) {
+        const { run } = world.app.confirmProposal(world.session, capture.id, proposal.id);
+        advanceUntil(run.id, status => status === 'succeeded');
+        world.app.startRetrospective(world.session, DEMO_WORKSPACE_ID);
+      }
+    }
+    // Seeded messages are history, not live streaming answers.
+    for (const session of [world.session, world.adminSession]) for (const c of world.app.conversations(session, DEMO_WORKSPACE_ID)) for (const m of c.messages) if (m.streaming === 'streaming') world.app.completeStreaming(session, c.id, m.id);
+
   }
 }

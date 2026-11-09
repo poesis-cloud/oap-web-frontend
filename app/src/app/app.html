@@ -18,7 +18,7 @@
         optionLabel="name"
         optionValue="id"
         [ngModel]="store.workspaceId()"
-        (onChange)="store.workspaceId.set($event.value)"
+        (onChange)="switchWorkspace($event.value)"
         styleClass="w-full"
         size="small"
         pTooltip="Workspace: one hosted SAF git repository, its organization and its artifacts"

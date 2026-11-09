@@ -49,6 +49,25 @@ export class ScriptedAgents implements AgentResponderPort {
     const tokens = new Set(tokenize(text));
     const has = (words: string[]) => words.some((w) => tokens.has(w));
 
+    const reply = (agent: string, content: string): AgentResponse[] => [{ kind: 'text', agent, content }];
+    const previous = context.conversation.messages.filter(m => m.threadId === context.thread.id && m.author.kind === 'human' && m.id !== message.id).at(-1)?.content ?? '';
+    const topic = `${previous} ${context.conversation.title} ${context.conversation.subject ?? ''} ${text}`;
+    if (addressee.kind === 'dispatcher' && message.mentions.some(m => m.kind === 'human')) return [];
+    if (context.thread.parentThreadId && addressee.kind === 'dispatcher' && !message.targetWorkflow) {
+      const agent = context.thread.participants.find(p => p.kind === 'agent');
+      return reply(agent?.kind === 'agent' ? agent.slug : organization.dispatcher,
+        /ADR preflight|pain.point|retrospective/i.test(topic + context.thread.purpose)
+          ? 'This thread concerns the missing ADR status. The recorded verdict supports a preflight instruction change; it does not prove that the change will prevent every rejection. Return your conclusion to the parent conversation, then propose the separate organization-change run from Improvement.'
+          : `This is a side discussion about “${context.thread.purpose}”. Address a specialist with @ for a scoped consultation, or return your conclusion to the parent conversation.`);
+    }
+    if (context.conversation.sessionRef && addressee.kind !== 'workflow') {
+      const ref = context.conversation.sessionRef;
+      const run = context.runs.find(r => r.id === ref.runId);
+      const step = run?.steps.find(st => st.sessionId === ref.sessionId);
+      const actor = addressee.kind === 'agent' ? addressee.agent : ref.agent;
+      if (!step) return reply(actor, 'This session belongs to an earlier attempt. Its messages and journal remain available; the current attempt has a separate session in the run.');
+      return reply(actor, `This session covers ${ref.stepSlug} in ${run?.workflowSlug}. ${step.status === 'delivered' ? 'The artifact has been delivered; this discussion does not rewrite it.' : 'The simulated step is in progress.'} ${step.artifactPath ? `Review ${step.artifactPath} and its journal for the evidence.` : 'The artifact will appear after validation.'} ${actor === ref.agent ? 'I own this step.' : 'I am responding as a consulted specialist, not as the author of this step.'} Changes require a new governed run or an actionable gate rejection.`);
+    }
     if (addressee.kind === 'workflow') {
       return this.proposeLaunch(addressee.workflowSlug, context);
     }
@@ -62,7 +81,7 @@ export class ScriptedAgents implements AgentResponderPort {
           {
             kind: 'text',
             agent: agent.slug,
-            content: `Noted. The workflow is complete and waits at ★ ${gate.label}: a holder of "${gate.holderRole}" approves, approves with a reservation, or rejects with a comment, and that closes it. I can answer questions about the artifact meanwhile; ask the authoring agent with @ for the detail of a step.`,
+            content: `Noted. The workflow steps are complete and the run waits at ★ ${gate.label}: a holder of "${gate.holderRole}" approves, approves with a reservation, or rejects with a comment to request rework. I can answer questions about the artifact meanwhile; ask the authoring agent with @ for the detail of a step.`,
           },
         ];
       }
@@ -83,7 +102,7 @@ export class ScriptedAgents implements AgentResponderPort {
           kind: 'text',
           agent: agent.slug,
           content: scoped
-            ? scoped(text)
+            ? scoped(topic)
             : `Within my scope (${agent.scope ?? agent.description}): I take part in workflows as a specialist and do not act outside a run. Ask an orchestrator to launch the matching workflow.`,
         },
       ];
@@ -91,16 +110,10 @@ export class ScriptedAgents implements AgentResponderPort {
 
     // Dispatcher (Copilot).
     if (has(['organization', 'organisation']) && has(['change', 'upgrade', 'rollback', 'propose', 'improve', 'adjust'])) {
-      return [
-        {
-          kind: 'text',
-          agent: organization.dispatcher,
-          content:
-            'A change to the organization is applied by the organization-change workflow (SAF SF11; a rollback is the same workflow with a revert, an upgrade goes through organization-upgrade, SF13), drafted by the owning agent, challenged, validated by the harness and decided at the ★ Organization gate. This package version does not declare these workflows yet, so nothing can be launched: I hand your proposal to @release-train-engineer as a pain point for the next Inspect & Adapt (/inspect-and-adapt), which is where improvements are decided today.',
-          mentions: [Actor.agent('release-train-engineer')],
-        },
-      ];
+      if (has(['poesis', 'upgrade'])) return reply(organization.dispatcher, 'Package upgrades and contributions to Poesis need an upstream workflow and a selected package version. This frontend does not publish contributions or simulate an unavailable upgrade. You can review the local improvement and propose an organization-change or rollback.');
+      return this.proposeLaunch('organization-change', context);
     }
+    if (has(['retrospective', 'rétrospective'])) return reply('release-train-engineer', 'Open Workspace → Improvement and start a retrospective. Each recorded pain point gets its own thread, evidence and a conclusion returned to the parent conversation.');
     if (has(['consult', 'compare', 'opinions', 'both'])) {
       return this.consultTwoSpecialists(text, organization);
     }
@@ -162,20 +175,31 @@ export class ScriptedAgents implements AgentResponderPort {
   private proposeLaunch(workflowSlug: string, context: ResponseContext): AgentResponse[] {
     const workflow = findWorkflow(context.organization, workflowSlug);
     if (!workflow) return [];
-    const feature =
-      context.workItems.find((item) => item.type === 'feature' && item.structurant) ??
-      context.workItems.find((item) => item.type === 'feature');
-    const featureSlug = feature ? feature.path.split('/').slice(-2, -1)[0] : 'customer-subscriptions-api';
-    const art = feature ? feature.path.split('/')[1] : 'platform';
-    if (workflowSlug !== 'architectural-runway-extension') {
-      return [
-        {
-          kind: 'text',
-          agent: workflow.orchestrator,
-          content: `${workflow.slug} is in my catalog (${workflow.steps.length} steps). In this build only Architectural Runway Extension can be launched end to end; the other workflows will be wired when the agent runtime serves the full package.`,
-        },
-      ];
+    const intent = context.message.content.replace(/\s*\/[a-z0-9-]+/g, '').replace(/\s*@[a-z0-9-]+/g, '').trim();
+    if (workflowSlug === 'organization-change') {
+      const pain = context.workItems.find(i => i.type === 'pain-point' && i.path === context.conversation.subject) ?? context.workItems.find(i => i.type === 'pain-point' && ['open', 'triaged'].includes(i.status));
+      const rollback = /rollback|revert|retour arrière/i.test(intent);
+      if (!pain && !rollback) return [{ kind: 'text', agent: workflow.orchestrator, content: 'First record a commit-gate rejection as a pain point in Workspace → Improvement. The change needs traceable evidence.' }];
+      return [{ kind: 'launch-proposal', agent: workflow.orchestrator, workflowSlug, inputs: { intent, operation: rollback ? 'rollback' : 'change', 'pain-point': pain?.path ?? '' }, content: `${rollback ? 'Prepare a rollback of the last matching instruction change' : 'Propose an ADR preflight instruction from this pain point'}. System Architect drafts the diff, Quality Engineer challenges it, and I record the scorecard. Review the exact diff at the ★ Organization Gate. This is a frontend simulation; no organization file changes before approval.` }];
     }
+    if (workflowSlug === 'improvement-backlog') {
+      const id = intent.match(/run-\d+/)?.[0];
+      const source = context.runs.find(r => r.id === id);
+      const step = source?.steps.find(st => st.verdicts.some(v => v.fn === 'check-step-artifact' && v.status === 'reverted'));
+      if (!source || !step) return [{ kind: 'text', agent: workflow.orchestrator, content: 'Select an observed commit-gate rejection in Improvement so I can attach its run and step as evidence.' }];
+      return [{ kind: 'launch-proposal', agent: workflow.orchestrator, workflowSlug, inputs: { intent, 'source-run': source.id, 'source-step': step.stepSlug }, content: `Record one pain point from ${source.id} / ${step.stepSlug}, with the rejected verdict and session evidence. I own this mediation record. It has no evaluation gate and does not change the organization.` }];
+    }
+    if (workflowSlug !== 'architectural-runway-extension') return [{ kind: 'text', agent: workflow.orchestrator, content: `${workflow.slug} is declared by the SAF package (${workflow.steps.length} steps). Its execution is not simulated in this frontend yet. Available end-to-end demos: /architectural-runway-extension, /improvement-backlog and /organization-change.` }];
+    const features = context.workItems.filter(i => i.type === 'feature');
+    const text = `${context.conversation.title} ${context.message.content} ${context.conversation.proposals.at(-1)?.inputs['feature'] ?? ''}`.toLowerCase();
+    const feature = features.find(i => i.path === context.conversation.subject)
+      ?? (text.includes('sandbox') ? features.find(i => i.path.includes('/partner-sandbox/')) : undefined)
+      ?? features.find(i => i.itemId && new RegExp(`\\b${i.itemId.toLowerCase()}\\b`).test(text))
+      ?? (text.includes('subscription') ? features.find(i => i.path.includes('/customer-subscriptions-api/')) : undefined);
+    if (!feature) return [{ kind: 'text', agent: workflow.orchestrator, content: 'Which Feature should this architecture run serve? Open a Feature and choose Discuss, or name F-12 (subscriptions) or F-15 (partner sandbox). No artifact has been selected yet.' }];
+    const featureSlug = feature.path.split('/').slice(-2, -1)[0];
+    const segments = feature.path.split('/');
+    const art = segments[segments.indexOf('art') + 1];
     const inputs: Record<string, string> = {
       product: 'customer-platform',
       art,
@@ -194,7 +218,7 @@ export class ScriptedAgents implements AgentResponderPort {
         agent: workflow.orchestrator,
         workflowSlug,
         inputs,
-        content: `Launch proposal — Architectural Runway Extension for ${inputs['feature']} "${inputs['feature-title']}" (product ${inputs['product']}, ART ${inputs['art']}). Steps: NFR list and ADR by @system-architect, challenge packets by @security-expert, @operator and @developer, then the owner rewrite into the architecture runway. The run stops at the ★ Architecture Gate for a human decision. Nothing starts until a human participant confirms.`,
+        content: `Launch proposal — Architectural Runway Extension for ${inputs['feature']} "${inputs['feature-title']}" (product ${inputs['product']}, ART ${inputs['art']}). Steps: NFR list and ADR by @system-architect, challenge packets by @security-expert, @operator and @developer, then owner updates to the NFRs, ADR, runway and served Feature. The run stops at the ★ Architecture Gate for a human decision. Nothing starts until a human participant confirms.`,
       },
     ];
   }

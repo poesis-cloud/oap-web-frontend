@@ -72,27 +72,27 @@ describe('workspace tree from the organization structure map (F5-R7, F5-R8)', ()
     expect(segmentMatcher('art-manifest.yaml').test('art-manifest.yaml')).toBe(true);
   });
 
-  it('treats the single "workspace root" node as the workspace itself', () => {
-    expect(rootNodes(structure).map((n) => n.slug)).toEqual(['portfolio-manifest.yaml', 'art']);
+  it('preserves the root folder declared in SAF artifact paths', () => {
+    expect(rootNodes(structure).map((n) => n.slug)).toEqual(['portfolio']);
   });
 
   it('lays present paths on the map, marks required slots as expected and keeps unknown paths', () => {
     const tree = buildWorkspaceTree(structure, [
-      'art/platform/program-backlog/subscriptions/subscriptions.feature.md',
-      'art/platform/program-backlog/subscriptions/api-security.adr.md',
-      'art/platform/program-backlog/subscriptions/notes.txt',
+      'portfolio/art/platform/program-backlog/subscriptions/subscriptions.feature.md',
+      'portfolio/art/platform/program-backlog/subscriptions/api-security.adr.md',
+      'portfolio/art/platform/program-backlog/subscriptions/notes.txt',
       'runs/run-0001.run.json',
     ]);
-    const feature = find(tree, 'art/platform/program-backlog/subscriptions/subscriptions.feature.md');
+    const feature = find(tree, 'portfolio/art/platform/program-backlog/subscriptions/subscriptions.feature.md');
     expect(feature?.kind).toBe('file');
     expect(feature && feature.kind === 'file' ? feature.artifact : null).toBe('feature');
-    const adr = find(tree, 'art/platform/program-backlog/subscriptions/api-security.adr.md');
+    const adr = find(tree, 'portfolio/art/platform/program-backlog/subscriptions/api-security.adr.md');
     expect(adr && adr.kind === 'file' ? adr.artifact : null).toBe('adr');
-    const manifest = find(tree, 'portfolio-manifest.yaml');
+    const manifest = find(tree, 'portfolio/portfolio-manifest.yaml');
     expect(manifest && manifest.kind === 'file' ? manifest.expected : null).toBe(true);
-    const artManifest = find(tree, 'art/platform/art-manifest.yaml');
+    const artManifest = find(tree, 'portfolio/art/platform/art-manifest.yaml');
     expect(artManifest && artManifest.kind === 'file' ? artManifest.expected : null).toBe(true);
-    expect(find(tree, 'art/platform/program-backlog/subscriptions/notes.txt')?.kind).toBe('file');
+    expect(find(tree, 'portfolio/art/platform/program-backlog/subscriptions/notes.txt')?.kind).toBe('file');
     const runs = tree.find((e) => e.name === 'runs');
     expect(runs?.kind).toBe('folder');
     expect(find(tree, 'runs/run-0001.run.json')).toBeDefined();

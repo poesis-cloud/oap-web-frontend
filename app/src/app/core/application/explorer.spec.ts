@@ -25,29 +25,31 @@ const structure: WorkspaceStructure = {
     },
   ],
 };
-const paths = ['art/platform/api.feature.md', 'art/platform/notes.txt', 'organization/agents/a.agent.md', 'runs/r1.run.json'];
+const paths = ['portfolio/art/platform/api.feature.md', 'portfolio/art/platform/notes.txt', 'organization/agents/a.agent.md', 'runs/r1.run.json'];
 
 describe('explorer directory listing', () => {
   const tree = buildWorkspaceTree(structure, paths);
 
   it('lists the root with mapped folders, unmapped folders and expected files', () => {
     const names = listDirectory(tree, '').map((e) => `${e.kind}:${e.name}${e.expected ? '?' : ''}`);
-    expect(names).toEqual(['folder:art', 'folder:organization', 'folder:runs', 'file:portfolio-manifest.yaml?']);
+    expect(names).toEqual(['folder:organization', 'folder:portfolio', 'folder:runs']);
+    expect(listDirectory(tree, 'portfolio').find(e => e.name === 'portfolio-manifest.yaml')?.expected).toBe(true);
   });
 
   it('lists a nested folder, folders first then files', () => {
-    expect(listDirectory(tree, 'art/platform').map((e) => e.name)).toEqual(['api.feature.md', 'notes.txt']);
+    expect(listDirectory(tree, 'portfolio/art/platform').map((e) => e.name)).toEqual(['api.feature.md', 'notes.txt']);
     expect(listDirectory(tree, 'organization').map((e) => e.name)).toEqual(['agents']);
     expect(listDirectory(tree, 'nowhere')).toEqual([]);
   });
 
   it('gives breadcrumbs, parents and file counts', () => {
-    expect(crumbs('art/platform')).toEqual([
-      { name: 'art', path: 'art' },
-      { name: 'platform', path: 'art/platform' },
+    expect(crumbs('portfolio/art/platform')).toEqual([
+      { name: 'portfolio', path: 'portfolio' },
+      { name: 'art', path: 'portfolio/art' },
+      { name: 'platform', path: 'portfolio/art/platform' },
     ]);
-    expect(parentDir('art/platform')).toBe('art');
-    expect(parentDir('art')).toBe('');
-    expect(fileCount(findFolder(tree, 'art')!)).toBe(2);
+    expect(parentDir('portfolio/art/platform')).toBe('portfolio/art');
+    expect(parentDir('portfolio')).toBe('');
+    expect(fileCount(findFolder(tree, 'portfolio/art')!)).toBe(2);
   });
 });

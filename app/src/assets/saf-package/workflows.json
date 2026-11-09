@@ -2,7 +2,7 @@
   {
     "slug": "architectural-vision",
     "layer": "portfolio",
-    "description": "Purpose: establish the portfolio architectural runway and NFR backbone. Act: Demand. Orchestrator: Value Management Officer. In-scope mains: architecture-vision. Challenges: security (NFR backbone), operability (not evaluated). Evaluate: architecture-vision; KO reiterates the EA owner step. Use when: portfolio NFR backbone, target ARTs, enabler Epic seeds, Architectural Vision itself. Refuse ART ADRs (architectural-runway-extension). Refuse Epic hypothesis (epic-lean-business-case). Strategic Portfolio Review may confirm this main during Cadence; it does not replace this practice.",
+    "description": "Purpose: establish the portfolio architectural runway and NFR backbone. Act: Demand. Orchestrator: Value Management Officer. In-scope mains: architecture-vision. Challenges: security (NFR backbone), operability (not evaluated). The Vision records its decisions on Epics (closedItems, Decisions on Epics); it never writes an Epic. When it decides about Epics, the next run is epic-vision-alignment, once per Epic, in a new session; a Vision-only run ends here. Evaluate: architecture-vision; KO reiterates the workflow (new instance; the EA owner step absorbs the KO). Use when: portfolio NFR backbone, target ARTs, enabler Epic seeds, Architectural Vision itself. Refuse ART ADRs (architectural-runway-extension). Refuse Epic hypothesis (epic-lean-business-case). Strategic Portfolio Review may confirm this main during Cadence; it does not replace this practice.",
     "orchestrator": "value-management-officer",
     "predecessors": [
       "epic-lean-business-case"
@@ -28,7 +28,9 @@
         "instructions": [
           "portfolio-architectural-vision-draft"
         ],
-        "skills": []
+        "skills": [
+          "enterprise-architect"
+        ]
       },
       {
         "slug": "challenge-security-nfr",
@@ -56,7 +58,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "security-expert"
+        ]
       },
       {
         "slug": "challenge-operability",
@@ -84,7 +88,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "operator"
+        ]
       },
       {
         "slug": "owner-rewrite",
@@ -117,7 +123,9 @@
         "instructions": [
           "portfolio-architectural-vision-rewrite"
         ],
-        "skills": []
+        "skills": [
+          "enterprise-architect"
+        ]
       }
     ],
     "source": "workflows/portfolio/architectural-vision.workflow.conf.yaml"
@@ -125,7 +133,7 @@
   {
     "slug": "epic-lean-business-case",
     "layer": "portfolio",
-    "description": "Purpose: write a portfolio bet. Act: Demand. Orchestrator: Value Management Officer. In-scope mains the intent requires: epic, lean-business-case, epic-enabler (sibling, not a review; catalog still walks; out-of-scope siblings get explicit-none). Challenge: Developer feasibility-review (not evaluated). Evaluate: those mains; KO reiterates that main's owner step. Use when: new bet, thicken Epic/LBC, portfolio-sized impact, kill/pivot as a rewrite of that Epic. Do not use for Feature/Story grain (Refuse).",
+    "description": "Purpose: write a portfolio bet. Act: Demand. Orchestrator: Value Management Officer. In-scope mains the intent requires: epic, lean-business-case, epic-enabler (sibling, not a review; catalog still walks; every step commits its artifact: out-of-scope siblings get a no-change entry, an unneeded enabler a not-needed file). Challenge: Developer feasibility-review (not evaluated). Owner updates: after the LBC rewrite, the Business Owner updates the Epic and the Enterprise Architect the Enabler Epic so both match it. Evaluate: those mains; KO reiterates the workflow (new instance; that main's owner step absorbs the KO). Use when: new bet, thicken Epic/LBC, portfolio-sized impact, kill/pivot as a rewrite of that Epic. Do not use for Feature/Story grain (Refuse).",
     "orchestrator": "value-management-officer",
     "predecessors": [],
     "steps": [
@@ -149,7 +157,9 @@
         "instructions": [
           "portfolio-epic-lean-business-case-draft-epic"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "discovery-and-draft",
@@ -177,7 +187,9 @@
         "instructions": [
           "portfolio-epic-lean-business-case-discovery-open-items-recorded-or-explicitly-none"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "draft-enabler-epic",
@@ -205,7 +217,9 @@
         "instructions": [
           "portfolio-epic-lean-business-case-draft-enabler-epic"
         ],
-        "skills": []
+        "skills": [
+          "enterprise-architect"
+        ]
       },
       {
         "slug": "challenge-feasibility",
@@ -238,7 +252,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "owner-rewrite",
@@ -276,15 +292,265 @@
         "instructions": [
           "portfolio-epic-lean-business-case-owner-rewrites-case"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
+      },
+      {
+        "slug": "update-epic",
+        "description": "Owner update \u2014 Business Owner aligns the Epic with the rewritten Lean Business Case (scope, dependsOn, MVP / first-release scope).",
+        "actor": "business-owner",
+        "artifact": "epic",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-owner-rewrite",
+            "kind": "precondition",
+            "step": "owner-rewrite"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-lean-business-case-update-epic"
+        ],
+        "skills": [
+          "business-owner"
+        ]
+      },
+      {
+        "slug": "update-enabler-epic",
+        "description": "Owner update \u2014 Enterprise Architect aligns the Enabler Epic with the rewritten Lean Business Case (scope, dependsOn, MVP / first-release scope).",
+        "actor": "enterprise-architect",
+        "artifact": "epic-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-owner-rewrite",
+            "kind": "precondition",
+            "step": "owner-rewrite"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-lean-business-case-update-enabler-epic"
+        ],
+        "skills": [
+          "enterprise-architect"
+        ]
       }
     ],
     "source": "workflows/portfolio/epic-lean-business-case.workflow.conf.yaml"
   },
   {
+    "slug": "epic-transition",
+    "layer": "portfolio",
+    "description": "Purpose: commit ONE Epic status transition (or cost close) through its author hats. Act: Transition. Orchestrator: Value Management Officer. Dispatch: the Business Owner records the transition on the Epic, the Enterprise Architect on its sibling Enabler Epic, then the Value Management Officer renders the Portfolio Kanban. Input: one transition request (Epic, from and to status, trigger: a human gate decision, a roll-up, a block or an unblock, or the close with its cost snapshot). One Epic per run. The orchestrator never writes an Epic status itself. Guard: each owner step refuses an inconsistent advance with a recorded no-change, which the harness accepts; it withholds any other transition while the Epic or Enabler Epic the step delivers (for the business Epic, its sibling Enabler Epic too) still carries an open item that the Architectural Vision closes: report the refusal, then run epic-vision-alignment for that Epic. Do not Evaluate: the decision was made at the gate or by the roll-up rule.",
+    "orchestrator": "value-management-officer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "transition-epic",
+        "description": "Owner transition \u2014 Business Owner records the requested status change (or no-change) on the business Epic.",
+        "actor": "business-owner",
+        "artifact": "epic",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-epic-transition-transition-epic"
+        ],
+        "skills": [
+          "business-owner"
+        ]
+      },
+      {
+        "slug": "transition-enabler",
+        "description": "Owner transition \u2014 Enterprise Architect records the requested status change (or no-change) on the sibling Enabler Epic.",
+        "actor": "enterprise-architect",
+        "artifact": "epic-enabler",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-transition-epic",
+            "kind": "precondition",
+            "step": "transition-epic"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-transition-transition-enabler"
+        ],
+        "skills": [
+          "enterprise-architect"
+        ]
+      },
+      {
+        "slug": "update-portfolio-kanban",
+        "description": "Operational projection \u2014 Value Management Officer refreshes the Portfolio Kanban from Epic frontmatter.",
+        "actor": "value-management-officer",
+        "artifact": "portfolio-kanban",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-transition-enabler",
+            "kind": "precondition",
+            "step": "transition-enabler"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-transition-update-portfolio-kanban"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/portfolio/epic-transition.workflow.conf.yaml"
+  },
+  {
+    "slug": "epic-vision-alignment",
+    "layer": "portfolio",
+    "description": "Purpose: write the Architectural Vision's decisions on ONE Epic into that Epic's artifacts, through their owners. Act: Demand. Orchestrator: Value Management Officer. Run it after architectural-vision, once per Epic that the Vision decides about (its closedItems, Decisions on Epics); a Vision that decides about no Epic needs no run. In-scope mains: epic-enabler, epic, lean-business-case. Dispatch: the Enterprise Architect updates the Enabler Epic (closed items, MVP Feature seeds, runway WSJF; a not-needed Enabler the Vision now needs is a blocking item that replays epic-lean-business-case), then the Business Owner the business Epic, then the Business Owner reconciles the Lean Business Case with the Epic (MVP, WSJF, runway dependency), so the case and the Epic agree. Every step commits its artifact (no-change when it already matches). No challenge. Evaluate: those mains; KO reiterates the workflow (new instance; that main's owner step absorbs the KO).",
+    "orchestrator": "value-management-officer",
+    "predecessors": [
+      "architectural-vision"
+    ],
+    "steps": [
+      {
+        "slug": "update-enabler-epic",
+        "description": "Owner update \u2014 Enterprise Architect writes the Vision's decisions on the Enabler Epic into it (closed open items, MVP Feature seeds, runway WSJF).",
+        "actor": "enterprise-architect",
+        "artifact": "epic-enabler",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 7.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [],
+        "instructions": [
+          "portfolio-epic-vision-alignment-update-enabler-epic"
+        ],
+        "skills": [
+          "enterprise-architect"
+        ]
+      },
+      {
+        "slug": "update-epic",
+        "description": "Owner update \u2014 Business Owner writes the Vision's decisions on the business Epic into it (closed open items, dependencies, MVP scope, WSJF).",
+        "actor": "business-owner",
+        "artifact": "epic",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 7.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-enabler-epic",
+            "kind": "precondition",
+            "step": "update-enabler-epic"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-vision-alignment-update-epic"
+        ],
+        "skills": [
+          "business-owner"
+        ]
+      },
+      {
+        "slug": "reconcile-lean-business-case",
+        "description": "Owner update \u2014 Business Owner reconciles the Lean Business Case with the Epic just updated (MVP, WSJF, runway dependency), so the case and the Epic agree.",
+        "actor": "business-owner",
+        "artifact": "lean-business-case",
+        "capabilities": {
+          "deep-reasoning": 7.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 7.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-epic",
+            "kind": "precondition",
+            "step": "update-epic"
+          }
+        ],
+        "instructions": [
+          "portfolio-epic-vision-alignment-reconcile-lean-business-case"
+        ],
+        "skills": [
+          "business-owner"
+        ]
+      }
+    ],
+    "source": "workflows/portfolio/epic-vision-alignment.workflow.conf.yaml"
+  },
+  {
     "slug": "portfolio-sync",
     "layer": "portfolio",
-    "description": "Purpose: cadence snapshot of portfolio risks, WIP, Kanban. Act: Cadence or Inspect. Orchestrator: Value Management Officer. Dispatch: portfolio-sync mediation record. Manifests and Kanban are projections, not mains. Evaluate: nothing as a bet. An impediment that is Epic-sized is a later Demand, not this workflow writing an Epic. Do not Evaluate the minutes.",
+    "description": "Purpose: cadence snapshot of portfolio risks, WIP, Kanban. Act: Cadence or Inspect. Orchestrator: Value Management Officer. Dispatch: portfolio-sync mediation record. Manifests and Kanban are projections, not mains. Evaluate: nothing as a bet. An impediment that is Epic-sized is a later Demand, not this workflow writing an Epic. Do not Evaluate the minutes. One product manifest per run: another product is another run.",
     "orchestrator": "value-management-officer",
     "predecessors": [],
     "steps": [
@@ -340,7 +606,7 @@
       },
       {
         "slug": "update-product-manifest",
-        "description": "Operational projection \u2014 Value Management Officer updates product manifests from the sync.",
+        "description": "Operational projection \u2014 Value Management Officer updates the named product's manifest from the sync.",
         "actor": "value-management-officer",
         "artifact": "product-manifest",
         "capabilities": {
@@ -424,7 +690,9 @@
         "instructions": [
           "strategic-investment-planning-draft-allocation"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "challenge-feasibility",
@@ -452,7 +720,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "commit",
@@ -480,7 +750,9 @@
         "instructions": [
           "strategic-investment-planning-commit-allocation"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       }
     ],
     "source": "workflows/portfolio/strategic-investment-planning.workflow.conf.yaml"
@@ -512,7 +784,9 @@
         "instructions": [
           "portfolio-strategic-portfolio-review-update-strategic-themes"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "update-portfolio-vision",
@@ -540,7 +814,9 @@
         "instructions": [
           "portfolio-strategic-portfolio-review-update-portfolio-vision"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "update-portfolio-roadmap",
@@ -568,7 +844,9 @@
         "instructions": [
           "portfolio-strategic-portfolio-review-update-portfolio-roadmap"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       },
       {
         "slug": "update-architecture-vision",
@@ -596,7 +874,9 @@
         "instructions": [
           "portfolio-strategic-portfolio-review-update-architecture-vision"
         ],
-        "skills": []
+        "skills": [
+          "enterprise-architect"
+        ]
       },
       {
         "slug": "decide",
@@ -634,7 +914,9 @@
         "instructions": [
           "portfolio-strategic-portfolio-review-human-decides-pivots"
         ],
-        "skills": []
+        "skills": [
+          "business-owner"
+        ]
       }
     ],
     "source": "workflows/portfolio/strategic-portfolio-review.workflow.conf.yaml"
@@ -642,7 +924,7 @@
   {
     "slug": "architectural-runway-extension",
     "layer": "program",
-    "description": "Purpose: extend ART architectural runway. Orchestrator: Release Train Engineer. In-scope mains: nfr-list, adr, architecture-runway. nfr-list is the product singleton at products/<product-slug>/nfr-list.md, not a Feature-folder file. It is a precondition for ADR production. Same workflow for ADR needed, new or changed product NFR, runway gap, structurant architecture. Challenges of that packet: security, operability, feasibility (not evaluated). Evaluate: those mains; KO reiterates that main's owner step. Late-seeded Enabler Feature forces Feature refinement replay before the Architecture Gate is restaged. Refuse Feature AC/WSJF shaping (that is feature-backlog-refinement). Refuse portfolio NFR backbone (that is architectural-vision). PI Planning only confirms runway; it does not author it.",
+    "description": "Purpose: extend ART architectural runway. Orchestrator: Release Train Engineer. In-scope mains: nfr-list, adr, architecture-runway. nfr-list is the product singleton at portfolio/products/<product-slug>/nfr-list.md, not a Feature-folder file. It is a precondition for ADR production. Same workflow for ADR needed, new or changed product NFR, runway gap, structurant architecture. Challenges of that packet: security, operability, feasibility (not evaluated). Owner updates: the System Architect then updates the NFR list and the ADR, and rewrites the runway register; then the Product Manager writes the packet's decisions on the business Feature into it and the System Architect those on the Enabler Feature (adrs, architectureInventory, NFR trace, Architecture Gate open items; a Feature the packet does not touch gets a no-change entry). Evaluate: those mains; KO reiterates the workflow (new instance; that main's owner step absorbs the KO). Late-seeded Enabler Feature forces Feature refinement replay before the Architecture Gate is restaged. Refuse Feature AC/WSJF shaping (that is feature-backlog-refinement). Refuse portfolio NFR backbone (that is architectural-vision). PI Planning only confirms runway; it does not author it.",
     "orchestrator": "release-train-engineer",
     "predecessors": [
       "feature-backlog-refinement"
@@ -668,7 +950,9 @@
         "instructions": [
           "program-architectural-runway-extension-author-nfrs"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "author-adr",
@@ -696,7 +980,9 @@
         "instructions": [
           "program-architectural-runway-extension-author-adr"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "challenge-security",
@@ -724,7 +1010,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "security-expert"
+        ]
       },
       {
         "slug": "challenge-operability",
@@ -752,7 +1040,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "operator"
+        ]
       },
       {
         "slug": "challenge-feasibility",
@@ -780,13 +1070,15 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
-        "slug": "owner-rewrite",
-        "description": "Owner rewrite \u2014 System Architect commits Architecture Runway after the three challenge packets.",
+        "slug": "update-nfrs",
+        "description": "Owner update \u2014 System Architect absorbs the challenge findings into the product NFR list.",
         "actor": "system-architect",
-        "artifact": "architecture-runway",
+        "artifact": "nfr-list",
         "capabilities": {
           "deep-reasoning": 9.0,
           "coding": 0.0,
@@ -816,9 +1108,146 @@
           }
         ],
         "instructions": [
+          "program-architectural-runway-extension-update-nfrs"
+        ],
+        "skills": [
+          "system-architect"
+        ]
+      },
+      {
+        "slug": "update-adr",
+        "description": "Owner update \u2014 System Architect absorbs the challenge findings into the ADR this run authored.",
+        "actor": "system-architect",
+        "artifact": "adr",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-security",
+            "kind": "precondition",
+            "step": "challenge-security"
+          },
+          {
+            "slug": "after-challenge-operability",
+            "kind": "precondition",
+            "step": "challenge-operability"
+          },
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          }
+        ],
+        "instructions": [
+          "program-architectural-runway-extension-update-adr"
+        ],
+        "skills": [
+          "system-architect"
+        ]
+      },
+      {
+        "slug": "owner-rewrite",
+        "description": "Owner rewrite \u2014 System Architect commits Architecture Runway after the three challenge packets and the NFR / ADR updates.",
+        "actor": "system-architect",
+        "artifact": "architecture-runway",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-nfrs",
+            "kind": "precondition",
+            "step": "update-nfrs"
+          },
+          {
+            "slug": "after-update-adr",
+            "kind": "precondition",
+            "step": "update-adr"
+          }
+        ],
+        "instructions": [
           "program-architectural-runway-extension-rewrite-architecture-runway"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
+      },
+      {
+        "slug": "update-feature",
+        "description": "Owner update \u2014 Product Manager writes the committed architecture packet's decisions on the business Feature into it (ADR links, decision inventory, NFR trace, Architecture Gate open items).",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 6.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-owner-rewrite",
+            "kind": "precondition",
+            "step": "owner-rewrite"
+          }
+        ],
+        "instructions": [
+          "program-architectural-runway-extension-update-feature"
+        ],
+        "skills": [
+          "product-manager"
+        ]
+      },
+      {
+        "slug": "update-feature-enabler",
+        "description": "Owner update \u2014 System Architect writes the committed architecture packet's decisions on the Enabler Feature into it (ADR links, decision inventory, NFR trace, Architecture Gate open items).",
+        "actor": "system-architect",
+        "artifact": "feature-enabler",
+        "capabilities": {
+          "deep-reasoning": 6.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 6.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 3.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-update-feature",
+            "kind": "precondition",
+            "step": "update-feature"
+          }
+        ],
+        "instructions": [
+          "program-architectural-runway-extension-update-feature-enabler"
+        ],
+        "skills": [
+          "system-architect"
+        ]
       }
     ],
     "source": "workflows/program/architectural-runway-extension.workflow.conf.yaml"
@@ -915,7 +1344,7 @@
   {
     "slug": "feature-backlog-refinement",
     "layer": "program",
-    "description": "Purpose: write a PI-ready Feature. Act: Demand. Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Same workflow for new Feature, thicken AC/WSJF, Feature-sized impact of changing X, Feature-sized UX/security gap, Enabler Feature sibling. Challenges of those mains: feasibility, architecture-review (SA challenge, not an ADR), security, UX. Evaluate: those mains; KO reiterates that main's owner step. Refuse Epic/Story grain. Refuse ADR, NFR list, and runway \u2014 those are architectural-runway-extension. Do not invent Impact Analysis.",
+    "description": "Purpose: write a PI-ready Feature. Act: Demand. Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Same workflow for new Feature, thicken AC/WSJF, Feature-sized impact of changing X, Feature-sized UX/security gap, Enabler Feature sibling. Challenges of those mains: feasibility, architecture-review (SA challenge, not an ADR), security, UX. Evaluate: those mains; KO reiterates the workflow (new instance; that main's owner step absorbs the KO). Refuse Epic/Story grain. Refuse ADR, NFR list, and runway \u2014 those are architectural-runway-extension. Do not invent Impact Analysis.",
     "orchestrator": "release-train-engineer",
     "predecessors": [
       "epic-lean-business-case",
@@ -942,7 +1371,9 @@
         "instructions": [
           "program-feature-backlog-refinement-draft-business-feature"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "draft-enabler",
@@ -970,7 +1401,9 @@
         "instructions": [
           "program-feature-backlog-refinement-author-enabler-feature"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "challenge-feasibility",
@@ -998,7 +1431,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "challenge-architecture",
@@ -1031,7 +1466,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "challenge-security",
@@ -1059,7 +1496,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "security-expert"
+        ]
       },
       {
         "slug": "challenge-ux",
@@ -1087,7 +1526,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "ux-designer"
+        ]
       },
       {
         "slug": "owner-rewrite-business",
@@ -1107,6 +1548,11 @@
         },
         "conditions": [
           {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          },
+          {
             "slug": "after-challenge-architecture",
             "kind": "precondition",
             "step": "challenge-architecture"
@@ -1125,7 +1571,9 @@
         "instructions": [
           "program-feature-backlog-refinement-only-owner-writes-business-feature"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "owner-rewrite-enabler",
@@ -1168,7 +1616,9 @@
         "instructions": [
           "program-feature-backlog-refinement-only-owner-writes-enabler-feature"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       }
     ],
     "source": "workflows/program/feature-backlog-refinement.workflow.conf.yaml"
@@ -1176,7 +1626,7 @@
   {
     "slug": "feature-derivation",
     "layer": "program",
-    "description": "Purpose: split an approved Epic into ART Features (SAFe: Portfolio Epics split into Features on the ART backlog). Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Product Manager derives the business Feature; System Architect derives the Enabler Feature. No challenge protocol here \u2014 derived items then enter feature-backlog-refinement. Evaluate: those mains. Refuse Feature AC/WSJF thickening and NFR traces (that is refinement). Refuse ADR/NFR register (that is architectural-runway-extension). There is no Feature-to-Story derivation workflow; teams split Features into Stories in team-backlog-refinement.",
+    "description": "Purpose: split an approved Epic into ART Features (SAFe: Portfolio Epics split into Features on the ART backlog). Orchestrator: Release Train Engineer. In-scope mains: feature, feature-enabler. Product Manager derives the business Feature; System Architect derives the Enabler Feature. One business Feature per run: split an Epic into N Features with N runs. Guard: the harness refuses to start the run while no business Epic is approved (portfolio-backlog or implementing): the \u2605 Epic Gate comes first; it withholds the business Feature unless its parentEpic names an approved business Epic (null, a standalone Feature, is accepted). No challenge protocol here \u2014 derived items then enter feature-backlog-refinement. Evaluate: those mains. Refuse Feature AC/WSJF thickening and NFR traces (that is refinement). Refuse ADR/NFR register (that is architectural-runway-extension). There is no Feature-to-Story derivation workflow; teams split Features into Stories in team-backlog-refinement.",
     "orchestrator": "release-train-engineer",
     "predecessors": [
       "epic-lean-business-case"
@@ -1184,7 +1634,7 @@
     "steps": [
       {
         "slug": "derive-business",
-        "description": "Main artifact draft \u2014 Product Manager derives a business Feature from the approved Epic.",
+        "description": "Main artifact draft \u2014 Product Manager derives one business Feature from the approved Epic.",
         "actor": "product-manager",
         "artifact": "feature",
         "capabilities": {
@@ -1202,7 +1652,9 @@
         "instructions": [
           "program-feature-derivation-derive-business"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "derive-enabler",
@@ -1230,23 +1682,149 @@
         "instructions": [
           "program-feature-derivation-derive-enabler"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       }
     ],
     "source": "workflows/program/feature-derivation.workflow.conf.yaml"
   },
   {
+    "slug": "feature-transition",
+    "layer": "program",
+    "description": "Purpose: commit ONE Feature status transition (or cost close) through its author hats. Act: Transition. Orchestrator: Release Train Engineer. Dispatch: the Product Manager records the transition on the business Feature, the System Architect on its sibling Enabler Feature, then the Release Train Engineer renders the Program Kanban. Input: one transition request (Feature, from and to status, trigger: a gate decision, a roll-up, a block or an unblock, or the Demo Gate close with its cost snapshot). One Feature per run. The orchestrator never writes a Feature status itself. Do not Evaluate: the decision was made at the gate or by the roll-up rule.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "transition-business",
+        "description": "Owner transition \u2014 Product Manager records the requested status change (or no-change) on the business Feature.",
+        "actor": "product-manager",
+        "artifact": "feature",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-feature-transition-transition-business"
+        ],
+        "skills": [
+          "product-manager"
+        ]
+      },
+      {
+        "slug": "transition-enabler",
+        "description": "Owner transition \u2014 System Architect records the requested status change (or no-change) on the sibling Enabler Feature.",
+        "actor": "system-architect",
+        "artifact": "feature-enabler",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-transition-business",
+            "kind": "precondition",
+            "step": "transition-business"
+          }
+        ],
+        "instructions": [
+          "program-feature-transition-transition-enabler"
+        ],
+        "skills": [
+          "system-architect"
+        ]
+      },
+      {
+        "slug": "update-program-kanban",
+        "description": "Operational projection \u2014 Release Train Engineer refreshes the Program Kanban from Feature frontmatter.",
+        "actor": "release-train-engineer",
+        "artifact": "program-kanban",
+        "capabilities": {
+          "deep-reasoning": 2.0,
+          "coding": 3.0,
+          "tool-use": 8.0,
+          "long-context": 2.0,
+          "multimodal": 0.0,
+          "writing-quality": 1.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 8.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-transition-enabler",
+            "kind": "precondition",
+            "step": "transition-enabler"
+          }
+        ],
+        "instructions": [
+          "program-feature-transition-update-program-kanban"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/feature-transition.workflow.conf.yaml"
+  },
+  {
+    "slug": "improvement-backlog",
+    "layer": "program",
+    "description": "Purpose: record or update ONE ART pain point. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: one pain-point mediation record per run. Input: one friction note (a step's stepOutcomes friction, an Inspect & Adapt candidate or triage row, a team retrospective escalation, or the user). Run once per pain point; never batch. Do not Evaluate pain points. A resulting Feature, Story or meta-artifact change is a later Demand, not this workflow.",
+    "orchestrator": "release-train-engineer",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "record-pain-point",
+        "description": "Mediation record \u2014 Release Train Engineer creates or updates exactly one ART pain point. Not itself challenged.",
+        "actor": "release-train-engineer",
+        "artifact": "pain-point",
+        "capabilities": {
+          "deep-reasoning": 6.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 7.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [],
+        "instructions": [
+          "program-improvement-backlog-record-pain-point"
+        ],
+        "skills": []
+      }
+    ],
+    "source": "workflows/program/improvement-backlog.workflow.conf.yaml"
+  },
+  {
     "slug": "inspect-and-adapt",
     "layer": "program",
-    "description": "Purpose: PI quantitative/qualitative improve. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: pain-point mediation records. Do not Evaluate pain-points. A resulting Feature or Enabler is a later Demand (feature-backlog-refinement), not I&A writing a Feature.",
+    "description": "Purpose: PI quantitative/qualitative improve. Act: Cadence. Orchestrator: Release Train Engineer. Dispatch: the PI's inspect-and-adapt mediation record (metrics, pain-point candidates, triage). Writes no pain point: each candidate or triage row is a later improvement-backlog run. Do not Evaluate the record. A resulting Feature or Enabler is a later Demand (feature-backlog-refinement), not I&A writing a Feature.",
     "orchestrator": "release-train-engineer",
     "predecessors": [],
     "steps": [
       {
         "slug": "metrics-review",
-        "description": "Mediation record \u2014 Release Train Engineer records quantitative/qualitative pain-points. Not itself challenged.",
+        "description": "Mediation record \u2014 Release Train Engineer creates the PI's Inspect & Adapt record with the metrics and pain-point candidates. Not itself challenged.",
         "actor": "release-train-engineer",
-        "artifact": "pain-point",
+        "artifact": "inspect-and-adapt",
         "capabilities": {
           "deep-reasoning": 7.0,
           "coding": 0.0,
@@ -1266,9 +1844,9 @@
       },
       {
         "slug": "pi-retrospective",
-        "description": "Mediation record \u2014 Release Train Engineer records retrospective pain-points. Not itself challenged.",
+        "description": "Mediation record \u2014 Release Train Engineer updates the PI's Inspect & Adapt record with the problem-solving workshop triage. Not itself challenged.",
         "actor": "release-train-engineer",
-        "artifact": "pain-point",
+        "artifact": "inspect-and-adapt",
         "capabilities": {
           "deep-reasoning": 7.0,
           "coding": 0.0,
@@ -1324,7 +1902,9 @@
         "instructions": [
           "program-pi-planning-confirm-product-vision"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "confirm-product-roadmap",
@@ -1352,11 +1932,13 @@
         "instructions": [
           "program-pi-planning-confirm-product-roadmap"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "confirm-intent",
-        "description": "Main artifact confirm \u2014 Product Manager restates Feature intent that this PI will commit against.",
+        "description": "Main artifact confirm \u2014 Product Manager restates the intent of the one Feature this PI Planning run commits.",
         "actor": "product-manager",
         "artifact": "feature",
         "capabilities": {
@@ -1380,7 +1962,9 @@
         "instructions": [
           "program-pi-planning-confirm-feature-intent"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       },
       {
         "slug": "confirm-runway",
@@ -1402,7 +1986,9 @@
         "instructions": [
           "program-pi-planning-confirm-architecture-runway"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "draft-objectives",
@@ -1463,7 +2049,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "commit-objectives",
@@ -1519,7 +2107,9 @@
         "instructions": [
           "program-pi-planning-record-roam-risks"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       }
     ],
     "source": "workflows/program/pi-planning.workflow.conf.yaml"
@@ -1553,7 +2143,9 @@
         "instructions": [
           "program-release-on-demand-confirm-deployment"
         ],
-        "skills": []
+        "skills": [
+          "operator"
+        ]
       },
       {
         "slug": "commit-release",
@@ -1581,7 +2173,9 @@
         "instructions": [
           "program-release-on-demand-commit-release"
         ],
-        "skills": []
+        "skills": [
+          "product-manager"
+        ]
       }
     ],
     "source": "workflows/program/release-on-demand.workflow.conf.yaml"
@@ -1704,7 +2298,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "commit-plan",
@@ -1830,15 +2426,81 @@
         "instructions": [
           "team-pair-programming-drive-code-change"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       }
     ],
     "source": "workflows/team/pair-programming.workflow.conf.yaml"
   },
   {
+    "slug": "story-transition",
+    "layer": "team",
+    "description": "Purpose: commit ONE Story status transition (or cost snapshot) through its author hats. Act: Transition. Orchestrator: Scrum Master. Dispatch: the Product Owner records the transition on the business Story, then the System Architect on its sibling Enabler Story. Input: one transition request (Story, from and to status, trigger: a gate decision, a pair or QA outcome, a merge, a block or an unblock, or the awaiting-pr cost snapshot). One Story per run. The orchestrator never writes a Story status itself; the Team Kanban is rendered in the next Daily Sync record. Do not Evaluate: the decision was made at the gate or by the practice that emitted it.",
+    "orchestrator": "scrum-master",
+    "predecessors": [],
+    "steps": [
+      {
+        "slug": "transition-story",
+        "description": "Owner transition \u2014 Product Owner records the requested status change (or no-change) on the business Story.",
+        "actor": "product-owner",
+        "artifact": "story",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [],
+        "instructions": [
+          "team-story-transition-transition-story"
+        ],
+        "skills": [
+          "product-owner"
+        ]
+      },
+      {
+        "slug": "transition-enabler",
+        "description": "Owner transition \u2014 System Architect records the requested status change (or no-change) on the sibling Enabler Story.",
+        "actor": "system-architect",
+        "artifact": "story-enabler",
+        "capabilities": {
+          "deep-reasoning": 5.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 4.0,
+          "multimodal": 0.0,
+          "writing-quality": 5.0,
+          "instruction-following": 9.0,
+          "fast-iteration": 4.0,
+          "schema-adherence": 9.0
+        },
+        "conditions": [
+          {
+            "slug": "after-transition-story",
+            "kind": "precondition",
+            "step": "transition-story"
+          }
+        ],
+        "instructions": [
+          "team-story-transition-transition-enabler"
+        ],
+        "skills": [
+          "system-architect"
+        ]
+      }
+    ],
+    "source": "workflows/team/story-transition.workflow.conf.yaml"
+  },
+  {
     "slug": "team-backlog-refinement",
     "layer": "team",
-    "description": "Purpose: write a ready-enough Story, including splitting a Feature into Stories (SAFe: teams split Features into Stories; there is no named Story-derivation ceremony). Orchestrator: Scrum Master. In-scope mains: story, story-enabler. Same workflow for new Story, bug, spike, debt slice, thicken AC, split. Challenges of those mains: feasibility, UX, architecture-review (SA challenge, not an ADR). Evaluate: those mains; KO reiterates that main's owner step. Refuse Feature/Epic grain. Refuse ADR and the product NFR register (hand off to RTE architectural-runway-extension). Stories inherit NFR applicability from the parent Feature; they do not define NFRs. Do not invent Bug Intake.",
+    "description": "Purpose: write a ready-enough Story, including splitting a Feature into Stories (SAFe: teams split Features into Stories; there is no named Story-derivation ceremony). Orchestrator: Scrum Master. In-scope mains: story, story-enabler. Same workflow for new Story, bug, spike, debt slice, thicken AC, split. Challenges of those mains: feasibility, UX, architecture-review (SA challenge, not an ADR). Owner rewrites: the Product Owner rewrites the Story and the System Architect the Enabler Story. Evaluate: those mains; KO reiterates the workflow (new instance; that main's owner step absorbs the KO). Refuse Feature/Epic grain. Refuse ADR and the product NFR register (hand off to RTE architectural-runway-extension). Stories inherit NFR applicability from the parent Feature; they do not define NFRs. Do not invent Bug Intake.",
     "orchestrator": "scrum-master",
     "predecessors": [
       "feature-backlog-refinement"
@@ -1864,7 +2526,9 @@
         "instructions": [
           "team-story-backlog-refinement-discovery-open-items-recorded-or-explicitly-none"
         ],
-        "skills": []
+        "skills": [
+          "product-owner"
+        ]
       },
       {
         "slug": "draft-enabler",
@@ -1892,7 +2556,9 @@
         "instructions": [
           "team-backlog-refinement-author-story-enabler"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "challenge-feasibility",
@@ -1925,7 +2591,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "developer"
+        ]
       },
       {
         "slug": "challenge-ux",
@@ -1953,7 +2621,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "ux-designer"
+        ]
       },
       {
         "slug": "challenge-architecture",
@@ -1986,7 +2656,9 @@
         "instructions": [
           "program-feature-backlog-refinement-challenger-writes-no-owner-content"
         ],
-        "skills": []
+        "skills": [
+          "system-architect"
+        ]
       },
       {
         "slug": "owner-rewrite",
@@ -2024,7 +2696,49 @@
         "instructions": [
           "team-backlog-refinement-owner-rewrites-story"
         ],
-        "skills": []
+        "skills": [
+          "product-owner"
+        ]
+      },
+      {
+        "slug": "owner-rewrite-enabler",
+        "description": "Owner rewrite \u2014 System Architect commits the Enabler Story after the challenge packets.",
+        "actor": "system-architect",
+        "artifact": "story-enabler",
+        "capabilities": {
+          "deep-reasoning": 9.0,
+          "coding": 0.0,
+          "tool-use": 4.0,
+          "long-context": 6.0,
+          "multimodal": 0.0,
+          "writing-quality": 8.0,
+          "instruction-following": 8.0,
+          "fast-iteration": 2.0,
+          "schema-adherence": 8.0
+        },
+        "conditions": [
+          {
+            "slug": "after-challenge-feasibility",
+            "kind": "precondition",
+            "step": "challenge-feasibility"
+          },
+          {
+            "slug": "after-challenge-ux",
+            "kind": "precondition",
+            "step": "challenge-ux"
+          },
+          {
+            "slug": "after-challenge-architecture",
+            "kind": "precondition",
+            "step": "challenge-architecture"
+          }
+        ],
+        "instructions": [
+          "team-backlog-refinement-owner-rewrites-story-enabler"
+        ],
+        "skills": [
+          "system-architect"
+        ]
       }
     ],
     "source": "workflows/team/team-backlog-refinement.workflow.conf.yaml"
@@ -2091,7 +2805,9 @@
         "instructions": [
           "team-verification-record-qa-signoff"
         ],
-        "skills": []
+        "skills": [
+          "quality-engineer"
+        ]
       }
     ],
     "source": "workflows/team/verification.workflow.conf.yaml"

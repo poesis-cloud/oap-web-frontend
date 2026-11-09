@@ -11,7 +11,7 @@ const ORGANIZATION_WORKFLOWS = [
   { slug: 'organization-change', feature: 'SF11', text: 'Applies an improvement decided in a retrospective: drafting, challenge, harness validation, ★ Organization gate, commit. A rollback is the same workflow with a revert.' },
   { slug: 'organization-upgrade', feature: 'SF13', text: 'Moves the workspace to a new package version by a three-way merge; conflicts are decided at the gate.' },
   { slug: 'organization-change scorecard', feature: 'SF12', text: 'Measures every accepted change after enough runs: cost per accepted artifact, first-pass acceptance, gate returns, recurrence of pain points.' },
-  { slug: 'pain-point capture', feature: 'SF10', text: 'Orchestrators record pain points from harness signals and human reports, with evidence.' },
+  { slug: 'pain-point capture', feature: 'SF10', text: 'The SAF improvement-backlog workflow records one pain point per run. This frontend simulates capture from a commit-gate rejection.' },
 ] as const;
 
 const FOLDER_OF: Record<OrganizationCategory, string> = { agent: 'agents', workflow: 'workflows', skill: 'skills', instruction: 'instructions', schema: 'artifacts', template: 'artifacts', configuration: 'conf', manifest: '', other: '' };

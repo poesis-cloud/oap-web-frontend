@@ -212,7 +212,7 @@ async function main() {
         await cdp.waitFor(`location.search.includes(${JSON.stringify(folder)})`, 'folder ' + folder);
         await sleep(200);
       };
-      for (const folder of ['art', 'platform', 'program-backlog', 'customer-subscriptions-api']) await enter(folder);
+      for (const folder of ['portfolio', 'art', 'platform', 'program-backlog', 'customer-subscriptions-api']) await enter(folder);
       report.screenshots.push(await cdp.shot('03-explorer-directory'));
       await cdp.click('.pane.is-content .sai-item', 'customer-subscriptions-api.feature.md');
       await cdp.waitFor(`document.querySelector('sai-viewer') && document.body.textContent.includes('Acceptance criteria')`, 'viewer markdown');
@@ -236,6 +236,7 @@ async function main() {
       report.screenshots.push(await cdp.shot('07-viewer-yaml-organization'));
       await cdp.click('button[aria-label="Close"]');
     });
+    let architectureConversationPath = '';
     await step('Conversation: list, new thread, proposal, launch', async () => {
       await cdp.nav('/conversation');
       await cdp.waitFor(`document.querySelector('sai-conversation-list')`, 'conversation list');
@@ -250,6 +251,7 @@ async function main() {
       await cdp.waitFor(`document.body.textContent.includes('Confirm and launch')`, 'launch proposal', 30000);
       await cdp.waitFor(`!document.querySelector('.animate-pulse.text-ai')`, 'streaming done', 30000);
       report.screenshots.push(await cdp.shot('10-chat-proposal'));
+      architectureConversationPath = await cdp.eval('location.pathname');
       await cdp.click('button', 'Confirm and launch');
       await cdp.waitFor(`document.querySelector('.runcard')`, 'run card');
       report.screenshots.push(await cdp.shot('11-chat-run-started'));
@@ -278,10 +280,10 @@ async function main() {
     });
     await step('Supervision › Gates leads to the second gate; approved in its conversation', async () => {
       await cdp.nav('/supervision/gates');
-      await cdp.waitFor(`[...document.querySelectorAll('sai-gate-flow button')].some(b => b.textContent.includes('Decide in the gate conversation'))`, 'second gate waiting', 60000);
+      await cdp.waitFor(`document.querySelector('sai-gate-flow a[href="${architectureConversationPath}"]')`, 'second gate waiting', 60000);
       await sleep(500);
       report.screenshots.push(await cdp.shot('18-gates-waiting'));
-      await cdp.click('sai-gate-flow button', 'Decide in the gate conversation');
+      await cdp.click(`sai-gate-flow a[href="${architectureConversationPath}"]`);
       await cdp.waitFor(`location.pathname.startsWith(${JSON.stringify(at('/conversation/conv-'))}) && document.querySelector('sai-gate-flow')`, 'second gate conversation', 10000);
       await cdp.click('sai-gate-flow button', 'Open the artifact');
       await cdp.waitFor(`document.querySelector('sai-viewer')`, 'reworked artifact');
@@ -363,6 +365,76 @@ async function main() {
       await cdp.waitFor(`document.querySelector('sai-gate-flow')`, 'conversation with gates');
       await sleep(300);
       report.screenshots.push(await cdp.shot('38-light-gate-conversation'));
+    });
+
+    await step('Improvement: source evidence, retrospective thread and returned conclusion', async () => {
+      await cdp.nav('/workspace/improvement');
+      await cdp.waitFor(`document.body.textContent.includes('ADR status missing before the commit gate')`, 'seeded pain point');
+      report.screenshots.push(await cdp.shot('39-improvement', 1440, 1000));
+      await cdp.click('sai-improvement-page button', 'Read evidence');
+      await cdp.waitFor(`document.querySelector('sai-viewer') && document.body.textContent.includes('sourceSession')`, 'traceable evidence');
+      await cdp.click('button[aria-label="Close"]');
+      await cdp.click('button', 'Start retrospective');
+      await cdp.waitFor(`document.querySelector('input[aria-label="Thread conclusion"]')`, 'pain point thread');
+      await cdp.type('input[aria-label="Thread conclusion"]', 'Add an ADR status preflight; observe three runs before resolving this pain point.');
+      await cdp.click('button', 'Return conclusion');
+      await cdp.waitFor(`document.body.textContent.includes('returned') && !document.querySelector('input[aria-label="Thread conclusion"]')`, 'returned conclusion');
+      report.screenshots.push(await cdp.shot('40-retrospective'));
+    });
+    await step('Organization change: readable diff, scorecard and human approval', async () => {
+      await cdp.nav('/workspace/improvement');
+      await cdp.click('sai-improvement-page button', 'Propose an improvement');
+      await cdp.waitFor(`document.body.textContent.includes('Confirm and launch')`, 'change proposal');
+      await cdp.click('button', 'Confirm and launch');
+      await cdp.waitFor(`document.querySelector('sai-change-review sai-diff') && document.querySelector('sai-gate-flow')`, 'organization gate', 60000);
+      await cdp.waitFor(`document.body.textContent.includes('Insufficient observations')`, 'honest scorecard');
+      report.screenshots.push(await cdp.shot('41-organization-diff-scorecard', 1440, 1100));
+      report.screenshots.push(await cdp.shot('42-phone-organization-diff', 390, 844));
+      if (await cdp.eval('document.documentElement.scrollWidth > innerWidth + 2')) throw new Error('Organization review overflows the phone viewport');
+      await cdp.shot('_reset-learning', 1440, 1000);
+      await cdp.click('sai-gate-flow button', 'Open the artifact');
+      await cdp.waitFor(`document.querySelector('sai-viewer')`, 'change artifact');
+      await cdp.click('button[aria-label="Close"]');
+      await cdp.click('sai-gate-flow button', 'Approve');
+      await cdp.waitFor(`document.body.textContent.includes('Gate approved')`, 'change approved');
+      await cdp.nav('/supervision/organization');
+      await cdp.waitFor(`document.body.textContent.includes('1 files changed')`, 'one changed instruction');
+    });
+    await step('Rollback: separate run and gate, exact restoration to nominal', async () => {
+      await cdp.nav('/workspace/improvement');
+      await cdp.click('sai-improvement-page button', 'Propose a rollback');
+      await cdp.waitFor(`document.body.textContent.includes('Confirm and launch')`, 'rollback proposal');
+      await cdp.click('button', 'Confirm and launch');
+      await cdp.waitFor(`document.querySelector('sai-change-review sai-diff') && document.querySelector('sai-gate-flow')`, 'rollback gate', 60000);
+      report.screenshots.push(await cdp.shot('43-rollback-gate'));
+      await cdp.click('sai-gate-flow button', 'Open the artifact');
+      await cdp.waitFor(`document.querySelector('sai-viewer')`, 'rollback artifact');
+      await cdp.click('button[aria-label="Close"]');
+      await cdp.click('sai-gate-flow button', 'Approve');
+      await cdp.waitFor(`document.body.textContent.includes('Gate approved')`, 'rollback approved');
+      await cdp.nav('/supervision/organization');
+      await cdp.waitFor(`document.body.textContent.includes('none, identical to the package')`, 'nominal restored');
+      report.screenshots.push(await cdp.shot('44-organization-restored'));
+      await cdp.nav('/workspace/improvement');
+      report.screenshots.push(await cdp.shot('45-improvement-history'));
+      report.screenshots.push(await cdp.shot('46-phone-improvement', 390, 844));
+      if (await cdp.eval('document.documentElement.scrollWidth > innerWidth + 2')) throw new Error('Improvement overflows the phone viewport');
+    });
+    await step('Agentic Organizations: create an isolated workspace, then return to the original', async () => {
+      await cdp.shot('_reset-organizations', 1440, 1000);
+      await cdp.nav('/organizations');
+      report.screenshots.push(await cdp.shot('47-organizations'));
+      await cdp.click('button', 'Create a workspace');
+      await cdp.type('#workspace-name', 'Partner Experience');
+      report.screenshots.push(await cdp.shot('48-create-workspace'));
+      await cdp.click('[role=dialog] button', 'Create workspace');
+      await cdp.waitFor(`location.pathname.endsWith('/workspace/explorer') && document.body.textContent.includes('Partner Experience')`, 'new workspace');
+      await cdp.nav('/workspace/improvement');
+      await cdp.waitFor(`document.body.textContent.includes('No pain points yet') && document.body.textContent.includes('No organization changes yet')`, 'isolated workspace');
+      await cdp.nav('/organizations');
+      await cdp.click('sai-organizations-page button', 'Customer Platform');
+      await cdp.nav('/workspace/improvement');
+      await cdp.waitFor(`document.body.textContent.includes('ADR status missing before the commit gate')`, 'original workspace preserved');
     });
     report.consoleErrors = cdp.consoleErrors;
     ws.close();

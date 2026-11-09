@@ -18,8 +18,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/workspace/board-page').then((m) => m.BoardPage),
     title: 'Board · OAP',
   },
+  { path: 'workspace/improvement', loadComponent: () => import('./features/workspace/improvement-page').then(m => m.ImprovementPage), title: 'Improvement · OAP' },
   { path: 'workspace/organization', redirectTo: 'workspace/explorer?dir=organization' },
   { path: 'workspace/:any', redirectTo: 'workspace/explorer' },
+  { path: 'organizations', loadComponent: () => import('./features/workspace/organizations-page').then(m => m.OrganizationsPage), title: 'Agentic Organizations · OAP' },
   { path: 'organization', redirectTo: 'supervision/organization' },
   { path: 'organization/:any', redirectTo: 'supervision/organization' },
   {

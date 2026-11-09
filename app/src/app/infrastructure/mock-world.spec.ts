@@ -82,7 +82,8 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     const adrStep = waiting.steps.find((s) => s.stepSlug === 'author-adr')!;
     expect(adrStep.verdicts.some((v) => v.fn === 'check-step-artifact' && v.status === 'reverted')).toBe(true);
     const adr = world.app.artifact(world.session, DEMO_WORKSPACE_ID, gate.artifactPath)!;
-    expect(adr.versions).toHaveLength(1);
+    // SAF now includes an explicit update-adr step after the challenge packets.
+    expect(adr.versions).toHaveLength(2);
     expect(parseArtifact(adr.head.content).frontmatter['status']).toBe('proposed');
 
     // Every journal entry honours the log-entry contract; every step has model and verdicts (F4-AC2, F4-AC7).
@@ -131,7 +132,7 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     const gate2 = pendingGate(reworked)!;
     expect(gate2.id).not.toBe(gate.id);
     const adr2 = world.app.artifact(world.session, DEMO_WORKSPACE_ID, gate2.artifactPath)!;
-    expect(adr2.versions).toHaveLength(2);
+    expect(adr2.versions).toHaveLength(4);
     expect(adr2.head.content).toContain('mTLS');
     expect(adr2.head.content).toContain('Revision 2');
 

@@ -43,43 +43,50 @@ export const STEP_TOKENS: Record<string, { input: number; output: number }> = {
 export function scriptedArtifact(kind: string, ctx: ScriptContext, valid = true): ScriptedArtifact {
   switch (kind) {
     case 'nfr-list':
-      return { path: `products/${ctx.product}/nfr-list.md`, content: nfrList(ctx) };
+      return { path: `portfolio/products/${ctx.product}/nfr-list.md`, content: nfrList(ctx) };
     case 'adr':
-      return { path: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`, content: adr(ctx, valid) };
+      return { path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`, content: adr(ctx, valid) };
     case 'security-review':
       return {
-        path: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.security-review.md`,
+        path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.security-review.md`,
         content: securityReview(ctx),
       };
     case 'operability-review':
       return {
-        path: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.operability-review.md`,
+        path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.operability-review.md`,
         content: operabilityReview(ctx),
       };
     case 'feasibility-review':
       return {
-        path: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.feasibility-review.md`,
+        path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}.feasibility-review.md`,
         content: feasibilityReview(ctx),
       };
+    case 'feature-enabler':
+      return { path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ctx.featureSlug}-architecture.feature-enabler.md`, content: `${serializeFrontmatter({ title: 'Architecture enabler disposition', status: 'not-needed', parentFeature: ctx.featureId, created: ctx.date })}\n\n# Architecture enabler disposition\n\nNo separate enabler is required in this scripted business-Feature scenario. The architecture links are recorded on ${ctx.featureId}.\n` };
     case 'architecture-runway':
-      return { path: `products/${ctx.product}/architecture-runway.md`, content: architectureRunway(ctx) };
+      return { path: `portfolio/products/${ctx.product}/architecture-runway.md`, content: architectureRunway(ctx) };
     default:
-      return { path: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${kind}.md`, content: generic(kind, ctx) };
+      return { path: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${kind}.md`, content: generic(kind, ctx) };
   }
 }
 
 export function painPoint(ctx: ScriptContext, comment: string, runId: string, gateLabel: string): ScriptedArtifact {
-  const slug = `${ctx.featureSlug}-gate-reservation`;
+  const slug = `${runId}-${ctx.featureSlug}-gate-reservation`;
   const frontmatter = serializeFrontmatter({
     id: `PP-${slug}`,
     title: `Reservation at the ${gateLabel}`,
     status: 'open',
-    source: 'human-report',
-    evidence: [`runs/${runId}.run.json`, `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`],
+    sourceRun: runId,
+    origin: 'workflow',
+    layer: 'program',
+    symptom: comment,
+    impact: 'Human reservation requires follow-up.',
+    owner: 'release-train-engineer',
+    evidence: [`runs/${runId}.run.json`, `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`],
     created: ctx.date,
   });
   return {
-    path: `art/${ctx.art}/improvement-backlog/${slug}/${slug}.pain-point.md`,
+    path: `portfolio/art/${ctx.art}/improvement-backlog/${slug}/${slug}.pain-point.md`,
     content: `${frontmatter}\n\n# Pain point — reservation at the ${gateLabel}\n\n## Report\n${comment}\n\n## Evidence\n- Run \`${runId}\`\n- Artifact under review: \`${ADR_ID}\`\n\n## Next\nTo be triaged in the next retrospective (F16).\n`,
   };
 }
@@ -106,7 +113,7 @@ Categories: security · performance · reliability · scalability · usability �
 function adr(ctx: ScriptContext, valid: boolean): string {
   const base: Record<string, string | number | boolean | null | string[]> = {
     id: ADR_ID,
-    title: 'Secure REST API for customer subscriptions',
+    title: ctx.featureTitle,
     product: ctx.product,
     parentFeature: ctx.featureId,
     decision_scope: 'authentication, authorization and tenant isolation of the subscriptions API',
@@ -128,7 +135,7 @@ function adr(ctx: ScriptContext, valid: boolean): string {
       : '';
   return `${frontmatter}
 
-# ${ADR_ID} — Secure REST API for customer subscriptions
+# ${ADR_ID} — ${ctx.featureTitle}
 ${revisionNote}
 ## Context
 ${ctx.intent}. The Feature ${ctx.featureId} is structurant: it exposes customer subscriptions to partner applications and to the customer portal, across tenants, under GDPR. The forces are tenant isolation, partner integration simplicity and the operating cost of the authorization layer.
@@ -138,7 +145,7 @@ This ADR governs how callers are authenticated and authorized and how tenant iso
 
 ## Linked enablers and served artifacts
 - Enabler follow-up: F-14 (personal data export and erasure endpoints)
-- Served artifacts/specifications: \`products/${ctx.product}/nfr-list.md\` (NFR-01, NFR-02, NFR-04)
+- Served artifacts/specifications: \`portfolio/products/${ctx.product}/nfr-list.md\` (NFR-01, NFR-02, NFR-04)
 - Companion references absorbed here: NFR register security rows
 
 ## Option evaluation criteria
@@ -187,7 +194,7 @@ Repos and code areas impacted: \`customer-platform-api\` (auth middleware, repos
 function securityReview(ctx: ScriptContext): string {
   const frontmatter = serializeFrontmatter({
     id: `${ctx.featureSlug}-security-review`,
-    subject: `art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`,
+    subject: `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`,
     reviewer: '@security-expert',
     verdict: ctx.revision > 1 ? 'pass' : 'concerns',
     created: ctx.date,
@@ -304,20 +311,14 @@ export function titleCase(slug: string): string {
     .join(' ');
 }
 
-/** Scripted consultation answers of specialists, within their declared scope. */
+/** Scoped demo replies: do not invent a decision, an estimate or a handoff for unrelated topics. */
+const onApi = (topic: string) => /api|tenant|token|oauth|subscription|mtls|replay/i.test(topic);
 export const SPECIALIST_ANSWERS: Record<string, (topic: string) => string> = {
-  'system-architect': (topic) =>
-    `Within my scope (architecture decisions): for "${topic}", I would frame one ADR on authentication, authorization and tenant isolation, backed by an NFR register. The decision unit is separable from data modelling and billing. If you want it done properly, the Architectural Runway Extension workflow produces the NFR list, the ADR, three challenge packets and the runway, then stops at the ★ Architecture Gate.`,
-  'security-expert': (topic) =>
-    `Within my scope (trust boundaries): for "${topic}", the risks to settle first are tenant enumeration, token replay by partners and over-broad scopes. I only write challenge packets: ask the orchestrator to run the workflow and I will review the ADR there.`,
-  developer: (topic) =>
-    `Within my scope (feasibility): "${topic}" is about two Stories if the gateway already validates tokens. Idempotency needs a small TTL store. I can write a feasibility review inside a run; I do not author the decision.`,
-  operator: (topic) =>
-    `Within my scope (operability): "${topic}" touches gateway policies and correlation-id propagation. I review runbooks and deployability inside the workflow.`,
-  'release-train-engineer': (topic) =>
-    `I orchestrate program workflows. For "${topic}" the matching purpose is Architectural Runway Extension. Say "/architectural-runway-extension" or let Copilot hand me the request and I will prepare a launch proposal.`,
-  'scrum-master': (topic) =>
-    `I orchestrate team workflows (Stories, iterations, verification). "${topic}" reads as program-level work; I would hand it to @release-train-engineer. For a Story-grain concern, use /team-backlog-refinement.`,
-  'value-management-officer': (topic) =>
-    `I orchestrate portfolio workflows (Epics, lean business cases). "${topic}" is below Epic grain; @release-train-engineer owns it. For a portfolio bet, use /epic-lean-business-case.`,
+  'system-architect': topic => onApi(topic) ? 'For the API scenario, I own the NFR register and ADR. Separate authentication, authorization and tenant isolation from billing rules. The Architecture Gate holder decides; I do not approve my own design. Use /architectural-runway-extension to draft and challenge the decision.' : 'I author architecture decisions and NFRs. Name the Feature, constraints and decision to compare; I cannot infer an API design from this request.',
+  'security-expert': topic => onApi(topic) ? 'For this API, review tenant enumeration, token replay and scope breadth. mTLS can bind a partner client to its token. I author a security challenge packet; System Architect owns the ADR and the human gate holder decides.' : 'I review security risks and trust boundaries. Name the artifact, assets and threat you want reviewed; I do not author or approve the owner’s decision.',
+  developer: topic => onApi(topic) ? 'I review implementation feasibility: token validation, tenant filters and an idempotency store. An effort estimate needs repository evidence; this demo has none. System Architect owns the ADR.' : 'I handle implementation and feasibility. Provide the Story or artifact and repository context; there is not enough evidence here to estimate the work.',
+  operator: topic => onApi(topic) ? 'I review gateway rollout, certificate rotation and correlation-id propagation. Those findings belong in the operability review; the owner incorporates them into the decision.' : 'I review deployability, runbooks and operations. Name the change and its operating environment so the review stays in scope.',
+  'release-train-engineer': () => 'I coordinate program workflows and record one pain point per /improvement-backlog run. Name a Feature for architecture work, or open Improvement for a retrospective.',
+  'scrum-master': () => 'I coordinate team work: Stories, iteration planning, retrospectives and verification. Name the team and Story, then choose the matching workflow; I do not own program architecture or portfolio decisions.',
+  'value-management-officer': () => 'I coordinate portfolio work: Epics, lean business cases and investment planning. Name the Epic or investment decision; its owner drafts it and the designated gate holder decides.',
 };

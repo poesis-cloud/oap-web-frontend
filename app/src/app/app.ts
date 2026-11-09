@@ -23,12 +23,15 @@ interface MenuEntry {
 
 const SECTION_LABELS: Record<string, string> = {
   workspace: 'Workspace',
+  organizations: 'Agentic Organizations',
   conversation: 'Conversation',
   supervision: 'Supervision',
 };
 const SUB_LABELS: Record<string, string> = {
   explorer: 'Explorer',
   board: 'Board',
+  improvement: 'Improvement',
+  organizations: 'Agentic Organizations',
   gates: 'Gates',
   runs: 'Runs',
   organization: 'Organization',
@@ -62,8 +65,10 @@ export class App {
       children: [
         { path: '/workspace/explorer', label: 'Explorer' },
         { path: '/workspace/board', label: 'Board' },
+        { path: '/workspace/improvement', label: 'Improvement' },
       ],
     },
+    { key: 'organizations', path: '/organizations', label: 'Agentic Organizations', icon: 'pi pi-sitemap' },
     { key: 'conversation', path: '/conversation', label: 'Conversation', icon: 'pi pi-comments' },
     {
       key: 'supervision',
@@ -124,9 +129,15 @@ export class App {
     if (conversation) void this.router.navigate(['/conversation', conversation.id]);
   }
 
+  switchWorkspace(id: string): void {
+    this.store.workspaceId.set(id);
+    void this.router.navigate(['/workspace/explorer']);
+  }
+
   open(notification: Notification, popover: Popover): void {
     if (notification.readAt === null) this.store.markNotificationRead(notification.id);
     popover.hide();
+    this.store.workspaceId.set(notification.workspaceId);
     const refs = notification.refs;
     if (refs.conversationId) void this.router.navigate(['/conversation', refs.conversationId]);
     else if (refs.runId) void this.router.navigate(['/supervision', 'runs', refs.runId]);

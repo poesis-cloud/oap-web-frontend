@@ -31,7 +31,7 @@
     "slug": "product-manager",
     "name": "Product Manager",
     "kind": "specialist",
-    "description": "**SAFe AUTHOR SKILL \u2014 PM hat.** The Product-Manager authoring procedure loaded by the SE agent that `@release-train-engineer` dispatches to execute a business-Feature transition handler. USE FOR: deriving business Features from an approved Epic (`Feature \u2205\u2192funnel`); refining a business Feature to acceptance criteria + WSJF + the `structurant` flag (`funnel\u2192refined`); setting `parentEpic`. DO NOT USE FOR: enabler Features (use `system-architect`); deciding any \u2605 gate (Central Supervisor); authoring Epics (use `business-owner`) or Stories (use `product-owner`); ADRs (use `system-architect`). Loaded explicitly by dispatch prompt: `Acting as PM \u2014 load skills/product-manager, execute handler \"<Feature@state>\"`.",
+    "description": "**SAFe AUTHOR SKILL \u2014 PM hat.** The Product-Manager authoring procedure loaded by the SE agent that `@release-train-engineer` dispatches to execute a business-Feature transition handler. USE FOR: deriving business Features from an approved Epic (`Feature \u2205\u2192funnel`); refining a business Feature to acceptance criteria + WSJF + the `structurant` flag (`funnel\u2192refined`); setting `parentEpic`. DO NOT USE FOR: enabler Features (use `system-architect`); deciding any \u2605 gate (Central Supervisor); authoring Epics (use `business-owner`) or Stories (use `product-owner`); ADRs (use `system-architect`). Injected by the harness into every step that declares it in `skills:`; the dispatch prompt names only the work: `execute handler \"<Feature@state>\"`.",
     "source": "agents/product-manager.agent.md"
   },
   {
