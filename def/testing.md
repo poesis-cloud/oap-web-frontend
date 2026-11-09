@@ -5,11 +5,12 @@
 | Level | Tool | Scope | Where |
 | --- | --- | --- | --- |
 | Contract | Vitest | harness log-entry contract validator, instance id mint, model-resolution rule against the specification's worked examples, SAF path patterns, YAML subset reader, data tree | `core/saf/*.spec.ts`, `core/application/board.spec.ts`, `core/application/data-tree.spec.ts` |
+| Explorer and diff | Vitest | directory listing like GitHub (folders first, expected slots last, breadcrumbs, file counts), line diff (additions, removals, folded context) | `core/application/explorer.spec.ts`, `core/application/diff.spec.ts` |
 | Analysis and organization view | Vitest | cost in euros from usage records and the gateway price list, durations and human wait, first-pass flag, subjects across workflows and runs, workflow summaries (cost per accepted artifact), formats; organization categories, folder tree order, history and gap to nominal | `core/application/analysis.spec.ts`, `core/application/organization-view.spec.ts` |
 | Domain | Vitest | lifecycles (allowed and refused transitions), addressee rule, workspace tree from the structure map | `core/domain/*.spec.ts`, `core/application/dispatch.spec.ts`, `core/application/workspace-tree.spec.ts` |
 | Application scenario | Vitest | the vertical slice end to end on the mocked backends: proposal, confirmation, run, commit-gate revert, journal validity, **gate → gate conversation → invitations and notifications → decision taken there closes it**, rejection and rework, acceptance, board statuses, cost per accepted artifact vs usage, history rebuild, cancellation, budget stop, tenant isolation, no free chat, consultations, archive | `infrastructure/mock-world.spec.ts` |
 | Type and template | `tsc --noEmit`, Angular strict templates | whole project | `npm run typecheck`, `ng build` |
-| Visual / journeys | `tools/smoke.mjs` (headless Chrome over `dist/`, no dependency; `--dist` and `--base` for a sub-path build) | J4 explorer and previews, J1 launch, J3 gate → gate conversation → reject → rework → Supervisor leads to the second gate conversation → approve there, J2 run detail with cost and time, J4 board and ADR history, J7 Organization (overview, agents, workflows, browse an agent file and the workspace map, history), J8 Supervisor runs and analysis, J5 consultation, J6 out of scope, phone widths | `../../evidence/smoke/` (34 screenshots, `report.json`) |
+| Visual / journeys | `tools/smoke.mjs` (headless Chrome over `dist/`, no dependency; `--dist` and `--base` for a sub-path build) | explorer like GitHub (tree, directories, viewer over the listing, versions, raw, organization YAML), conversation as a chat (new, proposal, launch), the gate journey (raised, notified, artifact reviewed in the viewer, rejected in its conversation; Supervision › Gates → second gate → approved), runs (list, statistics, run, session, log), board and organization, consultation and out-of-scope, tablet and phone, light theme | `../../evidence/smoke/` (38 screenshots, `report.json`) |
 
 ## Acceptance traceability
 
@@ -27,13 +28,14 @@ npm run smoke       # needs Google Chrome and a built dist/
 
 Direct Vitest invocation, useful on a constrained machine: `./node_modules/.bin/vitest run --root . --dir src --environment node`.
 
-## Results on 2026-11-08 (night, workstation, Node 22.21.1, OIP stack)
+## Results on 2026-11-09 (redesign, workstation, Node 22.21.1, OIP stack)
 
 - `tsc` app and spec: PASS, 0 errors.
-- `ng test` (Vitest): 13 files, 57 tests, PASS.
-- `ng build` (production): PASS; initial bundle 965 kB raw / 210 kB transferred, within the budgets of ADR-006 (the organization sources, 853 kB, are a fetched asset, not part of the bundle).
-- `tools/smoke.mjs`: 12 steps PASS, 34 screenshots, 0 console error.
-- Clean install from the lock file (`npm ci` in an empty folder, `.npmrc` with `legacy-peer-deps`): PASS, 493 packages; production build on that install: PASS (local simulation, then GitHub run `oap-frontend-preview` 42522945656: success).
-- `.github/workflows/preview.yaml` runs the same type check, tests and build on every push of the branch `Nicolas`.
+- `ng test` (Vitest): 15 files, 63 tests, PASS (explorer listing, line diff, analysis, organization view, price list, contracts, lifecycles, scenario).
+- `ng build` (production): PASS; initial bundle 970 kB raw / 211 kB transferred, within the budgets of ADR-006 (organization sources fetched, not bundled).
+- `tools/smoke.mjs`: 9 steps PASS, 38 screenshots (desktop, tablet, phone, light theme), 0 console error.
+- Keyed preview bundle (`--base-href /<key>/`, hash routing) built from the same sources for the team preview.
 
-Earlier in the evening (three surfaces): 10 files, 44 tests; 944 kB / 205 kB; 11 steps, 26 screenshots.
+## Results on 2026-11-08 (night, four surfaces)
+
+- `tsc` PASS; Vitest 13 files, 57 tests; build 965 kB / 210 kB; smoke 12 steps, 34 screenshots; clean install 493 packages; GitHub run `oap-frontend-preview` 42522945656: success.

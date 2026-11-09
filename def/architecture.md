@@ -1,4 +1,4 @@
-# OAP Web Frontend — architecture (revised 2026-11-08 night)
+# OAP Web Frontend — architecture (revised 2026-11-09)
 
 Design-time material for the SAI web application. Normative sources, in order: affordance [poesis#40](https://github.com/poesis-cloud/poesis/issues/40) (rules R2–R18, constraints C1–C6), capability [oap#1](https://github.com/poesis-cloud/oap/issues/1) (features F1–F18, lifecycles), the feature issues of the three product repositories, [saf#6](https://github.com/poesis-cloud/saf/issues/6) "SAF for SAI", the SAF harness specification (`saf-agentic-harness/def/core/spec.md`). This document derives from them and never overrides them.
 
@@ -32,12 +32,14 @@ OAP, the Organization Agentic Platform, delivers the SAI capability: a collabora
 ## 3. Layers
 
 ```
-features/        Presentation: Angular standalone components (workspace, organization, conversations, supervisor + run detail)
-shared/          Artifact viewer, data tree (JSON/YAML), Markdown view, gate card, badges
+features/        Presentation: Angular standalone components (workspace: explorer, board; conversation: layout, list, chat, new;
+                 supervision: gates, runs, run, organization), each a set of panes in the application frame (ADR-009)
+shared/          Viewer (versions with diff, raw, discuss), gate flow (four steps), diff view, file icons, data tree, Markdown view, badges
 state/           Signal store: re-reads application views after each command, drives the mock scheduler, streams answers, toasts
 core/
-  application/   Use cases (SaiApplication), addressee rule, board derivation, workspace tree from the structure map, data tree,
-                 organization view (folder, categories, history, gap to nominal), analysis (cost in euros, durations, subjects)
+  application/   Use cases (SaiApplication), addressee rule, board derivation, workspace tree from the structure map, explorer
+                 listing, line diff, data tree, organization view (categories, history, gap to nominal), analysis (euros,
+                 durations, subjects)
   domain/        Entities, value objects, lifecycles (workspace, conversation, thread, proposal, run, gate, notification)
   ports/         One file per backend: workspace-manager, conversation-manager, agent-runtime, iam, model-gateway
   saf/           Mirrors of the harness contracts, model-resolution rule, frontmatter reader, YAML subset reader

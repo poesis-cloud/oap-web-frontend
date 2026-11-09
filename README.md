@@ -9,12 +9,11 @@ workflows to deliver quality artifacts (affordance
 [poesis#40](https://github.com/poesis-cloud/poesis/issues/40) R15, capability
 [oap#1](https://github.com/poesis-cloud/oap/issues/1)). Part of the
 [`oap`](https://github.com/poesis-cloud/oap) solution. First target: the **Specialized
-configuration serving the SAFe Agentic Organization** of SAF. Four surfaces, one menu:
-**Workspace** (the artifacts, laid out as the organization's workspace map, previewed
-read-only), **Organization** (everything in the SAF organization of the workspace, browsed
-in its native formats, with how it evolves), **Conversations** (humans and agents building
-the artifacts; a ★ gate is a conversation where the decision is taken), **Supervisor**
-(gates, runs with their AI cost and time, end-to-end analysis by subject).
+configuration serving the SAFe Agentic Organization** of SAF. A desktop-like application with
+one menu: **Workspace** (Explorer like GitHub with a read-only viewer over any object, Board),
+**Conversation** (a chat of humans and agents; a ★ gate is a conversation where the decision is
+taken, through a visible four-step journey), **Supervision** (Gates by status and role, Runs with
+sessions, logs, cost, time and statistics, Organization with its proposals and indicators).
 
 ## Structure
 
@@ -30,8 +29,9 @@ backends, workspace manager, conversation manager, agent runtime (SAF harness li
 replayed, scripted agents, no model called), PIS IAM (Keycloak) and the model gateway (Azure AI
 Foundry, with a fictitious price list so that runs show euros). Each mock sits behind one port
 (`def/adr/ADR-007-mocked-backends.md`); the UI stack is the one of `oip-web-frontend`
-(`def/adr/ADR-006-oip-ui-stack.md`); the Organization surface, gates decided in their
-conversation, and cost and time of runs follow `def/adr/ADR-008-organization-surface-gates-cost.md`.
+(`def/adr/ADR-006-oip-ui-stack.md`); gates decided in their conversation and cost and time of runs
+follow `def/adr/ADR-008-organization-surface-gates-cost.md`; the desktop-like frame, the explorer with
+its viewer, the chat and Supervision follow `def/adr/ADR-009-desktop-application-frame.md`.
 See `app/README.md` to run and verify, `def/README.md` for the documents.
 
 Preview for the team: `.github/workflows/preview.yaml` builds the branch `Nicolas` on every push
