@@ -1,6 +1,6 @@
 scope: product
-name: SAI Web Application
-repos: [sai-web-frontend]
+name: OAP Web Application
+repos: [oap-web-frontend]
 milestones:
   - version: v0.1.0
     current: true
