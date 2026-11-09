@@ -95,7 +95,7 @@
                 @if (store.organizationGap().length === 0) {
                   none, identical to the package
                 } @else {
-                  {{ store.organizationGap().length }} files changed
+                  {{ store.organizationGap().length }} file{{ store.organizationGap().length > 1 ? 's' : '' }} changed
                 }
               </dd>
               <dt class="text-ink-light">Harness</dt>

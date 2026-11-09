@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PrimeTemplate, type TreeNode } from 'primeng/api';
 
+import { Button } from 'primeng/button';
 import { Tooltip } from 'primeng/tooltip';
 import { Tree } from 'primeng/tree';
 import { map } from 'rxjs';
@@ -24,7 +25,7 @@ import { SaiStore } from '../../state/sai-store';
 @Component({
   selector: 'sai-explorer-page',
   standalone: true,
-  imports: [PrimeTemplate, Tooltip, Tree, FileIcon, Viewer, AgoPipe],
+  imports: [PrimeTemplate, Button, Tooltip, Tree, FileIcon, Viewer, AgoPipe],
   templateUrl: './explorer-page.html',
 })
 export class ExplorerPage {
@@ -33,10 +34,16 @@ export class ExplorerPage {
   private readonly router = inject(Router);
 
   readonly dir = toSignal(this.route.queryParamMap.pipe(map((q) => q.get('dir') ?? '')), { initialValue: '' });
-  readonly file = toSignal(this.route.queryParamMap.pipe(map((q) => q.get('file'))), { initialValue: null as string | null });
+  readonly file = toSignal(this.route.queryParamMap.pipe(map((q) => q.get('file'))), {
+    initialValue: null as string | null,
+  });
 
   readonly tree = this.store.tree;
-  readonly treeNodes = computed(() => this.tree().filter((e) => !e.expected).map((e) => this.toNode(e, 0)));
+  readonly treeNodes = computed(() =>
+    this.tree()
+      .filter((e) => !e.expected)
+      .map((e) => this.toNode(e, 0)),
+  );
   readonly treeSelection = signal<TreeNode | null>(null);
   readonly entries = computed(() => listDirectory(this.tree(), this.dir()));
   readonly crumbs = computed(() => crumbs(this.dir()));
@@ -46,6 +53,8 @@ export class ExplorerPage {
     return path ? (this.store.artifacts().find((a) => a.path === path) ?? null) : null;
   });
   readonly parent = computed(() => parentDir(this.dir()));
+  /** On a phone the tree is a sheet over the directory, opened from the bar and closed by a choice. */
+  readonly listOpen = signal(false);
 
   constructor() {
     effect(() => {
@@ -60,7 +69,9 @@ export class ExplorerPage {
     void this.router.navigate(['/workspace', 'explorer'], { queryParams: { dir: path || null } });
   }
   openFile(path: string): void {
-    void this.router.navigate(['/workspace', 'explorer'], { queryParams: { dir: parentDir(path) || null, file: path } });
+    void this.router.navigate(['/workspace', 'explorer'], {
+      queryParams: { dir: parentDir(path) || null, file: path },
+    });
   }
   closeViewer(): void {
     void this.router.navigate(['/workspace', 'explorer'], { queryParams: { dir: this.dir() || null } });
@@ -68,6 +79,7 @@ export class ExplorerPage {
   onSelect(event: { node: TreeNode }): void {
     const entry = event.node.data as TreeEntry | undefined;
     if (!entry) return;
+    this.listOpen.set(false);
     if (entry.kind === 'folder') this.openDir(entry.path);
     else if (!entry.expected) this.openFile(entry.path);
   }
@@ -82,7 +94,8 @@ export class ExplorerPage {
     return iconKindFor(entry.path, { folder: entry.kind === 'folder', expected: entry.expected });
   }
   kindOf(entry: TreeEntry): string | null {
-    if (entry.kind === 'file') return entry.artifact ?? itemTypeForPath(this.store.organization(), entry.path)?.slug ?? null;
+    if (entry.kind === 'file')
+      return entry.artifact ?? itemTypeForPath(this.store.organization(), entry.path)?.slug ?? null;
     return null;
   }
   changedAt(entry: TreeEntry): string | null {

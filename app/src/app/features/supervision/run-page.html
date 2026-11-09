@@ -1,11 +1,12 @@
 @if (run(); as run) {
-  <div class="panes">
+  <div class="panes" [class.show-list]="listOpen()">
     <aside class="pane is-list" aria-label="Sessions">
       <div class="pane-bar">
         <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/supervision/runs" ariaLabel="Back to runs" pTooltip="Runs" tooltipPosition="bottom" />
         <span class="pane-title min-w-0 truncate">{{ run.workflowSlug | title }}</span>
         <span class="pane-spacer"></span>
         <sai-status [status]="run.status" />
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Back to the detail" styleClass="sai-phone-only" (onClick)="listOpen.set(false)" />
       </div>
       <div class="pane-body">
         <button type="button" class="sai-item" [class.is-on]="selected() === null" (click)="select(null)">
@@ -39,6 +40,8 @@
 
     <section class="pane is-content is-canvas" aria-label="Run detail">
       <div class="pane-bar bg-surface">
+        <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/supervision/runs" ariaLabel="Back to runs" styleClass="sai-phone-only" />
+        <p-button icon="pi pi-list" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Sessions of this run" styleClass="sai-phone-only" (onClick)="listOpen.set(true)" />
         <span class="pane-title">{{ current() ? current()!.label : 'Overview' }}</span>
         @if (current(); as s) {
           <span class="font-mono text-xs text-ink-light">{{ s.sessionId }}</span>

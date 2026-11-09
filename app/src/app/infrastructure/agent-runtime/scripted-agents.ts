@@ -156,8 +156,8 @@ export class ScriptedAgents implements AgentResponderPort {
         suggestions,
         content:
           suggestions.length > 0
-            ? `I cannot answer this directly: SAI has no free chat, every exchange leads to a workflow or to a specialist within scope. Closest workflows: ${suggestions.join(', ')}. Or address a specialist: @system-architect, @security-expert, @developer.`
-            : 'I cannot answer this directly: SAI has no free chat, every exchange leads to a workflow or to a specialist within scope. Describe an IT concern (a Feature to design, a Story to refine, an Epic to frame) or address a specialist with @.',
+            ? `I cannot answer this directly: there is no free chat in OAP, every exchange leads to a workflow or to a specialist within scope. Closest workflows: ${suggestions.join(', ')}. Or address a specialist: @system-architect, @security-expert, @developer.`
+            : 'I cannot answer this directly: there is no free chat in OAP, every exchange leads to a workflow or to a specialist within scope. Describe an IT concern (a Feature to design, a Story to refine, an Epic to frame) or address a specialist with @.',
       },
     ];
   }

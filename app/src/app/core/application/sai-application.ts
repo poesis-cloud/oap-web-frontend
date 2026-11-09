@@ -268,7 +268,11 @@ export class SaiApplication {
     const run = this.run(session, runId);
     const found = this.deps.conversations
       .listByWorkspace(run.workspaceId)
-      .find((c) => c.sessionRef?.runId === runId && c.sessionRef.sessionId === run.steps.find(s => s.stepSlug === stepSlug)?.sessionId);
+      .find(
+        (c) =>
+          c.sessionRef?.runId === runId &&
+          c.sessionRef.sessionId === run.steps.find((s) => s.stepSlug === stepSlug)?.sessionId,
+      );
     if (!found) return null;
     try {
       return this.conversation(session, found.id);
@@ -299,11 +303,19 @@ export class SaiApplication {
   createWorkspace(session: Session, name: string, packageId: string): Workspace {
     this.tenant(session);
     const title = name.trim();
-    if (!title || title.length > 80) throw new DomainError('workspace-name', 'Use a workspace name of 1–80 characters.');
-    if (this.workspaces(session).some(w => w.name.toLowerCase() === title.toLowerCase())) throw new DomainError('workspace-exists', 'A workspace already uses this name in your tenant.');
+    if (!title || title.length > 80)
+      throw new DomainError('workspace-name', 'Use a workspace name of 1–80 characters.');
+    if (this.workspaces(session).some((w) => w.name.toLowerCase() === title.toLowerCase()))
+      throw new DomainError('workspace-exists', 'A workspace already uses this name in your tenant.');
     const organization = this.deps.organizations.get(packageId);
-    if (!organization) throw new DomainError('organization-missing', 'Choose an organization offered by this instance.');
-    return this.deps.provisioner.create({ id: this.deps.ids.mint('ws'), tenantId: session.tenantId, name: title, organization });
+    if (!organization)
+      throw new DomainError('organization-missing', 'Choose an organization offered by this instance.');
+    return this.deps.provisioner.create({
+      id: this.deps.ids.mint('ws'),
+      tenantId: session.tenantId,
+      name: title,
+      organization,
+    });
   }
 
   /**
@@ -455,7 +467,9 @@ export class SaiApplication {
     // Who answers when nobody is addressed: in a session conversation, the session's agent; in a
     // conversation whose run waits at a ★ gate, the orchestrator of that run; otherwise Copilot.
     let addressee = parsed.addressee;
-    const waitingRun = this.deps.workspaceRead.runs(workspace.id).find(r => r.conversationId === conversation.id && pendingGate(r));
+    const waitingRun = this.deps.workspaceRead
+      .runs(workspace.id)
+      .find((r) => r.conversationId === conversation.id && pendingGate(r));
     let gateWaiting: Gate | undefined = waitingRun ? pendingGate(waitingRun) : undefined;
     if (addressee.kind === 'dispatcher') {
       if (conversation.sessionRef) {
@@ -487,8 +501,15 @@ export class SaiApplication {
       pendingGate: gateWaiting,
     });
     conversation = this.applyResponses(conversation, threadId, message.id, responses, organization);
-    const actors = [me, ...responses.map(r => Actor.agent(r.agent))];
-    conversation = { ...conversation, threads: conversation.threads.map(t => t.id === threadId ? { ...t, participants: [...new Map([...t.participants, ...actors].map(a => [Actor.key(a), a])).values()] } : t) };
+    const actors = [me, ...responses.map((r) => Actor.agent(r.agent))];
+    conversation = {
+      ...conversation,
+      threads: conversation.threads.map((t) =>
+        t.id === threadId
+          ? { ...t, participants: [...new Map([...t.participants, ...actors].map((a) => [Actor.key(a), a])).values()] }
+          : t,
+      ),
+    };
     this.deps.conversations.save(conversation);
     return conversation;
   }
@@ -531,7 +552,8 @@ export class SaiApplication {
     purpose: string,
   ): Conversation {
     const conversation = this.conversation(session, conversationId);
-    if (conversation.status !== 'open') throw new DomainError('conversation-closed', 'Restore the conversation before opening a thread.');
+    if (conversation.status !== 'open')
+      throw new DomainError('conversation-closed', 'Restore the conversation before opening a thread.');
     const opening = conversation.messages.find((m) => m.id === fromMessageId);
     if (!opening) throw new DomainError('message-missing', 'Opening message not found');
     const me = Actor.human(session.userId);
@@ -554,35 +576,96 @@ export class SaiApplication {
   returnChildThread(session: Session, conversationId: string, threadId: string, summary: string): Conversation {
     const conversation = this.conversation(session, conversationId);
     if (conversation.status !== 'open') throw new DomainError('conversation-closed', 'Restore the conversation first.');
-    const thread = conversation.threads.find(t => t.id === threadId);
+    const thread = conversation.threads.find((t) => t.id === threadId);
     if (!thread || !thread.parentThreadId) throw new DomainError('thread-missing', 'Select a child thread.');
-    if (conversation.proposals.some(p => p.threadId === threadId && (p.status === 'proposed' || (p.runId && isRunActive(this.run(session, p.runId)))))) throw new DomainError('thread-running', 'Finish or cancel the launch proposal and run before returning this thread.');
-    if (!summary.trim()) throw new DomainError('summary-required', 'Write a conclusion to return to the parent thread.');
-    if (conversation.threads.some(t => t.parentThreadId === threadId && (t.status === 'open' || t.status === 'waiting'))) throw new DomainError('thread-waiting', 'Return or cancel the nested threads first.');
+    if (
+      conversation.proposals.some(
+        (p) =>
+          p.threadId === threadId && (p.status === 'proposed' || (p.runId && isRunActive(this.run(session, p.runId)))),
+      )
+    )
+      throw new DomainError(
+        'thread-running',
+        'Finish or cancel the launch proposal and run before returning this thread.',
+      );
+    if (!summary.trim())
+      throw new DomainError('summary-required', 'Write a conclusion to return to the parent thread.');
+    if (
+      conversation.threads.some((t) => t.parentThreadId === threadId && (t.status === 'open' || t.status === 'waiting'))
+    )
+      throw new DomainError('thread-waiting', 'Return or cancel the nested threads first.');
     const status = transition('thread', THREAD_TRANSITIONS, thread.status, 'returned');
-    const message = this.systemMessage(thread.parentThreadId, Actor.human(session.userId), summary.trim(), { childThreadId: thread.id }, 'text');
-    const updated = { ...conversation, threads: conversation.threads.map(t => t.id === threadId ? { ...t, status, returnMessageId: message.id } : t), messages: [...conversation.messages, message] };
+    const message = this.systemMessage(
+      thread.parentThreadId,
+      Actor.human(session.userId),
+      summary.trim(),
+      { childThreadId: thread.id },
+      'text',
+    );
+    const updated = {
+      ...conversation,
+      threads: conversation.threads.map((t) => (t.id === threadId ? { ...t, status, returnMessageId: message.id } : t)),
+      messages: [...conversation.messages, message],
+    };
     this.deps.conversations.save(updated);
     return updated;
   }
 
   startRetrospective(session: Session, workspaceId: string): Conversation {
-    const pains = this.workItems(session, workspaceId).filter(i => i.type === 'pain-point' && ['open', 'triaged'].includes(i.status));
+    const pains = this.workItems(session, workspaceId).filter(
+      (i) => i.type === 'pain-point' && ['open', 'triaged'].includes(i.status),
+    );
     if (!pains.length) throw new DomainError('no-pain-points', 'Record a pain point before starting a retrospective.');
     let conversation = this.startConversation(session, workspaceId, 'Retrospective · ADR preflight', null);
     const organization = this.organization(session, workspaceId);
     conversation = this.join(conversation, Actor.agent('release-train-engineer'));
-    const intro = this.agentMessage(mainThread(conversation).id, 'release-train-engineer', 'text', 'Let us examine each pain point in its own thread. Compare the evidence, agree on an action and return a conclusion here. An organization change is a separate run, confirmed by a human and reviewed at its gate.', this.deps.responder.provenance('release-train-engineer', organization));
+    const intro = this.agentMessage(
+      mainThread(conversation).id,
+      'release-train-engineer',
+      'text',
+      'Let us examine each pain point in its own thread. Compare the evidence, agree on an action and return a conclusion here. An organization change is a separate run, confirmed by a human and reviewed at its gate.',
+      this.deps.responder.provenance('release-train-engineer', organization),
+    );
     const messages = [intro];
     const threads: Thread[] = [];
     for (const pain of pains) {
-      const opening = this.agentMessage(mainThread(conversation).id, 'release-train-engineer', 'text', pain.title, this.deps.responder.provenance('release-train-engineer', organization), { artifactPath: pain.path });
+      const opening = this.agentMessage(
+        mainThread(conversation).id,
+        'release-train-engineer',
+        'text',
+        pain.title,
+        this.deps.responder.provenance('release-train-engineer', organization),
+        { artifactPath: pain.path },
+      );
       messages.push(opening);
-      const thread: Thread = { id: this.deps.ids.mint('thread'), conversationId: conversation.id, parentThreadId: mainThread(conversation).id, openingMessageId: opening.id, openedBy: Actor.agent('release-train-engineer'), purpose: pain.title, participants: [Actor.human(session.userId), Actor.agent('release-train-engineer')], status: 'open', returnMessageId: null };
+      const thread: Thread = {
+        id: this.deps.ids.mint('thread'),
+        conversationId: conversation.id,
+        parentThreadId: mainThread(conversation).id,
+        openingMessageId: opening.id,
+        openedBy: Actor.agent('release-train-engineer'),
+        purpose: pain.title,
+        participants: [Actor.human(session.userId), Actor.agent('release-train-engineer')],
+        status: 'open',
+        returnMessageId: null,
+      };
       threads.push(thread);
-      messages.push(this.agentMessage(thread.id, 'release-train-engineer', 'text', 'The commit-gate verdict is our evidence. Is the missing status a repeatable instruction gap? Review the pain point, then record your conclusion; an accepted patch still needs observation before this pain point can be considered resolved.', this.deps.responder.provenance('release-train-engineer', organization), { artifactPath: pain.path }));
+      messages.push(
+        this.agentMessage(
+          thread.id,
+          'release-train-engineer',
+          'text',
+          'The commit-gate verdict is our evidence. Is the missing status a repeatable instruction gap? Review the pain point, then record your conclusion; an accepted patch still needs observation before this pain point can be considered resolved.',
+          this.deps.responder.provenance('release-train-engineer', organization),
+          { artifactPath: pain.path },
+        ),
+      );
     }
-    conversation = { ...conversation, threads: [...conversation.threads, ...threads], messages: [...conversation.messages, ...messages] };
+    conversation = {
+      ...conversation,
+      threads: [...conversation.threads, ...threads],
+      messages: [...conversation.messages, ...messages],
+    };
     this.deps.conversations.save(conversation);
     return conversation;
   }
@@ -603,7 +686,10 @@ export class SaiApplication {
       },
     );
     const cancelled = new Set([threadId]);
-    for (let i = 0; i < conversation.threads.length; i++) for (const t of conversation.threads) if (t.parentThreadId && cancelled.has(t.parentThreadId) && (t.status === 'open' || t.status === 'waiting')) cancelled.add(t.id);
+    for (let i = 0; i < conversation.threads.length; i++)
+      for (const t of conversation.threads)
+        if (t.parentThreadId && cancelled.has(t.parentThreadId) && (t.status === 'open' || t.status === 'waiting'))
+          cancelled.add(t.id);
     const updated: Conversation = {
       ...conversation,
       threads: conversation.threads.map((t) => (cancelled.has(t.id) ? { ...t, status } : t)),
@@ -619,11 +705,13 @@ export class SaiApplication {
     proposalId: ProposalId,
   ): { conversation: Conversation; run: Run } {
     const conversation = this.conversation(session, conversationId);
-    if (conversation.status !== 'open') throw new DomainError('conversation-closed', 'Restore the conversation before acting on a proposal.');
+    if (conversation.status !== 'open')
+      throw new DomainError('conversation-closed', 'Restore the conversation before acting on a proposal.');
     const proposal = conversation.proposals.find((p) => p.id === proposalId);
     if (!proposal) throw new DomainError('proposal-missing', 'Launch proposal not found');
-    const thread = conversation.threads.find(t => t.id === proposal.threadId);
-    if (!thread || !['open', 'waiting'].includes(thread.status)) throw new DomainError('thread-closed', 'This proposal belongs to a closed thread.');
+    const thread = conversation.threads.find((t) => t.id === proposal.threadId);
+    if (!thread || !['open', 'waiting'].includes(thread.status))
+      throw new DomainError('thread-closed', 'This proposal belongs to a closed thread.');
     const workspace = this.workspace(session, conversation.workspaceId);
     if (workspace.status !== 'active')
       throw new DomainError('workspace-not-active', 'Archived workspace: no launch (F17-R8)');
@@ -666,7 +754,8 @@ export class SaiApplication {
 
   cancelProposal(session: Session, conversationId: ConversationId, proposalId: ProposalId): Conversation {
     const conversation = this.conversation(session, conversationId);
-    if (conversation.status !== 'open') throw new DomainError('conversation-closed', 'Restore the conversation before acting on a proposal.');
+    if (conversation.status !== 'open')
+      throw new DomainError('conversation-closed', 'Restore the conversation before acting on a proposal.');
     const proposal = conversation.proposals.find((p) => p.id === proposalId);
     if (!proposal) throw new DomainError('proposal-missing', 'Launch proposal not found');
     const status = transition('launch proposal', PROPOSAL_TRANSITIONS, proposal.status, 'cancelled');
@@ -1078,7 +1167,13 @@ export class SaiApplication {
             subject: null,
             title: `${step.stepSlug} · ${agentName}`,
             createdBy: Actor.agent(event.actor),
-            participants: [Actor.agent(event.actor), Actor.agent(orchestrator), ...launching.participants.filter(p => p.status === 'joined' && p.actor.kind === 'human').map(p => p.actor)],
+            participants: [
+              Actor.agent(event.actor),
+              Actor.agent(orchestrator),
+              ...launching.participants
+                .filter((p) => p.status === 'joined' && p.actor.kind === 'human')
+                .map((p) => p.actor),
+            ],
           });
           const attempt = step.attempt > 1 ? ` This is attempt ${step.attempt}, after the gate asked for rework.` : '';
           const opening = this.systemMessage(
@@ -1143,7 +1238,7 @@ export class SaiApplication {
             this.systemMessage(
               threadId,
               Actor.agent(orchestrator),
-              `The workflow steps are complete and waits at ★ ${gate.label}. Holders of the role "${gate.holderRole}": review ${artifactFileName(gate.artifactPath)} and decide here, to close the workflow: approve, approve with a reservation, or reject with a comment the agents will act on. Nothing is auto-approved.`,
+              `The workflow steps are complete; the run waits at ★ ${gate.label}. Holders of the role "${gate.holderRole}": review ${artifactFileName(gate.artifactPath)} and decide here, to close the workflow: approve, approve with a reservation, or reject with a comment the agents will act on. Nothing is auto-approved.`,
               { runId: run.id, gateId: gate.id, artifactPath: gate.artifactPath },
               'gate',
               event.at,
@@ -1169,22 +1264,54 @@ export class SaiApplication {
         }
         case 'gate-decided': {
           const gate = event.gate;
-          const text =
+          const file = artifactFileName(gate.artifactPath);
+          const decider = gate.decidedBy ?? Actor.agent(orchestrator);
+          const verb =
             gate.status === 'rejected'
-              ? `Gate rejected: "${gate.comment ?? ''}". The run reroutes to rework; the comment is visible to the agents' next step.`
+              ? 'Rejected'
               : gate.status === 'approved-with-reservation'
-                ? `Gate approved with a reservation: "${gate.comment ?? ''}". Recorded as a pain point with its evidence.`
-                : 'Gate approved. Artifacts accepted without manual fixing (R14).';
-          const by = gate.decidedBy ?? Actor.agent(orchestrator);
-          messages.push(this.systemMessage(threadId, by, text, { runId: run.id, gateId: gate.id }, 'system', event.at));
-          const decider = gate.decidedBy?.kind === 'human' ? gate.decidedBy.userId : null;
-          if (launcher && launcher !== decider) {
+                ? 'Approved with a reservation'
+                : 'Approved';
+          // The decision is the human's own message in the conversation (Clément, 2026-11-09: roles were inverted
+          // when a system line spoke in the decider's name); the orchestrator then says what it does with it.
+          const words = gate.comment ? `${verb}: ${gate.comment}` : `${verb}.`;
+          messages.push(
+            this.systemMessage(
+              threadId,
+              decider,
+              words,
+              { runId: run.id, gateId: gate.id, artifactPath: gate.artifactPath },
+              'decision',
+              event.at,
+            ),
+          );
+          const reworkStep = workflow?.gate?.reworkStep ?? run.steps[0]?.stepSlug ?? '';
+          const reworkActor = workflow?.steps.find((st) => st.slug === reworkStep)?.actor ?? run.steps[0]?.actor ?? '';
+          const reply =
+            gate.status === 'rejected'
+              ? `Understood. I send ${file} back to @${reworkActor} for rework with your comment; the harness checks the new revision and I raise a new ★ ${gate.label} here when it is delivered.`
+              : gate.status === 'approved-with-reservation'
+                ? `Thank you. ${file} is accepted as reviewed, and I record your reservation as a pain point with this run as evidence, for the next retrospective.`
+                : `Thank you. ${file} is accepted as reviewed; the run closes and the workspace moves on.`;
+          messages.push({
+            ...this.systemMessage(
+              threadId,
+              Actor.agent(orchestrator),
+              reply,
+              { runId: run.id, gateId: gate.id },
+              'text',
+              event.at,
+            ),
+            provenance: organization ? this.deps.responder.provenance(orchestrator, organization) : null,
+          });
+          const decidedBy = gate.decidedBy?.kind === 'human' ? gate.decidedBy.userId : null;
+          if (launcher && launcher !== decidedBy) {
             this.notify(
               [launcher],
               run.workspaceId,
               'gate-decided',
               `★ ${gate.label} ${gate.status.replace(/-/g, ' ')}`,
-              text,
+              `${tenant ? this.displayName(tenant, decidedBy ?? '') : (decidedBy ?? 'A holder')}: ${words}`,
               { conversationId: run.conversationId, runId: run.id, gateId: gate.id },
               event.at,
             );
@@ -1253,7 +1380,11 @@ export class SaiApplication {
   ): void {
     const conversation = this.deps.conversations
       .listByWorkspace(run.workspaceId)
-      .find((c) => c.sessionRef?.runId === run.id && c.sessionRef.sessionId === run.steps.find(s => s.stepSlug === stepSlug)?.sessionId);
+      .find(
+        (c) =>
+          c.sessionRef?.runId === run.id &&
+          c.sessionRef.sessionId === run.steps.find((s) => s.stepSlug === stepSlug)?.sessionId,
+      );
     if (!conversation) return;
     const message = { ...build(conversation.sessionRef!.agent), threadId: mainThread(conversation).id };
     this.deps.conversations.save({

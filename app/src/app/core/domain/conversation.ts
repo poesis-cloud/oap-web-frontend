@@ -45,7 +45,8 @@ export interface Provenance {
   readonly source: 'poesis-models-gateway' | 'tenant-provided' | 'demo-runtime';
 }
 
-export type MessageKind = 'text' | 'launch-proposal' | 'run-link' | 'gate' | 'system';
+/** `decision`: a human's decision at a ★ gate, in their own words (the orchestrator then acknowledges it). */
+export type MessageKind = 'text' | 'launch-proposal' | 'run-link' | 'gate' | 'decision' | 'system';
 
 export interface Message {
   readonly id: MessageId;

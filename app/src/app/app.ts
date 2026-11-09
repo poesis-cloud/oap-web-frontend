@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -17,9 +17,14 @@ interface MenuEntry {
   readonly key: string;
   readonly path: string;
   readonly label: string;
+  /** Short label for the phone bar. */
+  readonly short?: string;
   readonly icon: string;
   readonly children?: readonly { readonly path: string; readonly label: string }[];
 }
+
+/** Below this width the side menu is a rail (tablet) or a bottom bar (phone): groups open a sections sheet. */
+const COMPACT_QUERY = '(max-width: 1023px)';
 
 const SECTION_LABELS: Record<string, string> = {
   workspace: 'Workspace',
@@ -68,7 +73,13 @@ export class App {
         { path: '/workspace/improvement', label: 'Improvement' },
       ],
     },
-    { key: 'organizations', path: '/organizations', label: 'Agentic Organizations', icon: 'pi pi-sitemap' },
+    {
+      key: 'organizations',
+      path: '/organizations',
+      label: 'Agentic Organizations',
+      short: 'Organizations',
+      icon: 'pi pi-sitemap',
+    },
     { key: 'conversation', path: '/conversation', label: 'Conversation', icon: 'pi pi-comments' },
     {
       key: 'supervision',
@@ -84,6 +95,13 @@ export class App {
   ];
   /** Groups the user folded or unfolded by hand; the active group is always open. */
   readonly toggled = signal<Record<string, boolean>>({});
+  /** Tablet rail or phone bar (Clément, 2026-11-09: every section must stay reachable on small screens). */
+  readonly compact = signal(
+    typeof window !== 'undefined' && 'matchMedia' in window ? window.matchMedia(COMPACT_QUERY).matches : false,
+  );
+  /** The group whose sections sheet is open (bottom sheet on a phone, flyout beside the rail or under the crumbs). */
+  readonly sheet = signal<string | null>(null);
+  readonly sheetEntry = computed(() => this.menu.find((m) => m.key === this.sheet() && m.children) ?? null);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -96,7 +114,10 @@ export class App {
   readonly segments = computed(() => this.currentUrl().split('?')[0].split('/').filter(Boolean));
   readonly section = computed(() => SECTION_LABELS[this.segments()[0] ?? ''] ?? 'Supervision');
   readonly subsection = computed(() => SUB_LABELS[this.segments()[1] ?? ''] ?? '');
-  readonly sectionPath = computed(() => this.menu.find((m) => m.key === this.segments()[0])?.path ?? '/supervision/gates');
+  readonly sectionPath = computed(
+    () => this.menu.find((m) => m.key === this.segments()[0])?.path ?? '/supervision/gates',
+  );
+  readonly sectionEntry = computed(() => this.menu.find((m) => m.key === this.segments()[0]) ?? null);
   readonly workspaceOptions = computed(() => [...this.store.workspaces()]);
   readonly memberOptions = computed(() => [...this.store.tenant().members]);
   readonly unread = computed(() => this.store.notifications().filter((n) => n.readAt === null));
@@ -115,12 +136,48 @@ export class App {
   }
   toggle(entry: MenuEntry, event: Event): void {
     event.preventDefault();
+    if (this.compact()) {
+      this.openSheet(entry);
+      return;
+    }
     const open = this.isOpen(entry);
     this.toggled.update((t) => ({ ...t, [entry.key]: !open }));
     if (!open && this.segments()[0] !== entry.key) void this.router.navigateByUrl(entry.path);
   }
   isActiveGroup(entry: MenuEntry): boolean {
     return this.segments()[0] === entry.key;
+  }
+  /** A group opens its sections sheet; a single surface navigates. Tapping the open group's entry again closes it. */
+  openSheet(entry: MenuEntry): void {
+    if (!entry.children) {
+      this.sheet.set(null);
+      void this.router.navigateByUrl(entry.path);
+      return;
+    }
+    this.sheet.set(this.sheet() === entry.key ? null : entry.key);
+  }
+  /** The crumbs are navigation too: the section opens its sheet, or goes to its only surface. */
+  openSectionSheet(event: Event): void {
+    const entry = this.sectionEntry();
+    if (!entry) return;
+    event.preventDefault();
+    this.openSheet(entry);
+  }
+  closeSheet(): void {
+    this.sheet.set(null);
+  }
+  @HostListener('window:resize')
+  onResize(): void {
+    if (typeof window === 'undefined' || !('matchMedia' in window)) return;
+    const compact = window.matchMedia(COMPACT_QUERY).matches;
+    if (compact !== this.compact()) {
+      this.compact.set(compact);
+      this.sheet.set(null);
+    }
+  }
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.sheet.set(null);
   }
 
   /** Starts the demonstration conversation: intent → proposal → launch → gate. */
@@ -141,7 +198,8 @@ export class App {
     const refs = notification.refs;
     if (refs.conversationId) void this.router.navigate(['/conversation', refs.conversationId]);
     else if (refs.runId) void this.router.navigate(['/supervision', 'runs', refs.runId]);
-    else if (refs.artifactPath) void this.router.navigate(['/workspace', 'explorer'], { queryParams: { file: refs.artifactPath } });
+    else if (refs.artifactPath)
+      void this.router.navigate(['/workspace', 'explorer'], { queryParams: { file: refs.artifactPath } });
   }
 
   icon(kind: Notification['kind']): string {

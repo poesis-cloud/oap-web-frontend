@@ -1,8 +1,9 @@
-<div class="panes">
+<div class="panes" [class.show-list]="listOpen()">
   <aside class="pane is-list" aria-label="Files">
     <div class="pane-bar">
       <span class="pane-title">Files</span>
       <span class="pane-spacer"></span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Back to the directory" styleClass="sai-phone-only" (onClick)="listOpen.set(false)" />
       <span class="text-xs text-ink-light" [pTooltip]="counts().expected + ' slots the structure map expects are still empty'" tooltipPosition="bottom">{{ counts().present }}</span>
     </div>
     <div class="pane-body p-1">
@@ -27,6 +28,7 @@
 
   <section class="pane is-content" aria-label="Current directory">
     <div class="pane-bar">
+      <p-button icon="pi pi-sitemap" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Show the file tree" styleClass="sai-phone-only" (onClick)="listOpen.set(true)" />
       <nav class="flex min-w-0 items-center gap-1 text-[13px]" aria-label="Path">
         <button type="button" class="sai-crumb" (click)="openDir('')">{{ store.workspace().name }}</button>
         @for (c of crumbs(); track c.path; let last = $last) {

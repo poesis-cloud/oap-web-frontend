@@ -1,4 +1,5 @@
 import { SaiApplication, type Session } from '../core/application/sai-application';
+import { mainThread } from '../core/domain/conversation';
 import type { OrganizationPackage } from '../core/domain/organization';
 import type { Tenant, Workspace } from '../core/domain/workspace';
 import type { Clock, IdMinter, WorkspaceRepository } from '../core/ports';
@@ -178,10 +179,15 @@ export function createMockWorld(
     ids,
     identity: iam,
     workspaces,
-    provisioner: { create: spec => seedWorkspace(repository, workspaces, clock, {
-      ...spec, sources, withBacklog: false,
-      repository: `git://oap-instance.local/${spec.tenantId}/${spec.id}.git`,
-    }) },
+    provisioner: {
+      create: (spec) =>
+        seedWorkspace(repository, workspaces, clock, {
+          ...spec,
+          sources,
+          withBacklog: false,
+          repository: `git://oap-instance.local/${spec.tenantId}/${spec.id}.git`,
+        }),
+    },
     conversations,
     notifications,
     organizations: new StaticCatalog([organization]),
@@ -231,21 +237,42 @@ function seedScenario(world: MockWorld, scripted: { t: number }): void {
   };
   {
     // Yesterday: Priya launched the scenario; Alex rejected the first ADR; Priya approved the rework.
-    const first = world.app.startConversation(world.adminSession, DEMO_WORKSPACE_ID, 'Subscriptions API', SCENARIO_INTENT);
+    const first = world.app.startConversation(
+      world.adminSession,
+      DEMO_WORKSPACE_ID,
+      'Subscriptions API',
+      SCENARIO_INTENT,
+    );
     world.app.invite(world.adminSession, first.id, { kind: 'human', userId: DEMO_USER_ID });
     const proposal = first.proposals.find((p) => p.status === 'proposed');
     if (proposal) {
       const { run } = world.app.confirmProposal(world.adminSession, first.id, proposal.id);
       advanceUntil(run.id, (status) => status === 'waiting-for-gate');
+      // Alex reads the ADR, asks the security expert in the gate conversation, then decides on that answer.
+      world.app.postMessage(
+        world.session,
+        first.id,
+        mainThread(first).id,
+        '@security-expert Partners will call this API from their own networks. Is a bearer token enough against replay?',
+      );
       const gate = world.app.run(world.adminSession, run.id).gates.find((g) => g.status === 'pending');
-      if (gate) world.app.decideGate(world.session, run.id, gate.id, 'rejected', 'Partners need mTLS, not only bearer tokens.', 240);
+      if (gate)
+        world.app.decideGate(
+          world.session,
+          run.id,
+          gate.id,
+          'rejected',
+          'Partners need mTLS, not only bearer tokens.',
+          240,
+        );
       advanceUntil(run.id, (status) => status === 'waiting-for-gate');
       const second = world.app.run(world.adminSession, run.id).gates.find((g) => g.status === 'pending');
       if (second) world.app.decideGate(world.adminSession, run.id, second.id, 'approved', null, 180);
       advanceUntil(run.id, (status) => status === 'succeeded' || status === 'failed');
     }
     // Yesterday's notifications are read.
-    for (const member of world.tenant.members) world.app.markAllNotificationsRead({ userId: member.userId, tenantId: DEMO_TENANT_ID });
+    for (const member of world.tenant.members)
+      world.app.markAllNotificationsRead({ userId: member.userId, tenantId: DEMO_TENANT_ID });
     // This morning: a second launch, now waiting at its gate for the holders of the role (Alex among them).
     scripted.t = Date.now() - 2 * 3_600_000;
     const next = world.app.startConversation(
@@ -260,18 +287,26 @@ function seedScenario(world: MockWorld, scripted: { t: number }): void {
       const { run } = world.app.confirmProposal(world.adminSession, next.id, nextProposal.id);
       advanceUntil(run.id, (status) => status === 'waiting-for-gate');
     }
-    const source = world.app.runs(world.session, DEMO_WORKSPACE_ID).find(r => r.status === 'succeeded' && r.workflowSlug === 'architectural-runway-extension');
+    const source = world.app
+      .runs(world.session, DEMO_WORKSPACE_ID)
+      .find((r) => r.status === 'succeeded' && r.workflowSlug === 'architectural-runway-extension');
     if (source) {
-      const capture = world.app.startConversation(world.session, DEMO_WORKSPACE_ID, 'Record ADR preflight friction', `/improvement-backlog Record the commit-gate rejection from ${source.id}`);
-      const proposal = capture.proposals.find(p => p.status === 'proposed');
+      const capture = world.app.startConversation(
+        world.session,
+        DEMO_WORKSPACE_ID,
+        'Record ADR preflight friction',
+        `/improvement-backlog Record the commit-gate rejection from ${source.id}`,
+      );
+      const proposal = capture.proposals.find((p) => p.status === 'proposed');
       if (proposal) {
         const { run } = world.app.confirmProposal(world.session, capture.id, proposal.id);
-        advanceUntil(run.id, status => status === 'succeeded');
+        advanceUntil(run.id, (status) => status === 'succeeded');
         world.app.startRetrospective(world.session, DEMO_WORKSPACE_ID);
       }
     }
     // Seeded messages are history, not live streaming answers.
-    for (const session of [world.session, world.adminSession]) for (const c of world.app.conversations(session, DEMO_WORKSPACE_ID)) for (const m of c.messages) if (m.streaming === 'streaming') world.app.completeStreaming(session, c.id, m.id);
-
+    for (const session of [world.session, world.adminSession])
+      for (const c of world.app.conversations(session, DEMO_WORKSPACE_ID))
+        for (const m of c.messages) if (m.streaming === 'streaming') world.app.completeStreaming(session, c.id, m.id);
   }
 }

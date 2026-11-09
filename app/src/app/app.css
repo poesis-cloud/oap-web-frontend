@@ -223,11 +223,104 @@
 .crumbs .sep {
   color: var(--sai-text-light);
 }
+.crumb-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sai-text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.crumb-sub:hover,
+.crumb-sub:focus-visible {
+  background: var(--sai-surface-sunken);
+  color: var(--sai-text);
+}
+.crumb-caret {
+  font-size: 11px;
+  opacity: 0.7;
+}
 .titlebar-right {
   display: flex;
   align-items: center;
   gap: 2px;
   margin-left: auto;
+}
+.titlebar-user {
+  display: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sai-primary);
+  color: var(--sai-primary-contrast);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Sections sheet: the sub-items of a group, reachable from the phone bar, the tablet rail and the crumbs
+   (Clément, 2026-11-09: on a phone only three screens were reachable, neither the crumbs nor the menu navigated). */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(2, 6, 23, 0.35);
+}
+.nav-sheet {
+  position: fixed;
+  z-index: 41;
+  top: 52px;
+  left: 264px;
+  width: 280px;
+  padding: 6px;
+  border: 1px solid var(--sai-border-strong);
+  border-radius: 12px;
+  background: var(--sai-surface);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+.nav-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sai-text-muted);
+}
+.nav-sheet-head .pi {
+  font-size: 15px;
+}
+.nav-sheet-head span {
+  flex: 1;
+}
+.nav-sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 9px;
+  color: var(--sai-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.nav-sheet-item:hover,
+.nav-sheet-item:focus-visible {
+  background: var(--sai-surface-sunken);
+  text-decoration: none;
+}
+.nav-sheet-item.is-active {
+  background: var(--sai-primary-tint);
+  color: var(--sai-primary-tint-text);
 }
 .demo-chip {
   margin-right: 6px;
@@ -306,13 +399,17 @@
     justify-content: center;
     padding: 10px 0;
   }
-  .menu-badge {
+  .menu .menu-badge {
     position: absolute;
     transform: translate(16px, -12px);
   }
   .user {
     justify-content: center;
     padding: 6px 0;
+  }
+  .nav-sheet {
+    top: 56px;
+    left: 72px;
   }
 }
 
@@ -342,7 +439,8 @@
     border-top: 1px solid var(--sai-border);
     background: var(--sai-surface);
   }
-  .phonebar a {
+  .phonebar a,
+  .phonebar button {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -350,14 +448,38 @@
     justify-content: center;
     gap: 2px;
     flex: 1;
+    min-width: 0;
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    font: inherit;
     font-size: 11px;
     color: var(--sai-text-muted);
     text-decoration: none;
+    cursor: pointer;
   }
-  .phonebar a.is-active {
+  .phonebar a.is-active,
+  .phonebar button.is-active {
     color: var(--sai-primary);
   }
   .phonebar .pi {
     font-size: 18px;
+  }
+  .titlebar-user {
+    display: grid;
+  }
+  .nav-sheet {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 56px;
+    width: auto;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    padding: 8px 10px 12px;
+  }
+  .nav-sheet-item {
+    padding: 13px 12px;
+    font-size: 15px;
   }
 }

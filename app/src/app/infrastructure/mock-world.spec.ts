@@ -127,6 +127,14 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     );
     expect(rejected.run.status).toBe('running');
     expect(rejected.run.steps.find((s) => s.stepSlug === 'author-adr')?.status).toBe('pending');
+    // In the conversation: Alex's decision in his words, then the orchestrator routes the rework to the author.
+    const afterRejection = world.app.conversation(world.session, conversation.id);
+    const decision = afterRejection.messages.find((m) => m.kind === 'decision')!;
+    expect(decision.author).toEqual({ kind: 'human', userId: 'alex-moreau' });
+    expect(decision.content).toBe('Rejected: Partners need mTLS, not only bearer tokens.');
+    const routed = afterRejection.messages[afterRejection.messages.indexOf(decision) + 1];
+    expect(routed.author).toEqual({ kind: 'agent', slug: 'release-train-engineer' });
+    expect(routed.content).toContain('@system-architect');
     expect(rejected.run.steps.find((s) => s.stepSlug === 'author-nfrs')?.status).toBe('delivered');
     const reworked = advanceUntil(world, (r) => r.status === 'waiting-for-gate', run.id);
     const gate2 = pendingGate(reworked)!;
@@ -164,7 +172,7 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     expect(rebuilt).toEqual(finalRun);
   });
 
-  it('a raised ★ gate is the orchestrator\'s message in the launching conversation; holders are invited there and notified (S22, F4-R3)', () => {
+  it("a raised ★ gate is the orchestrator's message in the launching conversation; holders are invited there and notified (S22, F4-R3)", () => {
     const world = createMockWorld({ now: fixedClock() });
     const { conversation, proposal } = startWithProposal(world);
     const { run } = world.app.confirmProposal(world.session, conversation.id, proposal.id);
@@ -188,13 +196,17 @@ describe('vertical slice: workspace → conversation → launch → run → gate
       .map((p) => (p.actor as { userId: string }).userId)
       .sort();
     expect(humans).toEqual(['alex-moreau', 'priya-nair']);
-    expect(launching.participants.some((p) => p.actor.kind === 'agent' && p.actor.slug === 'release-train-engineer')).toBe(true);
+    expect(
+      launching.participants.some((p) => p.actor.kind === 'agent' && p.actor.slug === 'release-train-engineer'),
+    ).toBe(true);
     expect(() => world.app.conversation(world.memberSession, launching.id)).toThrow(AccessDeniedError);
 
     // Notifications: Alex and Priya are invited to that conversation; Sam is not.
     const alex = world.app.notifications(world.session);
     expect(
-      alex.some((n) => n.kind === 'gate-invitation' && n.refs.gateId === gate.id && n.refs.conversationId === conversation.id),
+      alex.some(
+        (n) => n.kind === 'gate-invitation' && n.refs.gateId === gate.id && n.refs.conversationId === conversation.id,
+      ),
     ).toBe(true);
     expect(world.app.notifications(world.adminSession).some((n) => n.kind === 'gate-invitation')).toBe(true);
     expect(world.app.notifications(world.memberSession)).toHaveLength(0);
@@ -202,11 +214,21 @@ describe('vertical slice: workspace → conversation → launch → run → gate
 
     // During the gate, a message without address goes to the orchestrator, which answers about the gate;
     // an addressed agent of the run still answers in scope.
-    const discussed = world.app.postMessage(world.adminSession, launching.id, mainThread(launching).id, 'I would like mTLS for partner calls.');
+    const discussed = world.app.postMessage(
+      world.adminSession,
+      launching.id,
+      mainThread(launching).id,
+      'I would like mTLS for partner calls.',
+    );
     const orchestratorAnswer = discussed.messages.filter((m) => m.author.kind === 'agent' && m.kind === 'text').at(-1)!;
     expect(orchestratorAnswer.author).toEqual({ kind: 'agent', slug: 'release-train-engineer' });
     expect(orchestratorAnswer.content).toContain(gate.label);
-    const asked = world.app.postMessage(world.session, launching.id, mainThread(launching).id, '@security-expert what about token replay?');
+    const asked = world.app.postMessage(
+      world.session,
+      launching.id,
+      mainThread(launching).id,
+      '@security-expert what about token replay?',
+    );
     expect(asked.messages.some((m) => m.author.kind === 'agent' && m.author.slug === 'security-expert')).toBe(true);
 
     // Deciding closes the workflow, not the conversation; the launcher is not re-notified for their own decision.
@@ -216,7 +238,14 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     expect(approved.run.status).toBe('succeeded');
     const after = world.app.conversation(world.session, conversation.id);
     expect(after.status).toBe('open');
-    expect(after.messages.some((m) => m.kind === 'system' && m.content.includes('Gate approved'))).toBe(true);
+    // The decision is Priya's own message; the orchestrator answers it (no system line speaking in her name).
+    const decision = after.messages.find((m) => m.kind === 'decision' && m.refs.gateId === gate.id)!;
+    expect(decision.author).toEqual({ kind: 'human', userId: 'priya-nair' });
+    expect(decision.content).toBe('Approved.');
+    const acknowledgement = after.messages[after.messages.indexOf(decision) + 1];
+    expect(acknowledgement.author).toEqual({ kind: 'agent', slug: 'release-train-engineer' });
+    expect(acknowledgement.content).toContain('accepted');
+    expect(acknowledgement.provenance).not.toBeNull();
     const unread = world.app.notifications(world.session).filter((n) => n.readAt === null);
     expect(unread.map((n) => n.kind).sort()).toEqual(['gate-decided', 'run-succeeded']);
     world.app.markNotificationRead(world.session, unread[0].id);
@@ -233,12 +262,19 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     for (const step of waiting.steps.filter((s) => s.status === 'delivered')) {
       const session = world.app.sessionConversation(world.session, run.id, step.stepSlug)!;
       expect(session.kind).toBe('session');
-      expect(session.sessionRef).toEqual({ runId: run.id, sessionId: step.sessionId, stepSlug: step.stepSlug, agent: step.actor });
+      expect(session.sessionRef).toEqual({
+        runId: run.id,
+        sessionId: step.sessionId,
+        stepSlug: step.stepSlug,
+        agent: step.actor,
+      });
       expect(session.subject).toBe(step.artifactPath);
       // The agent opened the session and reported its delivery; the launcher takes part.
       expect(session.messages[0].author).toEqual({ kind: 'agent', slug: step.actor });
       expect(session.messages.at(-1)!.content).toContain('Delivered');
-      expect(session.participants.some((p) => p.actor.kind === 'human' && p.actor.userId === world.session.userId)).toBe(true);
+      expect(
+        session.participants.some((p) => p.actor.kind === 'human' && p.actor.userId === world.session.userId),
+      ).toBe(true);
       // The launching conversation points to the session.
       const launching = world.app.conversation(world.session, conversation.id);
       expect(launching.messages.some((m) => m.refs.sessionConversationId === session.id)).toBe(true);
@@ -254,7 +290,12 @@ describe('vertical slice: workspace → conversation → launch → run → gate
     // A human asks the worker in its session; the worker answers within its scope.
     const adr = waiting.steps.find((s) => s.stepSlug === 'author-adr')!;
     const session = world.app.sessionConversation(world.session, run.id, adr.stepSlug)!;
-    const answered = world.app.postMessage(world.session, session.id, mainThread(session).id, 'Why did you choose OAuth here?');
+    const answered = world.app.postMessage(
+      world.session,
+      session.id,
+      mainThread(session).id,
+      'Why did you choose OAuth here?',
+    );
     expect(answered.messages.at(-1)!.author).toEqual({ kind: 'agent', slug: 'system-architect' });
   });
 

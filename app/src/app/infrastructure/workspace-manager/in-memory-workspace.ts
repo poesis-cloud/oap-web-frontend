@@ -105,7 +105,9 @@ export class InMemoryWorkspace implements WorkspaceReadPort {
   }
 
   commits(workspaceId: WorkspaceId): readonly Commit[] {
-    return this.repositories.get(workspaceId)?.commits ?? [];
+    // A fresh snapshot each time: the history grows in place, and a view that caches by reference
+    // (an Angular computed signal) would otherwise never see a new commit.
+    return [...(this.repositories.get(workspaceId)?.commits ?? [])];
   }
 
   paths(workspaceId: WorkspaceId): readonly ArtifactPath[] {

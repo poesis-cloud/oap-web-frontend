@@ -62,5 +62,10 @@ describe('organization view', () => {
     expect(history[0].paths).toEqual(['organization/agents/a.agent.md']);
     expect(gapToNominal(commits, 'c1')).toEqual(['organization/agents/a.agent.md']);
     expect(gapToNominal(commits.slice(0, 2), 'c1')).toEqual([]);
+    // A rollback that restores the nominal bytes closes the gap (content, not commits touched).
+    const restored = [...commits, commit('c4', { 'organization/agents/a.agent.md': 'x' })];
+    expect(gapToNominal(restored, 'c1')).toEqual([]);
+    const deleted = [...commits, commit('c5', { 'organization/agents/a.agent.md': null })];
+    expect(gapToNominal(deleted, 'c1')).toEqual(['organization/agents/a.agent.md']);
   });
 });

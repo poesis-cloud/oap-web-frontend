@@ -13,15 +13,7 @@ export const ORGANIZATION_ROOT = 'organization';
 const PREFIX = `${ORGANIZATION_ROOT}/`;
 
 export type OrganizationCategory =
-  | 'agent'
-  | 'workflow'
-  | 'skill'
-  | 'instruction'
-  | 'schema'
-  | 'template'
-  | 'configuration'
-  | 'manifest'
-  | 'other';
+  'agent' | 'workflow' | 'skill' | 'instruction' | 'schema' | 'template' | 'configuration' | 'manifest' | 'other';
 
 export const CATEGORY_LABELS: Record<OrganizationCategory, string> = {
   agent: 'Agent',
@@ -93,13 +85,26 @@ export function organizationHistory(commits: readonly Commit[], nominalImport: C
     .reverse();
 }
 
-/** Organization paths changed after the nominal import: the gap between the package and the workspace (F16). */
+/**
+ * Organization paths whose content at HEAD differs from the package (F16): the gap between the
+ * workspace and its nominal import. Compared by content, not by commits touched, so that a
+ * rollback that restores the original bytes closes the gap.
+ */
 export function gapToNominal(commits: readonly Commit[], nominalImport: CommitSha | null): ArtifactPath[] {
-  const changed = new Set<ArtifactPath>();
-  let after = nominalImport === null;
+  const atNominal = new Map<ArtifactPath, string | null>();
+  const atHead = new Map<ArtifactPath, string | null>();
+  let imported = nominalImport === null;
   for (const commit of commits) {
-    if (after) for (const path of Object.keys(commit.changes)) if (isOrganizationPath(path)) changed.add(path);
-    if (commit.sha === nominalImport) after = true;
+    for (const [path, content] of Object.entries(commit.changes)) {
+      if (!isOrganizationPath(path)) continue;
+      atHead.set(path, content);
+      if (!imported) atNominal.set(path, content);
+    }
+    if (commit.sha === nominalImport) imported = true;
   }
-  return [...changed].sort();
+  const changed: ArtifactPath[] = [];
+  for (const [path, content] of atHead) {
+    if ((atNominal.get(path) ?? null) !== content) changed.push(path);
+  }
+  return changed.sort();
 }

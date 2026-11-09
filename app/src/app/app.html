@@ -1,4 +1,8 @@
-<a class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2" href="#main">Skip to content</a>
+<a
+  class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2"
+  href="#main"
+  >Skip to content</a
+>
 
 <div class="app">
   <aside class="sidebar" aria-label="Organization Agentic Platform">
@@ -30,17 +34,32 @@
       @for (entry of menu; track entry.key) {
         <div class="menu-group" [class.is-open]="entry.children && isOpen(entry)">
           @if (entry.children) {
-            <button type="button" class="menu-item" [class.is-active]="isActiveGroup(entry)" (click)="toggle(entry, $event)" [attr.aria-expanded]="isOpen(entry)" [pTooltip]="entry.label" tooltipPosition="right">
+            <button
+              type="button"
+              class="menu-item"
+              [class.is-active]="isActiveGroup(entry)"
+              (click)="toggle(entry, $event)"
+              [attr.aria-expanded]="isOpen(entry)"
+              [pTooltip]="entry.label"
+              tooltipPosition="right"
+            >
               <i [class]="entry.icon" aria-hidden="true"></i>
               <span class="menu-label">{{ entry.label }}</span>
               @if (entry.key === 'supervision' && store.waitingCount() > 0) {
-                <span class="menu-badge" [attr.aria-label]="store.waitingCount() + ' items waiting'">{{ store.waitingCount() }}</span>
+                <span class="menu-badge" [attr.aria-label]="store.waitingCount() + ' items waiting'">{{
+                  store.waitingCount()
+                }}</span>
               }
               <i class="pi pi-chevron-right menu-caret" aria-hidden="true"></i>
             </button>
             <div class="menu-sub">
               @for (child of entry.children; track child.path) {
-                <a class="menu-item" [routerLink]="child.path" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+                <a
+                  class="menu-item"
+                  [routerLink]="child.path"
+                  routerLinkActive="is-active"
+                  ariaCurrentWhenActive="page"
+                >
                   <span class="menu-label">{{ child.label }}</span>
                   @if (child.label === 'Gates' && store.gatesWaitingForMe().length > 0) {
                     <span class="menu-badge">{{ store.gatesWaitingForMe().length }}</span>
@@ -52,7 +71,14 @@
               }
             </div>
           } @else {
-            <a class="menu-item" [routerLink]="entry.path" routerLinkActive="is-active" ariaCurrentWhenActive="page" [pTooltip]="entry.label" tooltipPosition="right">
+            <a
+              class="menu-item"
+              [routerLink]="entry.path"
+              routerLinkActive="is-active"
+              ariaCurrentWhenActive="page"
+              [pTooltip]="entry.label"
+              tooltipPosition="right"
+            >
               <i [class]="entry.icon" aria-hidden="true"></i>
               <span class="menu-label">{{ entry.label }}</span>
               @if (store.activeRuns().length > 0) {
@@ -65,7 +91,13 @@
     </nav>
 
     <div class="sidebar-foot">
-      <button type="button" class="user" (click)="userMenu.toggle($event)" aria-haspopup="dialog" aria-label="User menu">
+      <button
+        type="button"
+        class="user"
+        (click)="userMenu.toggle($event)"
+        aria-haspopup="dialog"
+        aria-label="User menu"
+      >
         <span class="user-avatar">{{ initials() }}</span>
         <span class="user-text min-w-0">
           <span class="user-name block truncate">{{ store.me()?.displayName }}</span>
@@ -80,23 +112,72 @@
       <nav class="crumbs" aria-label="Location">
         <a routerLink="/workspace/explorer">{{ store.workspace().name }}</a>
         <span class="sep">/</span>
-        <a [routerLink]="sectionPath()"><strong>{{ section() }}</strong></a>
+        <a
+          [routerLink]="sectionPath()"
+          (click)="openSectionSheet($event)"
+          [attr.aria-haspopup]="sectionEntry()?.children ? 'menu' : null"
+          [attr.aria-expanded]="sectionEntry()?.children ? sheet() === sectionEntry()?.key : null"
+          ><strong>{{ section() }}</strong></a
+        >
         @if (subsection()) {
           <span class="sep">/</span>
-          <span>{{ subsection() }}</span>
+          <button
+            type="button"
+            class="crumb-sub"
+            (click)="openSectionSheet($event)"
+            [attr.aria-haspopup]="sectionEntry()?.children ? 'menu' : null"
+            title="Other sections"
+          >
+            {{ subsection() }}
+            @if (sectionEntry()?.children) {
+              <i class="pi pi-angle-down crumb-caret" aria-hidden="true"></i>
+            }
+          </button>
         }
       </nav>
       <div class="titlebar-right">
         @if (store.mockBackends) {
-          <span class="demo-chip" pTooltip="Demonstration: the five backends run in this browser with fictitious data; no model is called" tooltipPosition="bottom">demo</span>
+          <span
+            class="demo-chip"
+            pTooltip="Demonstration: the five backends run in this browser with fictitious data; no model is called"
+            tooltipPosition="bottom"
+            >demo</span
+          >
         }
-        <p-button [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'" [text]="true" [rounded]="true" severity="secondary" [ariaLabel]="theme.isDark() ? 'Light mode' : 'Dark mode'" pTooltip="Theme" tooltipPosition="bottom" (onClick)="theme.toggle()" />
+        <p-button
+          [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          [ariaLabel]="theme.isDark() ? 'Light mode' : 'Dark mode'"
+          pTooltip="Theme"
+          tooltipPosition="bottom"
+          (onClick)="theme.toggle()"
+        />
         <span class="relative">
-          <p-button icon="pi pi-bell" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Notifications" pTooltip="Notifications" tooltipPosition="bottom" (onClick)="notifs.toggle($event)" />
+          <p-button
+            icon="pi pi-bell"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            ariaLabel="Notifications"
+            pTooltip="Notifications"
+            tooltipPosition="bottom"
+            (onClick)="notifs.toggle($event)"
+          />
           @if (unread().length > 0) {
             <span class="bell-badge" aria-live="polite">{{ unread().length }}</span>
           }
         </span>
+        <button
+          type="button"
+          class="titlebar-user"
+          (click)="userMenu.toggle($event)"
+          aria-haspopup="dialog"
+          aria-label="Account and workspace"
+        >
+          {{ initials() }}
+        </button>
       </div>
     </header>
     <main id="main" class="outlet" tabindex="-1">
@@ -107,15 +188,57 @@
 
 <nav class="phonebar" aria-label="Main (phone)">
   @for (entry of menu; track entry.key) {
-    <a [routerLink]="entry.path" [class.is-active]="isActiveGroup(entry)">
+    <button
+      type="button"
+      [class.is-active]="isActiveGroup(entry) || sheet() === entry.key"
+      (click)="openSheet(entry)"
+      [attr.aria-haspopup]="entry.children ? 'menu' : null"
+      [attr.aria-expanded]="entry.children ? sheet() === entry.key : null"
+    >
       <i [class]="entry.icon" aria-hidden="true"></i>
-      <span>{{ entry.label }}</span>
+      <span>{{ entry.short ?? entry.label }}</span>
       @if (entry.key === 'supervision' && store.waitingCount() > 0) {
         <span class="menu-badge" style="position: absolute; right: 18%; top: 4px">{{ store.waitingCount() }}</span>
       }
-    </a>
+    </button>
   }
 </nav>
+
+@if (sheetEntry(); as entry) {
+  <div class="nav-backdrop" (click)="closeSheet()" aria-hidden="true"></div>
+  <nav class="nav-sheet" [attr.aria-label]="entry.label + ' sections'">
+    <div class="nav-sheet-head">
+      <i [class]="entry.icon" aria-hidden="true"></i>
+      <span>{{ entry.label }}</span>
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        [rounded]="true"
+        severity="secondary"
+        size="small"
+        ariaLabel="Close"
+        (onClick)="closeSheet()"
+      />
+    </div>
+    @for (child of entry.children; track child.path) {
+      <a
+        class="nav-sheet-item"
+        [routerLink]="child.path"
+        routerLinkActive="is-active"
+        ariaCurrentWhenActive="page"
+        (click)="closeSheet()"
+      >
+        <span>{{ child.label }}</span>
+        @if (child.label === 'Gates' && store.gatesWaitingForMe().length > 0) {
+          <span class="menu-badge">{{ store.gatesWaitingForMe().length }}</span>
+        }
+        @if (child.label === 'Runs' && store.activeRuns().length > 0) {
+          <span class="menu-dot" aria-label="runs in progress"></span>
+        }
+      </a>
+    }
+  </nav>
+}
 
 <p-popover #userMenu styleClass="w-[300px]">
   <div class="flex flex-col gap-3">
@@ -124,15 +247,53 @@
       <div class="text-xs text-ink-muted">{{ store.tenant().organizationName }} · {{ roleLine() }}</div>
     </div>
     <div>
+      <label class="mb-1 block text-xs text-ink-muted" for="ws-switch-menu">Workspace</label>
+      <p-select
+        inputId="ws-switch-menu"
+        [options]="workspaceOptions()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="store.workspaceId()"
+        (onChange)="switchWorkspace($event.value); userMenu.hide()"
+        styleClass="w-full"
+        size="small"
+      />
+    </div>
+    <div>
       <label class="mb-1 block text-xs text-ink-muted" for="acting-as">Act as (demonstration)</label>
-      <p-select inputId="acting-as" [options]="memberOptions()" optionLabel="displayName" optionValue="userId" [ngModel]="store.session().userId" (onChange)="store.switchUser($event.value); userMenu.hide()" styleClass="w-full" size="small" />
+      <p-select
+        inputId="acting-as"
+        [options]="memberOptions()"
+        optionLabel="displayName"
+        optionValue="userId"
+        [ngModel]="store.session().userId"
+        (onChange)="store.switchUser($event.value); userMenu.hide()"
+        styleClass="w-full"
+        size="small"
+      />
     </div>
     <div class="flex items-center justify-between gap-2 text-sm">
       <span class="text-ink-muted">Agent runs</span>
-      <p-button [label]="store.runsPaused() ? 'Resume' : 'Pause'" [icon]="store.runsPaused() ? 'pi pi-play' : 'pi pi-pause'" size="small" [text]="true" severity="secondary" (onClick)="store.toggleRunsPaused()" />
+      <p-button
+        [label]="store.runsPaused() ? 'Resume' : 'Pause'"
+        [icon]="store.runsPaused() ? 'pi pi-play' : 'pi pi-pause'"
+        size="small"
+        [text]="true"
+        severity="secondary"
+        (onClick)="store.toggleRunsPaused()"
+      />
     </div>
-    <p-button label="Run the demo scenario" icon="pi pi-play" size="small" [outlined]="true" (onClick)="runScenario(); userMenu.hide()" />
-    <p class="m-0 text-xs text-ink-light">Workspace manager, conversation manager, agent runtime, PIS IAM and model gateway are simulated in this browser. Agents are scripted; no model is called.</p>
+    <p-button
+      label="Run the demo scenario"
+      icon="pi pi-play"
+      size="small"
+      [outlined]="true"
+      (onClick)="runScenario(); userMenu.hide()"
+    />
+    <p class="m-0 text-xs text-ink-light">
+      Workspace manager, conversation manager, agent runtime, PIS IAM and model gateway are simulated in this browser.
+      Agents are scripted; no model is called.
+    </p>
   </div>
 </p-popover>
 
@@ -144,12 +305,19 @@
     }
   </div>
   @if (recent().length === 0) {
-    <div class="py-6 text-center text-sm text-ink-muted">Nothing yet. Gates, invitations and run results arrive here.</div>
+    <div class="py-6 text-center text-sm text-ink-muted">
+      Nothing yet. Gates, invitations and run results arrive here.
+    </div>
   } @else {
     <ul class="m-0 flex max-h-[60vh] list-none flex-col gap-1 overflow-auto p-0">
       @for (n of recent(); track n.id) {
         <li>
-          <button type="button" class="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-sunken" [class.opacity-60]="n.readAt !== null" (click)="open(n, notifs)">
+          <button
+            type="button"
+            class="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-sunken"
+            [class.opacity-60]="n.readAt !== null"
+            (click)="open(n, notifs)"
+          >
             <i [class]="icon(n.kind) + ' mt-0.5'" aria-hidden="true"></i>
             <span class="min-w-0 flex-1">
               <span class="block text-sm font-semibold">{{ n.title }}</span>

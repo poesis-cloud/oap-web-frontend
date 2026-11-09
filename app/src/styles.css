@@ -841,6 +841,19 @@ pre code {
   background: var(--sai-primary-tint);
   color: var(--sai-text);
 }
+/* A human decision at a ★ gate, in the conversation: the person's own words, gate-coloured. */
+.sai-msg[data-kind='decision'] .sai-bubble {
+  border-left: 4px solid var(--sai-gate);
+}
+.sai-decision-label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--sai-gate);
+}
 .sai-msg.is-agent .sai-bubble {
   background: var(--sai-surface);
   border: 1px solid var(--sai-border);
@@ -868,8 +881,16 @@ pre code {
   resize: none;
 }
 
+/* Controls that exist only when the panes stack (phone and small tablet): the list toggle, the back button. */
+.sai-phone-only {
+  display: none !important;
+}
+
 /* Phone: one pane at a time */
 @media (max-width: 899px) {
+  .sai-phone-only {
+    display: inline-flex !important;
+  }
   .panes,
   .panes.is-wide-list {
     grid-template-columns: minmax(0, 1fr);

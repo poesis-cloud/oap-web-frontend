@@ -42,6 +42,8 @@ export class RunPage {
   readonly selected = signal<string | null>(null);
   readonly viewing = signal<string | null>(null);
   readonly showLog = signal(false);
+  /** On a phone the sessions list is a sheet over the detail. */
+  readonly listOpen = signal(false);
 
   readonly metrics = computed(() => (this.run() ? this.store.metricsOf(this.run() as Run) : null));
   readonly steps = computed(() => (this.run() ? this.store.stepMetricsOf(this.run() as Run) : []));
@@ -49,9 +51,18 @@ export class RunPage {
   readonly sessions = computed((): SessionRow[] => {
     const run = this.run();
     if (!run) return [];
-    const orchestrator = this.store.organization().workflows.find((w) => w.slug === run.workflowSlug)?.orchestrator ?? 'orchestrator';
+    const orchestrator =
+      this.store.organization().workflows.find((w) => w.slug === run.workflowSlug)?.orchestrator ?? 'orchestrator';
     return [
-      { key: 'orchestrator', kind: 'orchestrator', label: 'Orchestrator', actor: orchestrator, sessionId: run.orchestratorSessionId, step: null, metrics: null },
+      {
+        key: 'orchestrator',
+        kind: 'orchestrator',
+        label: 'Orchestrator',
+        actor: orchestrator,
+        sessionId: run.orchestratorSessionId,
+        step: null,
+        metrics: null,
+      },
       ...run.steps.map((step) => ({
         key: step.stepSlug,
         kind: 'worker' as const,
@@ -96,6 +107,7 @@ export class RunPage {
   select(key: string | null): void {
     this.selected.set(key);
     this.showLog.set(false);
+    this.listOpen.set(false);
   }
   discuss(path: string): void {
     this.viewing.set(null);

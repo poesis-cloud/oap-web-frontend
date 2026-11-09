@@ -28,6 +28,14 @@ npm run smoke       # needs Google Chrome and a built dist/
 
 Direct Vitest invocation, useful on a constrained machine: `./node_modules/.bin/vitest run --root . --dir src --environment node`.
 
+## Results on 2026-11-09 (night: F16 learning loop, decision dialogue, small-screen navigation)
+
+- `tsc` app and spec: PASS, 0 errors.
+- `ng test` (Vitest): 16 files, 74 tests, PASS (incl. `improvement.spec.ts`: capture, retrospective threads, atomic apply, rollback, snapshot pinning, stale approval, rejection sessions, workspace creation; the decision message and the orchestrator's answer; the gap to nominal by content).
+- `ng build` (production): PASS; initial bundle 1.02 MB raw / 222 kB transferred.
+- `tools/smoke.mjs`: **14 steps PASS, 54 screenshots, 0 console error**: seeded gates, explorer under `portfolio/`, launch, gate rejected then approved (two gates waiting: the flow is found by its run instance), runs and sessions, board and organization, consultation and out-of-scope, **phone and tablet navigation** (sections sheet from the bar, the crumbs and the rail; sessions and tree sheets; account menu), light theme, Improvement (evidence, retrospective thread, returned conclusion), organization change (diff, scorecard, approval, one file changed), rollback (identical to the package again), Agentic Organizations (isolated workspace).
+- Two defects found by the walk and fixed: `InMemoryWorkspace.commits()` returned its mutable array (Angular `computed` views never saw new commits); `gapToNominal` counted paths touched instead of content (a rollback never closed the gap).
+
 ## Results on 2026-11-09 (evening: Poesis identity, sessions as conversations, seeded scenario)
 
 - `tsc` app and spec: PASS, 0 errors.

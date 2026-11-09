@@ -1,6 +1,6 @@
 @if (conversation(); as c) {
   <div class="pane-bar bg-surface">
-    <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/conversation" ariaLabel="Back to the list" styleClass="md:!hidden" />
+    <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/conversation" ariaLabel="Back to the list" styleClass="sai-phone-only" />
     @if (pinnedGate()) {
       <span class="text-gate" aria-label="a gate waits here">★</span>
     }
@@ -166,6 +166,10 @@
             <ng-container *ngTemplateOutlet="proposalCard; context: { $implicit: proposalOf(c, m), c: c, m: m }" />
           } @else if (m.kind === 'run-link') {
             <ng-container *ngTemplateOutlet="runCard; context: { $implicit: runOf(m), m: m }" />
+          } @else if (m.kind === 'decision') {
+            <div class="sai-bubble">
+              <span class="sai-decision-label">★ {{ gateOf(m)?.gate?.label ?? 'Gate' }} · decision</span>{{ m.content }}
+            </div>
           } @else if (m.kind === 'gate') {
             <div class="sai-bubble border-l-4 border-l-gate">{{ m.content }}</div>
             @if (gateOf(m); as g) {
