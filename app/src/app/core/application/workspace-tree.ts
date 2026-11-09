@@ -8,7 +8,8 @@ import type { ArtifactPath } from '../domain/types';
  * `buildWorkspaceTree` lays the paths present at HEAD onto that map: present files and
  * folders are shown where the map places them; required slots the map declares but the
  * workspace lacks are shown as *expected* (the gap to nominal, F16-R1 flavour); paths the map
- * does not know go under *Unmapped*. Nothing here reads content: it is a pure view over paths.
+ * does not know (organization folder, run records) appear as plain folders at the root. Nothing
+ * here reads content: it is a pure view over paths.
  */
 
 export interface StructureNode {
@@ -82,17 +83,10 @@ export function buildWorkspaceTree(
   const sorted = [...paths].sort();
   const consumed = new Set<ArtifactPath>();
   const entries = layNodes(rootNodes(structure), '', sorted, consumed);
+  // Paths the map does not declare (the organization folder, run records, extra files) sit at
+  // the root as plain folders, like any file explorer would show them.
   const unmapped = sorted.filter((p) => !consumed.has(p));
-  if (unmapped.length > 0) {
-    entries.push({
-      kind: 'folder',
-      name: 'Unmapped',
-      path: '',
-      description: 'Paths the organization structure map does not declare (run records, logs, extra files).',
-      expected: false,
-      children: plainTree(unmapped, ''),
-    });
-  }
+  if (unmapped.length > 0) entries.push(...plainTree(unmapped, ''));
   return entries;
 }
 

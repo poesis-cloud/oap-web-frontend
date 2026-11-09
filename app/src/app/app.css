@@ -1,122 +1,362 @@
-/* Shell: brand, sidebar navigation and controls. Colours come from the tokens only. */
-.sai-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, rgba(79, 70, 229, 0.55), rgba(79, 70, 229, 0.15));
-  box-shadow: inset 0 0 0 1px rgba(224, 231, 255, 0.18);
-  flex: none;
-}
-.sai-sidebar-label {
+/* Application frame: title bar, side menu with collapsible groups, bottom bar on phones. */
+:host {
   display: block;
-  margin: 0 0 4px 2px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sai-sidebar-section);
 }
-.sai-nav-link {
+.app {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--sai-sidebar-bg);
+  color: var(--sai-sidebar-text);
+}
+.brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 16px 16px 12px;
+}
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  filter: invert(1);
+  opacity: 0.95;
+}
+.brand-name {
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--sai-sidebar-section);
+  margin-top: 2px;
+}
+.menu {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 10px;
+}
+.menu-group {
   margin: 2px 0;
-  padding: 9px 12px;
-  border-radius: 10px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--sai-sidebar-text);
+  font: inherit;
   font-size: 13.5px;
   font-weight: 500;
-  color: var(--sai-sidebar-text);
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
   transition:
     background-color var(--sai-dur) var(--sai-ease),
     color var(--sai-dur) var(--sai-ease);
 }
-.sai-nav-link:hover,
-.sai-nav-link:focus-visible {
+.menu-item:hover,
+.menu-item:focus-visible {
   background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  color: #fff;
   text-decoration: none;
 }
-.sai-nav-link.is-active {
+.menu-item.is-active {
   background: var(--sai-sidebar-active-bg);
   color: var(--sai-sidebar-active-text);
-  box-shadow: inset 3px 0 0 var(--sai-sidebar-active-border);
 }
-.sai-nav-icon {
+.menu-item .pi {
   width: 18px;
   text-align: center;
   font-size: 15px;
   opacity: 0.85;
 }
-.sai-nav-link.is-active .sai-nav-icon {
+.menu-item.is-active .pi {
   opacity: 1;
   color: #c7d2fe;
 }
-.sai-nav-badge {
+.menu-item .menu-label {
+  flex: 1;
+}
+.menu-caret {
+  font-size: 10px;
+  opacity: 0.55;
+  transition: transform var(--sai-dur) var(--sai-ease);
+}
+.menu-group.is-open .menu-caret {
+  transform: rotate(90deg);
+}
+.menu-sub {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0 4px 18px;
+}
+.menu-group.is-open .menu-sub {
+  display: flex;
+}
+.menu-sub .menu-item {
+  padding: 6px 10px 6px 21px;
+  font-size: 13px;
+  font-weight: 500;
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 8px 8px 0;
+}
+.menu-sub .menu-item.is-active {
+  border-left-color: var(--sai-sidebar-active-border);
+}
+.menu-badge {
   min-width: 20px;
   padding: 0 6px;
   border-radius: 999px;
   background: var(--sai-gate);
-  color: #ffffff;
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
   line-height: 20px;
   text-align: center;
 }
-.sai-sidebar-note {
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 11.5px;
-  line-height: 1.4;
+.menu-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--sai-primary);
+  animation: sai-pulse 1.6s ease-in-out infinite;
 }
-.sai-sidebar-action {
-  display: inline-flex;
+.sidebar-foot {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.user {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
   background: transparent;
   color: #e2e8f0;
   font: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
+  text-align: left;
   cursor: pointer;
 }
-.sai-sidebar-action:hover {
-  background: rgba(255, 255, 255, 0.08);
+.user:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-.sai-sidebar ::ng-deep .p-select {
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--sai-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+}
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.user-role {
+  font-size: 11px;
+  color: var(--sai-sidebar-section);
+}
+
+/* Main column: thin title bar, then the feature's panes. */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--sai-border);
+  background: var(--sai-surface);
+  flex: none;
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--sai-text-muted);
+}
+.crumbs a {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+.crumbs a:hover {
+  background: var(--sai-surface-sunken);
+  text-decoration: none;
+}
+.crumbs strong {
+  color: var(--sai-text);
+  font-weight: 600;
+}
+.crumbs .sep {
+  color: var(--sai-text-light);
+}
+.titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.demo-chip {
+  margin-right: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--sai-border-strong);
+  color: var(--sai-text-muted);
+  font-size: 11px;
+}
+.outlet {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.bell-badge {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--sai-fail);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.sidebar ::ng-deep .p-select {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
 }
-.sai-sidebar ::ng-deep .p-select:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-}
-.sai-sidebar ::ng-deep .p-select .p-select-label,
-.sai-sidebar ::ng-deep .p-select .p-select-dropdown {
+.sidebar ::ng-deep .p-select .p-select-label,
+.sidebar ::ng-deep .p-select .p-select-dropdown {
   color: #e2e8f0;
 }
-.sai-phone-link {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  color: var(--sai-text-muted);
-  text-decoration: none;
+
+/* Phone bar */
+.phonebar {
+  display: none;
 }
-.sai-phone-link.is-active {
-  color: var(--sai-primary);
-  background: var(--sai-primary-tint);
+
+@keyframes sai-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
 }
-.sai-phone-link:hover {
-  text-decoration: none;
+
+/* Tablet: the menu becomes a rail of icons. */
+@media (max-width: 1023px) {
+  .app {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .brand {
+    justify-content: center;
+    padding: 14px 0 10px;
+  }
+  .brand-text,
+  .menu-label,
+  .menu-caret,
+  .menu-sub,
+  .user-text,
+  .ws-switch {
+    display: none !important;
+  }
+  .menu {
+    padding: 6px;
+  }
+  .menu-item {
+    justify-content: center;
+    padding: 10px 0;
+  }
+  .menu-badge {
+    position: absolute;
+    transform: translate(16px, -12px);
+  }
+  .user {
+    justify-content: center;
+    padding: 6px 0;
+  }
+}
+
+/* Phone: no side menu, a bottom bar. */
+@media (max-width: 767px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    display: none;
+  }
+  .main {
+    padding-bottom: 56px;
+  }
+  .crumbs > a:first-child,
+  .crumbs > a:first-child + .sep,
+  .demo-chip {
+    display: none;
+  }
+  .phonebar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: flex;
+    justify-content: space-around;
+    height: 56px;
+    border-top: 1px solid var(--sai-border);
+    background: var(--sai-surface);
+  }
+  .phonebar a {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    font-size: 11px;
+    color: var(--sai-text-muted);
+    text-decoration: none;
+  }
+  .phonebar a.is-active {
+    color: var(--sai-primary);
+  }
+  .phonebar .pi {
+    font-size: 18px;
+  }
 }

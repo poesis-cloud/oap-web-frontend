@@ -1,50 +1,41 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
+import { Popover } from 'primeng/popover';
 import { Select } from 'primeng/select';
-import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
+import { Tooltip } from 'primeng/tooltip';
+import type { Artifact } from '../../core/domain/artifact';
 import type { Conversation, LaunchProposal, Message, Thread } from '../../core/domain/conversation';
 import { mainThread } from '../../core/domain/conversation';
-import { pendingGate, type Gate, type Run } from '../../core/domain/run';
+import { type Gate, type Run } from '../../core/domain/run';
 import { Actor, type ActorRef } from '../../core/domain/types';
-import { GateCard } from '../../shared/gate-card';
+import { GateFlow } from '../../shared/gate-flow';
 import { ActorBadge, ClockPipe, ProvenanceView, StatusBadge, TitlePipe, actorLabel, fileName } from '../../shared/ui';
+import { Viewer } from '../../shared/viewer';
+import { initialsOf } from '../../app';
 import { SaiStore } from '../../state/sai-store';
 
 /**
- * One conversation (F1): main thread with child threads in place, agent answers streamed and
- * labelled as AI with provenance, launch proposals to confirm, run links with folded internals.
- * A validation conversation pins the ★ gate it is about: the invited holders decide here.
+ * One conversation as a chat (F1; Clément, 2026-11-08: inspired by Teams). Messages grouped
+ * with avatars, agents labelled AI with provenance, launch proposals and run cards inline, a
+ * composer at the bottom. A gate conversation pins the gate flow at the top: the artifact
+ * opens in the viewer over the thread, the decision is taken here.
  */
 @Component({
-  selector: 'sai-conversation-page',
+  selector: 'sai-chat-page',
+  host: { class: 'flex h-full min-h-0 flex-col' },
   standalone: true,
-  imports: [
-    NgTemplateOutlet,
-    FormsModule,
-    RouterLink,
-    Button,
-    Dialog,
-    InputText,
-    Select,
-    Tag,
-    Textarea,
-    GateCard,
-    ActorBadge,
-    ProvenanceView,
-    StatusBadge,
-    ClockPipe,
-    TitlePipe,
-  ],
-  templateUrl: './conversation-page.html',
+  imports: [NgTemplateOutlet, FormsModule, RouterLink, Button, Dialog, InputText, Popover, Select, Textarea, Tooltip, GateFlow, Viewer, ActorBadge, ProvenanceView, StatusBadge, ClockPipe, TitlePipe],
+  templateUrl: './chat-page.html',
 })
-export class ConversationPage {
+export class ChatPage {
   readonly store = inject(SaiStore);
+  private readonly router = inject(Router);
   readonly id = input.required<string>();
   readonly conversation = computed(() => this.store.conversation(this.id()));
   readonly draft = signal('');
@@ -53,18 +44,25 @@ export class ConversationPage {
   readonly changing = signal<string | null>(null);
   readonly changeDraft = signal('');
   readonly asideDrafts: Record<string, string> = {};
+  readonly viewing = signal<string | null>(null);
+  readonly infoOpen = signal(false);
+  private readonly log = viewChild<ElementRef<HTMLElement>>('log');
 
-  readonly quickAgents = computed(() =>
-    this.store
-      .organization()
-      .agents.filter((a) =>
-        ['system-architect', 'security-expert', 'developer', 'release-train-engineer'].includes(a.slug),
-      ),
-  );
-  readonly structurantFeature = computed(
-    () => this.store.workItems().find((i) => i.type === 'feature' && i.structurant) ?? null,
-  );
-  /** The gate a validation conversation is about, with its run. */
+  constructor() {
+    // A chat follows its latest message: scroll to the bottom when one arrives or streams.
+    effect(() => {
+      const c = this.conversation();
+      if (!c) return;
+      const last = c.messages.at(-1);
+      void c.messages.length;
+      if (last) void this.store.streamedLength(last.id);
+      const el = this.log()?.nativeElement;
+      if (!el) return;
+      queueMicrotask(() => el.scrollTo({ top: el.scrollHeight, behavior: 'auto' }));
+    });
+  }
+
+  readonly quickAgents = ['system-architect', 'security-expert', 'developer', 'release-train-engineer'];
   readonly pinnedGate = computed((): { run: Run; gate: Gate } | null => {
     const ref = this.conversation()?.gateRef;
     if (!ref) return null;
@@ -72,9 +70,17 @@ export class ConversationPage {
     const gate = run?.gates.find((g) => g.id === ref.gateId);
     return run && gate ? { run, gate } : null;
   });
+  readonly viewed = computed((): Artifact | null => {
+    const path = this.viewing();
+    return path ? (this.store.artifacts().find((a) => a.path === path) ?? null) : null;
+  });
 
   main(c: Conversation): Thread {
     return mainThread(c);
+  }
+  /** Gate conversations are titled "★ …" by the application; the bar already shows the star. */
+  plainTitle(c: Conversation): string {
+    return c.title.replace(/^★\s*/, '');
   }
   messagesOf(c: Conversation, threadId: string): Message[] {
     return c.messages.filter((m) => m.threadId === threadId);
@@ -90,6 +96,12 @@ export class ConversationPage {
   }
   label(actor: ActorRef): string {
     return actorLabel(actor, this.store.tenant().members);
+  }
+  initials(actor: ActorRef): string {
+    return initialsOf(this.label(actor));
+  }
+  isMine(actor: ActorRef): boolean {
+    return actor.kind === 'human' && actor.userId === this.store.session().userId;
   }
   fileName(path: string): string {
     return fileName(path);
@@ -107,7 +119,7 @@ export class ConversationPage {
   runOf(m: Message): Run | null {
     return m.refs.runId ? this.store.run(m.refs.runId) : null;
   }
-  gateOf(m: Message): { run: Run; gate: NonNullable<ReturnType<typeof pendingGate>> } | null {
+  gateOf(m: Message): { run: Run; gate: Gate } | null {
     const run = m.refs.runId ? this.store.run(m.refs.runId) : null;
     const gate = run?.gates.find((g) => g.id === m.refs.gateId);
     return run && gate ? { run, gate } : null;
@@ -180,5 +192,10 @@ export class ConversationPage {
   applyChange(c: Conversation, p: LaunchProposal): void {
     this.store.changeProposal(c.id, p.id, { intent: this.changeDraft().trim() || (p.inputs['intent'] ?? '') });
     this.changing.set(null);
+  }
+  discuss(path: string): void {
+    this.viewing.set(null);
+    const conversation = this.store.startConversation(`About ${fileName(path)}`, null, path);
+    if (conversation) void this.router.navigate(['/conversation', conversation.id]);
   }
 }

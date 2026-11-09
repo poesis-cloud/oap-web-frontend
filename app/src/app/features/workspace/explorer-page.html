@@ -1,0 +1,88 @@
+<div class="panes">
+  <aside class="pane is-list" aria-label="Files">
+    <div class="pane-bar">
+      <span class="pane-title">Files</span>
+      <span class="pane-spacer"></span>
+      <span class="text-xs text-ink-light" [pTooltip]="counts().expected + ' slots the structure map expects are still empty'" tooltipPosition="bottom">{{ counts().present }}</span>
+    </div>
+    <div class="pane-body p-1">
+      <p-tree
+        [value]="treeNodes()"
+        selectionMode="single"
+        [selection]="treeSelection()"
+        (onNodeSelect)="onSelect($event)"
+        [filter]="true"
+        filterPlaceholder="Filter"
+        styleClass="sai-tree"
+      >
+        <ng-template let-node pTemplate="default">
+          <span class="flex min-w-0 items-center gap-1.5 text-[0.84rem]" [class.italic]="node.data?.expected" [class.text-ink-light]="node.data?.expected" [title]="node.data?.description || node.label">
+            <sai-file-icon [kind]="icon(node.data)" [size]="16" />
+            <span class="truncate">{{ node.label }}</span>
+          </span>
+        </ng-template>
+      </p-tree>
+    </div>
+  </aside>
+
+  <section class="pane is-content" aria-label="Current directory">
+    <div class="pane-bar">
+      <nav class="flex min-w-0 items-center gap-1 text-[13px]" aria-label="Path">
+        <button type="button" class="sai-crumb" (click)="openDir('')">{{ store.workspace().name }}</button>
+        @for (c of crumbs(); track c.path; let last = $last) {
+          <span class="text-ink-light">/</span>
+          @if (last) {
+            <strong class="truncate">{{ c.name }}</strong>
+          } @else {
+            <button type="button" class="sai-crumb" (click)="openDir(c.path)">{{ c.name }}</button>
+          }
+        }
+      </nav>
+      <span class="pane-spacer"></span>
+      <span class="text-xs text-ink-light">{{ entries().length }} items</span>
+    </div>
+    <div class="pane-body">
+      @if (dir()) {
+        <button type="button" class="sai-item is-muted" (click)="openDir(parent())">
+          <sai-file-icon kind="folder" [size]="18" />
+          <span class="sai-item-main"><span class="sai-item-title">..</span></span>
+        </button>
+      }
+      @for (e of entries(); track e.path) {
+        @if (e.kind === 'folder') {
+          <button type="button" class="sai-item" [class.is-muted]="e.expected" (click)="openDir(e.path)">
+            <sai-file-icon [kind]="icon(e)" [size]="18" />
+            <span class="sai-item-main">
+              <span class="sai-item-title">{{ e.name }}</span>
+              @if (e.description) {
+                <span class="sai-item-sub">{{ e.description }}</span>
+              }
+            </span>
+            <span class="sai-item-meta">{{ e.expected ? 'not created yet' : files(e) + ' files' }}</span>
+          </button>
+        } @else {
+          <button type="button" class="sai-item" [class.is-muted]="e.expected" [disabled]="e.expected" (click)="openFile(e.path)">
+            <sai-file-icon [kind]="icon(e)" [size]="18" />
+            <span class="sai-item-main">
+              <span class="sai-item-title">{{ e.name }}</span>
+              <span class="sai-item-sub">{{ e.expected ? e.description || 'required by the structure map' : lastMessage(e) }}</span>
+            </span>
+            @if (!e.expected && kindOf(e); as kind) {
+              <span class="rounded bg-surface-sunken px-1.5 text-[11px] text-ink-muted">{{ kind }}</span>
+            }
+            @if (changedAt(e); as at) {
+              <span class="sai-item-meta">{{ at | ago }}</span>
+            }
+          </button>
+        }
+      }
+      @if (entries().length === 0) {
+        <div class="p-8 text-center text-sm text-ink-muted">Empty folder.</div>
+      }
+    </div>
+
+    @if (artifact(); as a) {
+      <sai-viewer [artifact]="a" [overlay]="true" (close)="closeViewer()" (discuss)="discuss($event)" />
+    }
+  </section>
+</div>

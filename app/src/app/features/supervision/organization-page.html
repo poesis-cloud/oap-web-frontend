@@ -1,0 +1,136 @@
+<div class="panes" style="grid-template-columns: minmax(0, 1fr)">
+  <section class="pane is-content is-canvas" aria-label="Organization">
+    <div class="pane-bar bg-surface">
+      <span class="pane-title">{{ organization().name }}</span>
+      <span class="font-mono text-xs text-ink-light">{{ organization().version }}</span>
+      <span class="pane-spacer"></span>
+      <p-button label="Browse the files" icon="pi pi-folder" size="small" [text]="true" severity="secondary" [routerLink]="['/workspace', 'explorer']" [queryParams]="{ dir: root }" />
+    </div>
+    <div class="pane-body p-4">
+      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div class="flex flex-col gap-4">
+          <section class="sai-card p-4">
+            <h2 class="sai-eyebrow mb-2">Propose a change</h2>
+            <p class="m-0 mb-3 text-sm text-ink-muted">The organization changes only through governed runs decided at a ★ gate. Each proposal opens a conversation with the orchestrator; nothing executes directly.</p>
+            <div class="sai-actions">
+              <p-button label="Propose a change" icon="pi pi-pencil" size="small" (onClick)="propose('change')" />
+              <p-button label="Propose an upgrade" icon="pi pi-refresh" size="small" [outlined]="true" (onClick)="propose('upgrade')" />
+              <p-button label="Propose a rollback" icon="pi pi-undo" size="small" [outlined]="true" severity="secondary" (onClick)="propose('rollback')" />
+              <p-button label="Propose to Poesis" icon="pi pi-send" size="small" [outlined]="true" severity="secondary" (onClick)="propose('poesis')" />
+            </div>
+          </section>
+
+          <section>
+            <h2 class="sai-eyebrow mb-2">What the organization declares</h2>
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              @for (c of categories(); track c.key) {
+                <a class="sai-kpi hover:border-line-strong" [routerLink]="['/workspace', 'explorer']" [queryParams]="{ dir: c.folder ? root + '/' + c.folder : root }">
+                  <span class="sai-kpi-value">{{ c.count }}</span>
+                  <span class="sai-kpi-label">{{ c.label }}</span>
+                </a>
+              }
+              <a class="sai-kpi hover:border-line-strong" [routerLink]="['/workspace', 'board']">
+                <span class="sai-kpi-value">{{ organization().itemTypes.length }}</span>
+                <span class="sai-kpi-label">Trackable item types</span>
+              </a>
+              <button type="button" class="sai-kpi text-left hover:border-line-strong" (click)="viewing.set(root + '/conf/model-profiles.conf.yaml')">
+                <span class="sai-kpi-value">{{ organization().modelProfiles.length }}</span>
+                <span class="sai-kpi-label">Model profiles</span>
+              </button>
+              <button type="button" class="sai-kpi text-left hover:border-line-strong" (click)="viewing.set(root + '/conf/workspace.conf.yaml')">
+                <span class="sai-kpi-value">{{ store.tree().length }}</span>
+                <span class="sai-kpi-label">Root folders of the structure map</span>
+              </button>
+              <a class="sai-kpi hover:border-line-strong" [routerLink]="['/supervision', 'runs']">
+                <span class="sai-kpi-value">{{ store.runs().length }}</span>
+                <span class="sai-kpi-label">Runs on this organization</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="sai-card p-4">
+            <h2 class="sai-eyebrow mb-2">Gates and their holders</h2>
+            <table class="sai-table">
+              <thead><tr><th>Gate</th><th>After</th><th>Holder role</th><th>Holders here</th></tr></thead>
+              <tbody>
+                @for (g of gates(); track g.workflow.slug) {
+                  <tr>
+                    <td><span class="text-gate">★</span> {{ g.gate.label }}</td>
+                    <td><button type="button" class="text-primary" (click)="viewing.set(root + '/' + g.workflow.source)">{{ g.workflow.slug | title }}</button></td>
+                    <td><code>{{ g.gate.holderRole }}</code></td>
+                    <td>{{ holders(g.gate.holderRole) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </section>
+
+          <section class="sai-card p-4">
+            <h2 class="sai-eyebrow mb-2">Agents</h2>
+            <div class="grid gap-x-6 gap-y-1 text-sm md:grid-cols-2">
+              @for (a of orchestrators(); track a.slug) {
+                <button type="button" class="flex items-center justify-between gap-2 rounded px-1 py-1 text-left hover:bg-surface-sunken" (click)="viewing.set(root + '/' + a.source)">
+                  <sai-actor [actor]="{ kind: 'agent', slug: a.slug }" /><span class="text-xs text-ink-light">orchestrator</span>
+                </button>
+              }
+              @for (a of specialists(); track a.slug) {
+                <button type="button" class="flex items-center justify-between gap-2 rounded px-1 py-1 text-left hover:bg-surface-sunken" (click)="viewing.set(root + '/' + a.source)">
+                  <sai-actor [actor]="{ kind: 'agent', slug: a.slug }" /><span class="text-xs text-ink-light">specialist</span>
+                </button>
+              }
+            </div>
+          </section>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <section class="sai-card p-4 text-sm">
+            <h2 class="sai-eyebrow mb-2">Where it lives</h2>
+            <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              <dt class="text-ink-light">Folder</dt>
+              <dd class="m-0"><a [routerLink]="['/workspace', 'explorer']" [queryParams]="{ dir: root }" class="font-mono">{{ root }}/</a></dd>
+              <dt class="text-ink-light">Nominal import</dt>
+              <dd class="m-0 font-mono text-xs">{{ nominalTag() ?? store.workspace().nominalImportCommit?.slice(0, 10) }}</dd>
+              <dt class="text-ink-light">Gap to nominal</dt>
+              <dd class="m-0">
+                @if (store.organizationGap().length === 0) {
+                  none, identical to the package
+                } @else {
+                  {{ store.organizationGap().length }} files changed
+                }
+              </dd>
+              <dt class="text-ink-light">Harness</dt>
+              <dd class="m-0 font-mono text-xs">{{ organization().harnessVersion }}</dd>
+            </dl>
+          </section>
+
+          <section class="sai-card p-4 text-sm">
+            <h2 class="sai-eyebrow mb-2">To create in SAF</h2>
+            <div class="flex flex-col gap-2">
+              @for (w of organizationWorkflows; track w.slug) {
+                <div>
+                  <div class="flex items-center justify-between gap-2"><strong>{{ w.slug }}</strong><span class="text-xs text-ink-light">{{ w.feature }}</span></div>
+                  <p class="m-0 text-xs text-ink-muted">{{ w.text }}</p>
+                </div>
+              }
+            </div>
+          </section>
+
+          <section class="sai-card p-4 text-sm">
+            <h2 class="sai-eyebrow mb-2">History</h2>
+            <div class="flex flex-col gap-2">
+              @for (h of store.organizationHistory(); track h.commit.sha) {
+                <button type="button" class="rounded px-1 py-1 text-left hover:bg-surface-sunken" (click)="viewing.set(h.paths[0])">
+                  <div class="flex items-center justify-between gap-2"><span class="truncate">{{ h.commit.message }}</span><span class="text-xs text-ink-light">{{ h.commit.timestamp | clock }}</span></div>
+                  <div class="text-xs text-ink-muted">{{ h.paths.length }} files, {{ h.commit.author.kind }}@if (h.nominal) {, nominal import}</div>
+                </button>
+              }
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    @if (viewed(); as a) {
+      <sai-viewer [artifact]="a" [overlay]="true" (close)="viewing.set(null)" (discuss)="discuss($event)" />
+    }
+  </section>
+</div>

@@ -9,17 +9,12 @@ import {
   type RunMetrics,
   type StepMetrics,
 } from '../core/application/analysis';
-import {
-  contentPaths,
-  gapToNominal,
-  organizationHistory,
-  organizationTree,
-  ORGANIZATION_ROOT,
-} from '../core/application/organization-view';
+import { gapToNominal, organizationHistory, ORGANIZATION_ROOT } from '../core/application/organization-view';
 import type { Session } from '../core/application/sai-application';
 import { buildWorkspaceTree } from '../core/application/workspace-tree';
 import type { Conversation } from '../core/domain/conversation';
-import { isRunActive, type Run } from '../core/domain/run';
+import { isRunActive, type Gate, type Run } from '../core/domain/run';
+import { holdsRole } from '../core/domain/workspace';
 import { DomainError, type ActorRef } from '../core/domain/types';
 import type { GateDecision, RuntimeEvent } from '../core/ports';
 import { createMockWorld, DEMO_WORKSPACE_ID, INSTANCE, type MockWorld } from '../infrastructure/mock-world';
@@ -45,7 +40,7 @@ export class SaiStore {
   private readonly streamTimers = new Map<string, ReturnType<typeof setInterval>>();
   private scheduler: ReturnType<typeof setInterval> | null = null;
 
-  /** All five backends are in-browser mocks in this build. */
+  /** All five backends are in-browser mocks in this build (shown as a discreet "demo" chip). */
   readonly mockBackends = true;
   /** The instance this build stands for: the Specialized configuration serving the SAFe pack. */
   readonly instance = INSTANCE;
@@ -66,9 +61,8 @@ export class SaiStore {
   readonly workItems = computed(() => (this.version(), this.app.workItems(this.session(), this.workspaceId())));
   readonly artifacts = computed(() => (this.version(), this.app.artifacts(this.session(), this.workspaceId())));
   readonly paths = computed(() => (this.version(), this.app.paths(this.session(), this.workspaceId())));
-  /** The workspace content laid on the structure map; the organization folder has its own surface. */
-  readonly tree = computed(() => buildWorkspaceTree(this.organization().workspaceStructure, contentPaths(this.paths())));
-  readonly organizationTree = computed(() => organizationTree(this.paths()));
+  /** Every path of the workspace laid on the structure map, the organization folder included (browsed in the explorer). */
+  readonly tree = computed(() => buildWorkspaceTree(this.organization().workspaceStructure, this.paths()));
   readonly organizationFileCount = computed(() => this.paths().filter((p) => p.startsWith(`${ORGANIZATION_ROOT}/`)).length);
   readonly organizationHistory = computed(() =>
     organizationHistory(this.commits(), this.workspace().nominalImportCommit),
@@ -139,6 +133,32 @@ export class SaiStore {
   }
 
   readonly priceOf = (model: string) => this.app.priceOf(this.session(), model);
+
+  /** How the current user relates to a gate (Supervision › Gates filters, 2026-11-09). */
+  myRoleInGate(run: Run, gate: Gate): 'holder' | 'requester' | 'participant' | 'observer' {
+    const me = this.session().userId;
+    if (holdsRole(this.tenant(), me, gate.holderRole)) return 'holder';
+    if (run.launchedBy.kind === 'human' && run.launchedBy.userId === me) return 'requester';
+    const conversation = this.validationConversationFor(gate.id);
+    if (conversation?.participants.some((p) => p.status === 'joined' && p.actor.kind === 'human' && p.actor.userId === me)) return 'participant';
+    return 'observer';
+  }
+
+  /** How the current user relates to a run (Supervision › Runs filters). */
+  myRoleInRun(run: Run): 'launcher' | 'holder' | 'participant' | 'observer' {
+    const me = this.session().userId;
+    if (run.launchedBy.kind === 'human' && run.launchedBy.userId === me) return 'launcher';
+    if (run.gates.some((g) => holdsRole(this.tenant(), me, g.holderRole))) return 'holder';
+    const conversation = this.conversation(run.conversationId);
+    if (conversation?.participants.some((p) => p.status === 'joined' && p.actor.kind === 'human' && p.actor.userId === me)) return 'participant';
+    return 'observer';
+  }
+
+  /** Harness log entries of one session (orchestrator or worker), in order. */
+  sessionLog(sessionId: string) {
+    this.version();
+    return this.journal().filter((e) => e.report.context.sessionId === sessionId);
+  }
 
   metricsOf(run: Run): RunMetrics {
     this.version();
@@ -337,7 +357,7 @@ export class SaiStore {
   }
 
   private toast(severity: 'info' | 'success' | 'warn' | 'error', summary: string, detail: string): void {
-    this.messages.add({ severity, summary, detail, life: severity === 'error' ? 9000 : 6000 });
+    this.messages.add({ severity, summary, detail, life: severity === 'error' ? 7000 : severity === 'success' ? 2500 : 4000 });
   }
 
   private reportEvents(events: readonly RuntimeEvent[]): void {

@@ -1,0 +1,214 @@
+<div class="panes" style="grid-template-columns: minmax(0, 1fr)">
+  <section class="pane is-content is-canvas" aria-label="Runs">
+    <div class="pane-bar bg-surface">
+      <div class="sai-segment" role="tablist" aria-label="View">
+        <button type="button" role="tab" [class.is-on]="view() === 'runs'" (click)="view.set('runs')">Runs</button>
+        <button type="button" role="tab" [class.is-on]="view() === 'statistics'" (click)="view.set('statistics')">Statistics</button>
+      </div>
+      @if (view() === 'runs') {
+        <div class="sai-segment" role="tablist" aria-label="Status">
+          <button type="button" role="tab" [class.is-on]="status() === 'all'" (click)="status.set('all')">All</button>
+          <button type="button" role="tab" [class.is-on]="status() === 'active'" (click)="status.set('active')">Active</button>
+          <button type="button" role="tab" [class.is-on]="status() === 'waiting'" (click)="status.set('waiting')">At a gate</button>
+          <button type="button" role="tab" [class.is-on]="status() === 'done'" (click)="status.set('done')">Done</button>
+          <button type="button" role="tab" [class.is-on]="status() === 'failed'" (click)="status.set('failed')">Failed</button>
+        </div>
+        <div class="sai-segment max-md:hidden" role="tablist" aria-label="My role">
+          <button type="button" role="tab" [class.is-on]="role() === 'all'" (click)="role.set('all')">Any role</button>
+          <button type="button" role="tab" [class.is-on]="role() === 'launcher'" (click)="role.set('launcher')">I launched</button>
+          <button type="button" role="tab" [class.is-on]="role() === 'holder'" (click)="role.set('holder')">I decide</button>
+          <button type="button" role="tab" [class.is-on]="role() === 'participant'" (click)="role.set('participant')">I take part</button>
+        </div>
+      }
+      <span class="pane-spacer"></span>
+      <p-button [label]="store.runsPaused() ? 'Resume' : 'Pause'" [icon]="store.runsPaused() ? 'pi pi-play' : 'pi pi-pause'" size="small" [text]="true" severity="secondary" pTooltip="Pause or resume the simulated agent runtime" tooltipPosition="bottom" (onClick)="store.toggleRunsPaused()" />
+    </div>
+
+    <div class="pane-body p-4">
+      <div class="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="sai-kpi">
+          <span class="sai-kpi-label">Runs</span>
+          <span class="sai-kpi-value">{{ totals().active }} <span class="text-sm font-medium text-ink-muted">active</span></span>
+          <span class="sai-kpi-hint">{{ totals().total }} in total, {{ totals().accepted }} artifacts accepted</span>
+        </div>
+        <div class="sai-kpi">
+          <span class="sai-kpi-label">Sessions</span>
+          <span class="sai-kpi-value">{{ totals().sessions }}</span>
+          <span class="sai-kpi-hint">{{ totals().agents }} agents and {{ totals().humans }} humans involved</span>
+        </div>
+        <div class="sai-kpi">
+          <span class="sai-kpi-label">Tokens</span>
+          <span class="sai-kpi-value">{{ totals().tokens | tokens }}</span>
+          <span class="sai-kpi-hint">consumed by the sessions</span>
+        </div>
+        <div class="sai-kpi">
+          <span class="sai-kpi-label">AI cost</span>
+          <span class="sai-kpi-value">{{ euros(totals().cost) }}</span>
+          <span class="sai-kpi-hint">rated by the model gateway</span>
+        </div>
+        <div class="sai-kpi">
+          <span class="sai-kpi-label">Time</span>
+          <span class="sai-kpi-value">{{ duration(totals().workingMs) }}</span>
+          <span class="sai-kpi-hint">agents at work, {{ duration(totals().humanWaitMs) }} waiting for humans</span>
+        </div>
+      </div>
+
+      @if (view() === 'runs') {
+        @if (rows().length === 0) {
+          <div class="p-10 text-center text-sm text-ink-muted">No run here. A run is one workflow executed by the SAF harness; it starts from a confirmed launch proposal in a conversation.</div>
+        } @else {
+          <div class="sai-card">
+            @for (m of rows(); track m.run.id) {
+              <a class="sai-item" [routerLink]="['/supervision', 'runs', m.run.id]">
+                <span class="grid h-9 w-9 flex-none place-items-center rounded-full" [class.bg-primary-tint]="isActive(m.run)" [class.bg-gate-tint]="m.run.status === 'waiting-for-gate'" [class.bg-ok-tint]="m.run.status === 'succeeded'" [class.bg-fail-tint]="m.run.status === 'failed' || m.run.status === 'cancelled'">
+                  @if (isActive(m.run)) {
+                    <i class="pi pi-spin pi-spinner text-primary" aria-hidden="true"></i>
+                  } @else if (m.run.status === 'waiting-for-gate') {
+                    <span class="text-gate">★</span>
+                  } @else if (m.run.status === 'succeeded') {
+                    <i class="pi pi-check text-ok" aria-hidden="true"></i>
+                  } @else {
+                    <i class="pi pi-times text-fail" aria-hidden="true"></i>
+                  }
+                </span>
+                <span class="sai-item-main">
+                  <span class="flex flex-wrap items-baseline gap-x-2">
+                    <span class="sai-item-title">{{ m.run.workflowSlug | title }}</span>
+                    <span class="font-mono text-[11px] text-ink-light">{{ m.run.workflowInstanceId }}</span>
+                  </span>
+                  <span class="sai-item-sub">
+                    @if (subjectTitle(m.run); as subject) {
+                      {{ subject }} ·
+                    }
+                    @if (isActive(m.run) && currentStep(m.run); as step) {
+                      running {{ step }} ·
+                    }
+                    {{ delivered(m.run) }} of {{ m.run.steps.length }} steps · {{ roleLabel(m.run) }}
+                  </span>
+                  <span class="mt-1 block">
+                    <span class="sai-progress block w-full max-w-md" [class.sai-live]="isActive(m.run)" [class.is-gate]="m.run.status === 'waiting-for-gate'" [class.is-ok]="m.run.status === 'succeeded'" [class.is-fail]="m.run.status === 'failed'"><span [style.width.%]="progress(m.run)"></span></span>
+                  </span>
+                </span>
+                <span class="hidden flex-none flex-col items-end gap-0.5 text-right text-xs text-ink-muted sm:flex">
+                  <span class="text-sm font-semibold text-ink">{{ euros(m.cost) }}</span>
+                  <span>{{ duration(m.durationMs) }}@if (m.humanWaitMs > 0) {, {{ duration(m.humanWaitMs) }} at gates}</span>
+                  <span>{{ m.tokens | tokens }} tokens · {{ m.run.startedAt | ago }}</span>
+                </span>
+                <span class="flex flex-none items-center gap-1">
+                  @for (g of m.run.gates; track g.id) {
+                    <span class="text-gate" [pTooltip]="g.label + ': ' + g.status" tooltipPosition="left">★</span>
+                  }
+                  <sai-status [status]="m.run.status" />
+                </span>
+              </a>
+            }
+          </div>
+        }
+      } @else {
+        @if (subjects().length === 0) {
+          <div class="p-10 text-center text-sm text-ink-muted">Statistics follow each subject (a Feature, a Story, an Epic) across every workflow and run that touched it. Launch a run from a conversation to see them.</div>
+        } @else {
+          <div class="flex flex-col gap-4">
+            @for (s of subjects(); track s.key) {
+              <section class="sai-card p-4">
+                <header class="mb-3 flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h2 class="text-base font-semibold">
+                      @if (s.item; as item) {
+                        <a [routerLink]="['/workspace', 'explorer']" [queryParams]="{ file: item.path }">{{ s.title }}</a>
+                      } @else {
+                        {{ s.title }}
+                      }
+                    </h2>
+                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
+                      @if (s.item; as item) {
+                        <sai-status [status]="item.status" />
+                      }
+                      <span>{{ s.runs.length }} run{{ s.runs.length > 1 ? 's' : '' }}</span>
+                      @for (w of s.workflows; track w) {
+                        <span class="rounded bg-surface-sunken px-1.5 py-0.5">{{ w | title }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-right text-sm sm:grid-cols-4">
+                    <div><span class="block text-[11px] text-ink-light">AI cost</span><strong>{{ euros(s.totals.cost) }}</strong></div>
+                    <div><span class="block text-[11px] text-ink-light">End to end</span><strong>{{ duration(s.totals.elapsedMs) }}</strong></div>
+                    <div><span class="block text-[11px] text-ink-light">Agents at work</span><strong>{{ duration(s.totals.workingMs) }}</strong></div>
+                    <div><span class="block text-[11px] text-ink-light">Waiting for humans</span><strong>{{ duration(s.totals.humanWaitMs) }}</strong></div>
+                  </div>
+                </header>
+                <div class="mb-1 flex items-center justify-between text-[11px] text-ink-light">
+                  <span>Timeline</span>
+                  <span class="flex items-center gap-3">
+                    <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-[3px] bg-primary"></span>agents at work</span>
+                    <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-[3px] bg-gate"></span>waiting at a ★ gate</span>
+                  </span>
+                </div>
+                <div class="flex flex-col gap-1.5" role="list">
+                  @for (m of s.runs; track m.run.id) {
+                    <div class="grid grid-cols-[minmax(140px,220px)_minmax(0,1fr)_auto] items-center gap-3 text-sm" role="listitem">
+                      <a class="truncate" [routerLink]="['/supervision', 'runs', m.run.id]">{{ m.run.workflowSlug | title }}</a>
+                      <div class="sai-bar" [class.sai-live]="isActive(m.run)">
+                        @for (seg of segments(m, s); track $index) {
+                          <span [class.is-wait]="seg.kind === 'wait'" [style.left.%]="seg.left" [style.width.%]="seg.width" [title]="(seg.kind === 'wait' ? 'waiting at a gate ' : 'agents at work ') + duration(seg.ms)"></span>
+                        }
+                      </div>
+                      <div class="flex items-center gap-2 whitespace-nowrap text-xs text-ink-muted">
+                        <sai-status [status]="m.run.status" /><span>{{ duration(m.durationMs) }}</span><span class="font-semibold text-ink">{{ euros(m.cost) }}</span>
+                        <span class="hidden text-ink-light lg:inline">{{ firstPassLabel(m) }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="mt-4 grid gap-4 md:grid-cols-3">
+                  <div>
+                    <h3 class="sai-eyebrow mb-1.5">By workflow</h3>
+                    <table class="sai-table">
+                      <tbody>
+                        @for (e of s.byWorkflow; track e.key) {
+                          <tr><td>{{ e.key | title }}</td><td class="w-24"><div class="sai-bar h-2"><span [style.width.%]="share(e, s.byWorkflow)"></span></div></td><td class="whitespace-nowrap text-right">{{ euros(e.cost) }}</td></tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <div>
+                    <h3 class="sai-eyebrow mb-1.5">By agent</h3>
+                    <table class="sai-table">
+                      <tbody>
+                        @for (e of s.byAgent; track e.key) {
+                          <tr><td>&#64;{{ e.key }} <span class="text-[11px] text-ink-light">{{ e.count }} call{{ e.count > 1 ? 's' : '' }}</span></td><td class="w-24"><div class="sai-bar h-2"><span [style.width.%]="share(e, s.byAgent)"></span></div></td><td class="whitespace-nowrap text-right">{{ euros(e.cost) }}</td></tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <div>
+                    <h3 class="sai-eyebrow mb-1.5">By model</h3>
+                    <table class="sai-table">
+                      <tbody>
+                        @for (e of s.byModel; track e.key) {
+                          <tr><td class="font-mono text-xs">{{ e.key }} <span class="font-sans text-[11px] text-ink-light">{{ e.tokens | tokens }}</span></td><td class="w-24"><div class="sai-bar h-2"><span [style.width.%]="share(e, s.byModel)"></span></div></td><td class="whitespace-nowrap text-right">{{ euros(e.cost) }}</td></tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <p class="m-0 mt-3 text-xs text-ink-light">{{ s.totals.acceptedArtifacts }} artifact{{ s.totals.acceptedArtifacts > 1 ? 's' : '' }} accepted, {{ s.totals.rejectedGates }} gate rework{{ s.totals.rejectedGates > 1 ? 's' : '' }}. Measures are the workspace's own history, not a benchmark.</p>
+              </section>
+            }
+            <section class="sai-card p-4">
+              <h2 class="sai-eyebrow mb-2">By workflow, all subjects</h2>
+              <table class="sai-table">
+                <thead><tr><th>Workflow</th><th>Runs</th><th>Succeeded</th><th>Average duration</th><th>AI cost</th><th>Cost per accepted artifact</th></tr></thead>
+                <tbody>
+                  @for (w of workflowSummary(); track w.workflowSlug) {
+                    <tr><td>{{ w.workflowSlug | title }}</td><td>{{ w.runs }}</td><td>{{ w.succeeded }}</td><td>{{ duration(w.averageDurationMs) }}</td><td>{{ euros(w.cost) }}</td><td class="font-semibold">{{ euros(w.costPerAcceptedArtifact) }}</td></tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          </div>
+        }
+      }
+    </div>
+  </section>
+</div>

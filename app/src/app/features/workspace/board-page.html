@@ -1,0 +1,49 @@
+<div class="panes" style="grid-template-columns: minmax(0, 1fr)">
+  <section class="pane is-content is-canvas" aria-label="Board">
+    <div class="pane-bar bg-surface">
+      <div class="sai-segment" role="tablist" aria-label="Item type">
+        @for (t of presentTypes(); track t.slug) {
+          <button type="button" role="tab" [class.is-on]="t.slug === itemType()" [attr.aria-selected]="t.slug === itemType()" (click)="itemType.set(t.slug)">
+            {{ t.label }} <span class="text-ink-light">{{ countOf(t.slug) }}</span>
+          </button>
+        }
+      </div>
+      <span class="pane-spacer"></span>
+      <input pInputText type="search" size="small" class="w-52" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Search" aria-label="Search work items" />
+    </div>
+    <div class="pane-body p-4">
+      <div class="grid auto-cols-[minmax(220px,1fr)] grid-flow-col gap-3" role="list">
+        @for (status of statuses(); track status) {
+          <div class="flex min-h-[200px] flex-col gap-2 rounded-xl bg-surface-sunken/70 p-2" role="listitem">
+            <div class="flex items-center justify-between px-1 text-xs text-ink-muted">
+              <span class="font-semibold">{{ status.replace('-', ' ') }}</span>
+              <span class="text-ink-light">{{ itemsIn(status).length }}</span>
+            </div>
+            @for (item of itemsIn(status); track item.path) {
+              <button type="button" class="sai-card flex cursor-pointer flex-col gap-1 p-3 text-left hover:border-line-strong" (click)="open(item)">
+                <div class="flex items-center justify-between text-[11px] text-ink-light">
+                  <span class="font-mono">{{ item.itemId ?? '' }}</span>
+                  @if (item.structurant) {
+                    <span class="text-gate" title="structurant: needs an ADR">★</span>
+                  }
+                </div>
+                <div class="text-sm font-medium leading-snug">{{ item.title }}</div>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-ink-light">
+                  @if (item.runIds.length) {
+                    <span>{{ item.runIds.length }} run{{ item.runIds.length > 1 ? 's' : '' }}</span>
+                  }
+                  @if (gateWaiting(item)) {
+                    <span class="rounded-full bg-gate-tint px-1.5 text-gate">★ gate waiting</span>
+                  }
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    @if (artifact(); as a) {
+      <sai-viewer [artifact]="a" [overlay]="true" (close)="close()" (discuss)="discuss($event)" />
+    }
+  </section>
+</div>

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -13,14 +13,34 @@ import type { Notification } from './core/domain/notification';
 import { AgoPipe } from './shared/ui';
 import { SaiStore } from './state/sai-store';
 
+interface MenuEntry {
+  readonly key: string;
+  readonly path: string;
+  readonly label: string;
+  readonly icon: string;
+  readonly children?: readonly { readonly path: string; readonly label: string }[];
+}
+
 const SECTION_LABELS: Record<string, string> = {
   workspace: 'Workspace',
+  conversation: 'Conversation',
+  supervision: 'Supervision',
+};
+const SUB_LABELS: Record<string, string> = {
+  explorer: 'Explorer',
+  board: 'Board',
+  gates: 'Gates',
+  runs: 'Runs',
   organization: 'Organization',
-  conversations: 'Conversations',
-  supervisor: 'Supervisor',
+  new: 'New',
 };
 
-/** Application shell: sidebar with the four surfaces, header with notifications, mock controls. */
+/**
+ * Application frame (Clément, 2026-11-08/09: a real desktop-like application, not pages):
+ * side menu with collapsible groups, a thin title bar with breadcrumbs and notifications,
+ * the feature panes filling the rest. The acting-as switch and the run scheduler controls
+ * live in the user menu; the demo nature of the backends is a discreet chip.
+ */
 @Component({
   selector: 'sai-root',
   standalone: true,
@@ -33,12 +53,32 @@ export class App {
   readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
-  readonly menu = [
-    { path: '/workspace', label: 'Workspace', icon: 'pi pi-folder-open', hint: 'Artifacts and board' },
-    { path: '/organization', label: 'Organization', icon: 'pi pi-sitemap', hint: 'Agents, workflows, rules' },
-    { path: '/conversations', label: 'Conversations', icon: 'pi pi-comments', hint: 'Humans and agents' },
-    { path: '/supervisor', label: 'Supervisor', icon: 'pi pi-chart-bar', hint: 'Gates, runs, costs' },
-  ] as const;
+  readonly menu: readonly MenuEntry[] = [
+    {
+      key: 'workspace',
+      path: '/workspace/explorer',
+      label: 'Workspace',
+      icon: 'pi pi-folder',
+      children: [
+        { path: '/workspace/explorer', label: 'Explorer' },
+        { path: '/workspace/board', label: 'Board' },
+      ],
+    },
+    { key: 'conversation', path: '/conversation', label: 'Conversation', icon: 'pi pi-comments' },
+    {
+      key: 'supervision',
+      path: '/supervision/gates',
+      label: 'Supervision',
+      icon: 'pi pi-shield',
+      children: [
+        { path: '/supervision/gates', label: 'Gates' },
+        { path: '/supervision/runs', label: 'Runs' },
+        { path: '/supervision/organization', label: 'Organization' },
+      ],
+    },
+  ];
+  /** Groups the user folded or unfolded by hand; the active group is always open. */
+  readonly toggled = signal<Record<string, boolean>>({});
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -48,32 +88,43 @@ export class App {
     ),
     { initialValue: this.router.url },
   );
-  readonly section = computed(() => {
-    const first = this.currentUrl().split('?')[0].split('/').filter(Boolean)[0] ?? 'supervisor';
-    return SECTION_LABELS[first] ?? first;
-  });
-  /** PrimeNG Select wants mutable arrays. */
+  readonly segments = computed(() => this.currentUrl().split('?')[0].split('/').filter(Boolean));
+  readonly section = computed(() => SECTION_LABELS[this.segments()[0] ?? ''] ?? 'Supervision');
+  readonly subsection = computed(() => SUB_LABELS[this.segments()[1] ?? ''] ?? '');
+  readonly sectionPath = computed(() => this.menu.find((m) => m.key === this.segments()[0])?.path ?? '/supervision/gates');
   readonly workspaceOptions = computed(() => [...this.store.workspaces()]);
   readonly memberOptions = computed(() => [...this.store.tenant().members]);
   readonly unread = computed(() => this.store.notifications().filter((n) => n.readAt === null));
   readonly recent = computed(() => this.store.notifications().slice(0, 12));
-  readonly initials = computed(() => {
-    const name = this.store.me()?.displayName ?? '?';
-    return name
-      .split(' ')
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
+  readonly initials = computed(() => initialsOf(this.store.me()?.displayName ?? '?'));
+  readonly roleLine = computed(() => {
+    const me = this.store.me();
+    if (!me) return '';
+    return me.roles.length ? me.roles.map((r) => r.replace(/-/g, ' ')).join(', ') : me.permission;
   });
+
+  isOpen(entry: MenuEntry): boolean {
+    const forced = this.toggled()[entry.key];
+    if (forced !== undefined) return forced;
+    return this.segments()[0] === entry.key;
+  }
+  toggle(entry: MenuEntry, event: Event): void {
+    event.preventDefault();
+    const open = this.isOpen(entry);
+    this.toggled.update((t) => ({ ...t, [entry.key]: !open }));
+    if (!open && this.segments()[0] !== entry.key) void this.router.navigateByUrl(entry.path);
+  }
+  isActiveGroup(entry: MenuEntry): boolean {
+    return this.segments()[0] === entry.key;
+  }
 
   open(notification: Notification, popover: Popover): void {
     if (notification.readAt === null) this.store.markNotificationRead(notification.id);
     popover.hide();
     const refs = notification.refs;
-    if (refs.conversationId) void this.router.navigate(['/conversations', refs.conversationId]);
-    else if (refs.runId) void this.router.navigate(['/supervisor', 'runs', refs.runId]);
-    else if (refs.artifactPath) void this.router.navigate(['/workspace'], { queryParams: { path: refs.artifactPath } });
+    if (refs.conversationId) void this.router.navigate(['/conversation', refs.conversationId]);
+    else if (refs.runId) void this.router.navigate(['/supervision', 'runs', refs.runId]);
+    else if (refs.artifactPath) void this.router.navigate(['/workspace', 'explorer'], { queryParams: { file: refs.artifactPath } });
   }
 
   icon(kind: Notification['kind']): string {
@@ -94,4 +145,13 @@ export class App {
         return 'pi pi-user-plus text-primary';
     }
   }
+}
+
+export function initialsOf(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }

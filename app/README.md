@@ -1,6 +1,6 @@
 # OAP web application (`app/`)
 
-Angular 21 + PrimeNG 21 + Tailwind 4 application of the **Organization Agentic Platform** (same stack as `oip-web-frontend`), standing for the **Specialized configuration serving the SAFe Agentic Organization**. Four surfaces: **Workspace**, **Organization**, **Conversations**, **Supervisor**. The five backends are **mocked in the browser**, one port each: workspace manager, conversation manager, agent runtime (SAF harness lifecycle replayed with scripted agents, no model called), PIS IAM (Keycloak), model gateway (Azure AI Foundry, fictitious price list).
+Angular 21 + PrimeNG 21 + Tailwind 4 application of the **Organization Agentic Platform** (same stack as `oip-web-frontend`), standing for the **Specialized configuration serving the SAFe Agentic Organization**. One menu: **Workspace** (Explorer, Board), **Conversation**, **Supervision** (Gates, Runs, Organization); a generic read-only viewer over any workspace object (versions with diff, raw, discuss). The five backends are **mocked in the browser**, one port each: workspace manager, conversation manager, agent runtime (SAF harness lifecycle replayed with scripted agents, no model called), PIS IAM (Keycloak), model gateway (Azure AI Foundry, fictitious price list).
 
 ## Run it
 
@@ -11,7 +11,7 @@ npm ci
 npm start            # http://127.0.0.1:4400
 ```
 
-Walk the scenario: Workspace › Explorer (read the Feature, the manifests) → Conversations → "Use the scenario" → Start → acknowledge the AI notice → Confirm and launch → the run reaches the ★ Architecture Gate: the gate conversation opens and the bell notifies you → decide there (Supervisor only leads to it) → read the accepted ADR in the explorer, with its history → Supervisor › Runs (AI cost, duration, waiting for humans) and › Analysis (the Feature end to end) → Organization (agents, workflows, the 176 SAF files, history).
+Walk the scenario: Workspace › Explorer (browse to the Feature, open it in the viewer, versions, raw) → Conversation › New → "Use the scenario" → Start → acknowledge the AI notice → Confirm and launch → the run reaches the ★ Architecture Gate: its conversation opens and the bell notifies you → Open the artifact → Decide → Supervision › Gates leads to the second gate → approve → Supervision › Runs (cost, time, statistics) → a run → a session → its log → Board → Supervision › Organization.
 
 Hosting: the build works at a domain root or under a sub-path (`npx ng build --base-href /oap-web-frontend/`); `public/staticwebapp.config.json` configures Azure Static Web Apps; see `../def/deployment.md`.
 
@@ -46,9 +46,8 @@ src/app/core/application       use cases, addressee rule, board derivation, work
                                organization view (folder, categories, history, gap), analysis (euros, durations, subjects)
 src/app/infrastructure         mock-world.ts (composition root) + one folder per mocked backend
 src/app/state                  signal store (SaiStore)
-src/app/features               pages: workspace (explorer, board), organization (overview, agents, workflows, browse, history),
-                               conversations, supervisor (gates, runs, analysis + run detail)
-src/app/shared                 artifact viewer, data tree, Markdown view, gate card, badges
+src/app/features               workspace (explorer like GitHub, board), conversation (layout, list, chat, new), supervision (gates, runs, run, organization)
+src/app/shared                 viewer (versions with diff, raw, discuss), gate flow (four steps), diff view, file icons, data tree, Markdown view, badges
 src/sai-tokens.css             design tokens (OIP names, indigo primary, ★ gate and AI accents)
 src/assets/saf-package         fixtures generated from the SAF repositories
 src/fonts                      self-hosted fonts (bundled by the builder, so any base href works)

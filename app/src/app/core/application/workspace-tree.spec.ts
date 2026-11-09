@@ -93,8 +93,8 @@ describe('workspace tree from the organization structure map (F5-R7, F5-R8)', ()
     const artManifest = find(tree, 'art/platform/art-manifest.yaml');
     expect(artManifest && artManifest.kind === 'file' ? artManifest.expected : null).toBe(true);
     expect(find(tree, 'art/platform/program-backlog/subscriptions/notes.txt')?.kind).toBe('file');
-    const unmapped = tree.find((e) => e.name === 'Unmapped');
-    expect(unmapped?.kind).toBe('folder');
+    const runs = tree.find((e) => e.name === 'runs');
+    expect(runs?.kind).toBe('folder');
     expect(find(tree, 'runs/run-0001.run.json')).toBeDefined();
     expect(countFiles(tree)).toEqual({ present: 4, expected: 2 });
   });

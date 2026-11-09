@@ -1,0 +1,153 @@
+@if (run(); as run) {
+  <div class="panes">
+    <aside class="pane is-list" aria-label="Sessions">
+      <div class="pane-bar">
+        <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/supervision/runs" ariaLabel="Back to runs" pTooltip="Runs" tooltipPosition="bottom" />
+        <span class="pane-title min-w-0 truncate">{{ run.workflowSlug | title }}</span>
+        <span class="pane-spacer"></span>
+        <sai-status [status]="run.status" />
+      </div>
+      <div class="pane-body">
+        <button type="button" class="sai-item" [class.is-on]="selected() === null" (click)="select(null)">
+          <i class="pi pi-chart-bar w-5 text-center text-ink-light" aria-hidden="true"></i>
+          <span class="sai-item-main"><span class="sai-item-title">Overview</span><span class="sai-item-sub">{{ run.workflowInstanceId }}</span></span>
+        </button>
+        @for (s of sessions(); track s.key) {
+          <button type="button" class="sai-item" [class.is-on]="selected() === s.key" (click)="select(s.key)">
+            @if (s.step?.status === 'running') {
+              <i class="pi pi-spin pi-spinner w-5 text-center text-primary" aria-hidden="true"></i>
+            } @else if (s.step?.status === 'delivered') {
+              <i class="pi pi-check w-5 text-center text-ok" aria-hidden="true"></i>
+            } @else if (s.step?.status === 'reverted' || s.step?.status === 'failed' || s.step?.status === 'cancelled') {
+              <i class="pi pi-times w-5 text-center text-fail" aria-hidden="true"></i>
+            } @else if (s.kind === 'orchestrator') {
+              <i class="pi pi-sitemap w-5 text-center" [class.text-primary]="active()" [class.sai-pulse]="active()" [class.text-ink-light]="!active()" aria-hidden="true"></i>
+            } @else {
+              <i class="pi pi-circle w-5 text-center text-ink-light" aria-hidden="true"></i>
+            }
+            <span class="sai-item-main">
+              <span class="sai-item-title">{{ s.label }}</span>
+              <span class="sai-item-sub">&#64;{{ s.actor }}@if (s.step?.model) {, {{ s.step?.model?.profile }}}</span>
+            </span>
+            @if (s.metrics && s.step?.status !== 'pending') {
+              <span class="sai-item-meta">{{ euros(s.metrics.cost) }}</span>
+            }
+          </button>
+        }
+      </div>
+    </aside>
+
+    <section class="pane is-content is-canvas" aria-label="Run detail">
+      <div class="pane-bar bg-surface">
+        <span class="pane-title">{{ current() ? current()!.label : 'Overview' }}</span>
+        @if (current(); as s) {
+          <span class="font-mono text-xs text-ink-light">{{ s.sessionId }}</span>
+        }
+        <span class="pane-spacer"></span>
+        @if (current(); as s) {
+          @if (s.kind === 'orchestrator' && conversationId()) {
+            <p-button label="Join the conversation" icon="pi pi-comments" size="small" [routerLink]="['/conversation', conversationId()]" />
+          }
+          @if (s.step?.artifactPath; as path) {
+            <p-button icon="pi pi-file" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Open the artifact" pTooltip="Open the artifact" tooltipPosition="bottom" (onClick)="viewing.set(path)" />
+          }
+          <p-button icon="pi pi-list" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Session log" pTooltip="Session log" tooltipPosition="bottom" [class.is-on]="showLog()" (onClick)="showLog.set(!showLog())" />
+        } @else if (active()) {
+          <p-button label="Cancel run" icon="pi pi-stop" size="small" severity="danger" [outlined]="true" (onClick)="store.cancelRun(run.id)" />
+        }
+      </div>
+
+      <div class="pane-body p-4">
+        @if (current(); as s) {
+          <div class="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="sai-kpi"><span class="sai-kpi-label">Agent</span><span class="sai-kpi-value text-base"><sai-actor [actor]="agent(s.actor)" /></span><span class="sai-kpi-hint">{{ s.kind === 'orchestrator' ? 'orchestrates the workflow' : 'worker session of this step' }}</span></div>
+            <div class="sai-kpi"><span class="sai-kpi-label">Model</span><span class="sai-kpi-value font-mono text-base">{{ s.step?.model?.profile ?? '—' }}</span><span class="sai-kpi-hint">{{ s.step?.model ? 'resolved by the harness, score ' + s.step?.model?.score : 'no model call in this session' }}</span></div>
+            <div class="sai-kpi"><span class="sai-kpi-label">Tokens and cost</span><span class="sai-kpi-value">{{ s.metrics ? euros(s.metrics.cost) : '—' }}</span><span class="sai-kpi-hint">{{ s.step ? (s.step.tokens.input + s.step.tokens.output | tokens) + ' tokens' : '' }}</span></div>
+            <div class="sai-kpi"><span class="sai-kpi-label">Time</span><span class="sai-kpi-value">{{ s.metrics ? duration(s.metrics.durationMs) : '—' }}</span><span class="sai-kpi-hint">{{ s.step?.startedAt ? (s.step?.startedAt | clock) + (s.step?.endedAt ? ' to ' + (s.step?.endedAt | clock) : ', running') : 'not started' }}</span></div>
+          </div>
+          @if (s.step; as step) {
+            <section class="sai-card mb-4 p-4">
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <sai-status [status]="step.status" />
+                @if (step.attempt > 1) {
+                  <span class="rounded bg-surface-sunken px-1.5 text-xs">attempt {{ step.attempt }}</span>
+                }
+                @if (step.artifactPath) {
+                  <span class="text-ink-muted">produces</span>
+                  <button type="button" class="text-primary" (click)="viewing.set(step.artifactPath)">{{ fileName(step.artifactPath) }}</button>
+                  @if (step.commitSha) {
+                    <span class="font-mono text-[11px] text-ink-light">{{ step.commitSha.slice(0, 7) }}</span>
+                  }
+                }
+              </div>
+              @if (step.verdicts.length) {
+                <ul class="m-0 mt-2 flex list-none flex-col gap-1 p-0 text-sm">
+                  @for (v of step.verdicts; track $index) {
+                    <li class="flex flex-wrap items-center gap-2"><span class="font-mono text-xs">{{ v.fn }}</span><sai-status [status]="v.status" />@if (v.detail) {<span class="text-ink-muted">{{ v.detail }}</span>}<span class="text-[11px] text-ink-light">{{ v.at | clock }}</span></li>
+                  }
+                </ul>
+              }
+              @if (step.model) {
+                <p class="m-0 mt-2 text-xs text-ink-light">{{ step.model.reason }}</p>
+              }
+            </section>
+          } @else {
+            <section class="sai-card mb-4 p-4 text-sm">
+              <p class="m-0 text-ink-muted">The orchestrator session sequences the steps on the SAF harness lifecycle and talks in the launching conversation. Each step runs in its own worker session.</p>
+            </section>
+          }
+          @if (showLog()) {
+            <section class="sai-card overflow-x-auto">
+              <table class="sai-table">
+                <thead><tr><th>Time</th><th>Function</th><th>Parent</th><th>Outcome</th></tr></thead>
+                <tbody>
+                  @for (e of log(); track $index) {
+                    <tr>
+                      <td class="whitespace-nowrap text-ink-muted">{{ e.timestamp | clock }}</td>
+                      <td class="font-mono text-xs">{{ e.report.context.function }}</td>
+                      <td class="font-mono text-[11px] text-ink-light">{{ e.report.context.parentSessionId ?? '' }}</td>
+                      <td><sai-status [status]="e.report.outcome.status" />@if (e.report.profile) {<span class="ml-1 font-mono text-[11px]">{{ e.report.profile.slug }}</span>}@if (e.report.artifactChecks?.length) {<span class="ml-1 text-ink-muted">{{ e.report.artifactChecks![0].failureMessage }}</span>}</td>
+                    </tr>
+                  }
+                  @if (log().length === 0) {
+                    <tr><td colspan="4" class="text-center text-ink-muted">No log entry for this session yet.</td></tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          }
+        } @else {
+          @if (metrics(); as m) {
+            <div class="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="sai-kpi"><span class="sai-kpi-label">AI cost</span><span class="sai-kpi-value">{{ euros(m.cost) }}</span><span class="sai-kpi-hint">{{ m.tokens | tokens }} tokens</span></div>
+              <div class="sai-kpi"><span class="sai-kpi-label">Duration</span><span class="sai-kpi-value">{{ duration(m.durationMs) }}</span><span class="sai-kpi-hint">{{ active() ? 'still running' : 'launch to end' }}</span></div>
+              <div class="sai-kpi"><span class="sai-kpi-label">Waiting for humans</span><span class="sai-kpi-value" [class.text-gate]="run.status === 'waiting-for-gate'">{{ duration(m.humanWaitMs) }}</span><span class="sai-kpi-hint">agents at work {{ duration(m.workingMs) }}</span></div>
+              <div class="sai-kpi"><span class="sai-kpi-label">Sessions</span><span class="sai-kpi-value">{{ sessions().length }}</span><span class="sai-kpi-hint">{{ m.acceptedArtifacts }} artifacts accepted, {{ m.rejectedGates }} gate rework</span></div>
+            </div>
+          }
+          @for (gate of run.gates; track gate.id) {
+            <div class="mb-3"><sai-gate-flow [run]="run" [gate]="gate" (review)="viewing.set($event)" /></div>
+          }
+          @if (run.failure) {
+            <div class="sai-card mb-3 border-l-4 border-l-fail p-4 text-sm"><strong>{{ run.failure.code }}</strong> {{ run.failure.message }}</div>
+          }
+          <section class="sai-card p-4 text-sm">
+            <div class="flex flex-wrap items-center gap-2 text-ink-muted">
+              <span>Launched by</span><sai-actor [actor]="run.launchedBy" [displayName]="label(run.launchedBy)" />
+              <span>on the organization at <span class="font-mono">{{ run.organizationCommit.slice(0, 7) }}</span></span>
+              @if (conversationId()) {
+                <a [routerLink]="['/conversation', conversationId()]">launching conversation</a>
+              }
+            </div>
+            <p class="m-0 mt-2 text-ink-muted">Pick a session on the left to see its model, tokens, cost, time, artifact and harness log.</p>
+          </section>
+        }
+      </div>
+      @if (viewed(); as a) {
+        <sai-viewer [artifact]="a" [overlay]="true" (close)="viewing.set(null)" (discuss)="discuss($event)" />
+      }
+    </section>
+  </div>
+} @else {
+  <div class="p-8 text-center text-sm text-ink-muted">This run is not accessible.</div>
+}

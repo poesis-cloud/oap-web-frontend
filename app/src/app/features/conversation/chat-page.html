@@ -1,0 +1,261 @@
+@if (conversation(); as c) {
+  <div class="pane-bar bg-surface">
+    <p-button icon="pi pi-arrow-left" [text]="true" [rounded]="true" severity="secondary" routerLink="/conversation" ariaLabel="Back to the list" styleClass="md:!hidden" />
+    @if (c.kind === 'validation') {
+      <span class="text-gate" aria-label="gate conversation">★</span>
+    }
+    @if (renaming()) {
+      <input pInputText size="small" class="max-w-xs" [ngModel]="draftTitle()" (ngModelChange)="draftTitle.set($event)" (keydown.enter)="rename(c)" (keydown.escape)="renaming.set(false)" aria-label="Conversation title" />
+      <p-button label="Save" size="small" [text]="true" (onClick)="rename(c)" />
+    } @else {
+      <button type="button" class="pane-title min-w-0 truncate border-0 bg-transparent p-0 text-left" (dblclick)="startRename(c)" title="Double-click to rename">{{ plainTitle(c) }}</button>
+    }
+    @if (c.status !== 'open') {
+      <sai-status [status]="c.status" />
+    }
+    <span class="pane-spacer"></span>
+    <div class="flex items-center -space-x-1.5" aria-label="Participants">
+      @for (p of joined(c); track key(p.actor)) {
+        <span class="grid h-7 w-7 place-items-center rounded-full border-2 border-surface text-[10px] font-bold" [class.bg-ai-tint]="p.actor.kind === 'agent'" [class.text-ai]="p.actor.kind === 'agent'" [class.bg-primary-tint]="p.actor.kind === 'human'" [class.text-primary-tint-text]="p.actor.kind === 'human'" [class.rounded-md]="p.actor.kind === 'agent'" [pTooltip]="label(p.actor) + (p.actor.kind === 'agent' ? ' (AI)' : '')" tooltipPosition="bottom">{{ initials(p.actor) }}</span>
+      }
+    </div>
+    @if (c.status === 'open') {
+      <p-button icon="pi pi-user-plus" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Invite" pTooltip="Invite" tooltipPosition="bottom" (onClick)="invitePop.toggle($event)" />
+    }
+    <p-button icon="pi pi-info-circle" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Details" pTooltip="Details" tooltipPosition="bottom" (onClick)="infoOpen.set(!infoOpen())" />
+    @if (c.status === 'open') {
+      <p-button icon="pi pi-inbox" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Archive" pTooltip="Archive" tooltipPosition="bottom" (onClick)="store.archiveConversation(c.id)" />
+    } @else if (c.status === 'archived') {
+      <p-button label="Restore" size="small" [text]="true" (onClick)="store.restoreConversation(c.id)" />
+    }
+  </div>
+
+  <div class="relative flex min-h-0 flex-1">
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div #log class="pane-body" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="mx-auto flex max-w-4xl flex-col gap-2 px-5 py-4 max-md:px-3">
+          @if (pinnedGate(); as g) {
+            <sai-gate-flow [run]="g.run" [gate]="g.gate" mode="decide" (review)="viewing.set($event)" />
+          }
+          @for (m of messagesOf(c, main(c).id); track m.id) {
+            <ng-container *ngTemplateOutlet="message; context: { $implicit: m, c: c, depth: 0 }" />
+          }
+          @if (c.messages.length === 0) {
+            <div class="p-6 text-center text-sm text-ink-muted">
+              @if (c.subject) {
+                Say what you need about <code>{{ fileName(c.subject) }}</code>. Copilot routes it.
+              } @else {
+                Say what you need. Copilot routes it.
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (c.status === 'open') {
+        <form class="sai-composer" (submit)="send(c, $event)">
+          <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div class="flex flex-wrap gap-1 max-md:hidden">
+              @for (a of quickAgents; track a) {
+                <button type="button" class="sai-chip" (click)="insert('@' + a + ' ')">&#64;{{ a }}</button>
+              }
+              @if (c.kind === 'work') {
+                <button type="button" class="sai-chip" (click)="insert('/architectural-runway-extension ')">/architectural-runway-extension</button>
+              }
+            </div>
+            <textarea pTextarea id="composer" rows="1" class="w-full" [ngModel]="draft()" (ngModelChange)="draft.set($event)" name="draft" [placeholder]="c.kind === 'validation' ? 'Discuss the artifact with the reviewers; @agent asks an agent of the run' : 'Write to the workspace; @agent addresses an agent, /workflow launches one'" (keydown.enter)="onEnter($event, c)" [disabled]="!store.aiNoticeAcknowledged()" aria-label="Message"></textarea>
+          </div>
+          <p-button icon="pi pi-send" type="submit" [rounded]="true" ariaLabel="Send" pTooltip="Send (Enter)" tooltipPosition="top" [disabled]="!draft().trim() || !store.aiNoticeAcknowledged()" />
+        </form>
+      } @else {
+        <div class="border-t border-line px-5 py-3 text-center text-sm text-ink-muted">
+          {{ c.status === 'closed' ? 'This gate is decided; the conversation is closed.' : 'This conversation is archived. Restore it to continue.' }}
+        </div>
+      }
+    </div>
+
+    @if (infoOpen()) {
+      <aside class="flex w-72 flex-none flex-col gap-3 overflow-auto border-l border-line bg-surface p-4 max-md:absolute max-md:inset-0 max-md:w-auto" aria-label="Details">
+        <div class="flex items-center justify-between">
+          <strong class="text-sm">Details</strong>
+          <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="secondary" ariaLabel="Close details" (onClick)="infoOpen.set(false)" />
+        </div>
+        <div class="text-sm">
+          <div class="text-xs text-ink-light">Workspace</div>
+          <div>{{ store.workspace().name }}</div>
+        </div>
+        @if (c.subject) {
+          <div class="text-sm">
+            <div class="text-xs text-ink-light">About</div>
+            <button type="button" class="text-primary" (click)="viewing.set(c.subject)">{{ fileName(c.subject) }}</button>
+          </div>
+        }
+        <div class="text-sm">
+          <div class="mb-1 text-xs text-ink-light">Participants</div>
+          <div class="flex flex-col gap-1">
+            @for (p of joined(c); track key(p.actor)) {
+              <sai-actor [actor]="p.actor" [displayName]="label(p.actor)" />
+            }
+          </div>
+        </div>
+        @for (run of runsOf(c); track run.id) {
+          <div class="sai-card flex flex-col gap-1.5 p-3 text-sm">
+            <div class="flex items-center justify-between gap-2"><strong>{{ run.workflowSlug | title }}</strong><sai-status [status]="run.status" /></div>
+            <div class="sai-progress" [class.is-gate]="run.status === 'waiting-for-gate'" [class.is-ok]="run.status === 'succeeded'"><span [style.width.%]="progress(run)"></span></div>
+            <a [routerLink]="['/supervision', 'runs', run.id]">Open the run</a>
+          </div>
+        }
+      </aside>
+    }
+
+    @if (viewed(); as a) {
+      <sai-viewer [artifact]="a" [overlay]="true" (close)="viewing.set(null)" (discuss)="discuss($event)" />
+    }
+  </div>
+
+  <p-popover #invitePop styleClass="w-[280px]">
+    <div class="flex flex-col gap-2">
+      <p-select [options]="invitableAgents(c)" optionLabel="name" optionValue="slug" placeholder="Invite an agent" size="small" [ngModel]="null" (onChange)="inviteAgent(c, $event.value); invitePop.hide()" ariaLabel="Invite an agent" styleClass="w-full" />
+      <p-select [options]="invitableMembers(c)" optionLabel="displayName" optionValue="userId" placeholder="Invite a colleague" size="small" [ngModel]="null" (onChange)="inviteHuman(c, $event.value); invitePop.hide()" ariaLabel="Invite a colleague" styleClass="w-full" />
+    </div>
+  </p-popover>
+
+  <p-dialog [visible]="!store.aiNoticeAcknowledged()" [modal]="true" [closable]="false" [draggable]="false" header="You will work with AI agents" [style]="{ width: 'min(560px, 94vw)' }">
+    <p class="mt-0">In this workspace, participants marked <span class="rounded-full bg-ai-tint px-1.5 text-[0.7rem] font-bold text-ai">AI</span> are software agents of the organization loaded in the workspace, not people. Every agent message shows the agent, the model that answered, its provider and processing region.</p>
+    <p>Agents can be wrong. Nothing they produce becomes workspace state without passing the harness checks, and nothing is accepted without a human decision at a ★ gate.</p>
+    <p class="text-sm text-ink-muted">In this demonstration no model is called: answers are scripted by the simulated agent runtime and labelled as such.</p>
+    <div class="flex justify-end"><p-button label="I understand" (onClick)="store.acknowledgeAiNotice()" /></div>
+  </p-dialog>
+
+  <ng-template #message let-m let-c="c" let-depth="depth">
+    @if (m.kind === 'system') {
+      <div class="py-1 text-center text-xs text-ink-muted">
+        {{ m.content }}
+        @if (m.refs.validationConversationId) {
+          <a [routerLink]="['/conversation', m.refs.validationConversationId]">Open the gate conversation</a>
+        }
+      </div>
+    } @else {
+      <article class="sai-msg" [class.is-mine]="isMine(m.author)" [class.is-agent]="m.author.kind === 'agent'" [attr.data-kind]="m.kind">
+        <span class="mt-4 grid h-8 w-8 flex-none place-items-center text-[11px] font-bold" [class.rounded-full]="m.author.kind === 'human'" [class.rounded-md]="m.author.kind === 'agent'" [class.bg-primary-tint]="m.author.kind === 'human'" [class.text-primary-tint-text]="m.author.kind === 'human'" [class.bg-ai-tint]="m.author.kind === 'agent'" [class.text-ai]="m.author.kind === 'agent'">{{ initials(m.author) }}</span>
+        <div class="sai-msg-body">
+          <div class="sai-msg-head">
+            <span class="font-semibold text-ink">{{ label(m.author) }}</span>
+            @if (m.author.kind === 'agent') {
+              <span class="rounded-full bg-ai-tint px-1.5 text-[0.62rem] font-bold tracking-wide text-ai" title="This participant is an AI agent">AI</span>
+            }
+            <span>{{ m.createdAt | clock }}</span>
+            @if (m.streaming === 'streaming') {
+              <button type="button" class="sai-chip" (click)="store.stopGeneration(c.id, m.id)">Stop</button>
+            }
+            @if (m.streaming === 'stopped') {
+              <span class="text-ink-light">stopped</span>
+            }
+          </div>
+          @if (m.kind === 'launch-proposal') {
+            <ng-container *ngTemplateOutlet="proposalCard; context: { $implicit: proposalOf(c, m), c: c, m: m }" />
+          } @else if (m.kind === 'run-link') {
+            <ng-container *ngTemplateOutlet="runCard; context: { $implicit: runOf(m), m: m }" />
+          } @else if (m.kind === 'gate') {
+            @if (gateOf(m); as g) {
+              @if (c.kind === 'validation') {
+                <div class="sai-bubble">{{ m.content }}</div>
+              } @else {
+                <sai-gate-flow [run]="g.run" [gate]="g.gate" (review)="viewing.set($event)" />
+              }
+            } @else {
+              <div class="sai-bubble">{{ m.content }}</div>
+            }
+          } @else {
+            <div class="sai-bubble">{{ visible(m) }}@if (m.streaming === 'streaming') {<span class="animate-pulse text-ai" aria-hidden="true">▍</span>}</div>
+          }
+          @if (m.provenance && m.streaming !== 'streaming') {
+            <sai-provenance [provenance]="m.provenance" />
+          }
+          @if (m.author.kind === 'human' && depth < 2 && c.status === 'open') {
+            <button type="button" class="sai-chip sai-aside mt-1" (click)="openAside(c, m)">Discuss aside</button>
+          }
+          @for (t of childThreadsOf(c, m.id); track t.id) {
+            <details class="sai-fold mt-2 rounded-lg border border-line bg-surface-sunken px-3 py-2" [open]="t.openedBy?.kind === 'human' || t.status === 'open'">
+              <summary class="flex flex-wrap items-center gap-2">
+                <span>{{ t.openedBy?.kind === 'agent' ? 'Agent thread' : 'Side thread' }}: {{ t.purpose }}</span>
+                <sai-status [status]="t.status" />
+                <span class="text-[11px] text-ink-light">{{ participantsLabel(t) }}</span>
+              </summary>
+              <div class="mt-2 flex flex-col gap-2">
+                @for (cm of messagesOf(c, t.id); track cm.id) {
+                  <ng-container *ngTemplateOutlet="message; context: { $implicit: cm, c: c, depth: depth + 1 }" />
+                }
+                @if (t.status === 'open' || t.status === 'waiting') {
+                  <form class="flex flex-wrap items-center gap-2" (submit)="sendIn(c, t, $event)">
+                    <input pInputText size="small" class="min-w-0 flex-1" [(ngModel)]="asideDrafts[t.id]" [name]="'aside-' + t.id" placeholder="Post in this thread" aria-label="Post in this thread" />
+                    <p-button icon="pi pi-send" size="small" [rounded]="true" type="submit" ariaLabel="Post" />
+                    <p-button label="Cancel thread" size="small" [text]="true" severity="secondary" (onClick)="store.cancelChildThread(c.id, t.id)" />
+                  </form>
+                }
+              </div>
+            </details>
+          }
+        </div>
+      </article>
+    }
+  </ng-template>
+
+  <ng-template #proposalCard let-p let-c="c" let-m="m">
+    <section class="sai-card flex flex-col gap-2 p-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <strong>Launch proposal: {{ p?.workflowSlug | title }}</strong>
+        @if (p) {
+          <sai-status [status]="p.status" />
+        }
+      </div>
+      <p class="m-0 text-sm">{{ m.content }}</p>
+      @if (p) {
+        <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 text-sm">
+          @for (entry of entries(p.inputs); track entry[0]) {
+            <dt class="text-ink-light">{{ entry[0] }}</dt>
+            <dd class="m-0">{{ entry[1] }}</dd>
+          }
+        </dl>
+        @if (p.status === 'proposed') {
+          @if (changing() === p.id) {
+            <textarea pTextarea rows="2" class="w-full" [ngModel]="changeDraft()" (ngModelChange)="changeDraft.set($event)" [name]="'chg-' + p.id" aria-label="New intent"></textarea>
+            <div class="sai-actions">
+              <p-button label="Propose again" size="small" (onClick)="applyChange(c, p)" />
+              <p-button label="Keep as is" size="small" [text]="true" severity="secondary" (onClick)="changing.set(null)" />
+            </div>
+          } @else {
+            <div class="sai-actions">
+              <p-button label="Confirm and launch" icon="pi pi-play" size="small" (onClick)="store.confirmProposal(c.id, p.id)" />
+              <p-button label="Change" size="small" [outlined]="true" severity="secondary" (onClick)="startChange(p)" />
+              <p-button label="Cancel" size="small" [text]="true" severity="secondary" (onClick)="store.cancelProposal(c.id, p.id)" />
+            </div>
+            <p class="m-0 text-[11px] text-ink-light">Only a human participant can confirm.</p>
+          }
+        } @else if (p.runId) {
+          <a class="text-sm" [routerLink]="['/supervision', 'runs', p.runId]">Open the run</a>
+        }
+      }
+    </section>
+  </ng-template>
+
+  <ng-template #runCard let-run let-m="m">
+    <section class="sai-card runcard flex flex-col gap-2 p-3">
+      @if (run) {
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <strong>{{ run.workflowSlug | title }} <span class="font-mono text-[11px] font-normal text-ink-light">{{ run.workflowInstanceId }}</span></strong>
+          <sai-status [status]="run.status" />
+        </div>
+        <div class="sai-progress" [class.sai-live]="run.status === 'running' || run.status === 'queued'" [class.is-gate]="run.status === 'waiting-for-gate'" [class.is-ok]="run.status === 'succeeded'" [class.is-fail]="run.status === 'failed'"><span [style.width.%]="progress(run)"></span></div>
+        <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-ink-muted">
+          <span>{{ delivered(run) }} of {{ run.steps.length }} steps delivered</span>
+          <a [routerLink]="['/supervision', 'runs', run.id]">Open the run</a>
+        </div>
+      } @else {
+        <p class="m-0 text-sm">{{ m.content }}</p>
+      }
+    </section>
+  </ng-template>
+} @else {
+  <div class="p-8 text-center text-sm text-ink-muted">This conversation is not accessible.</div>
+}
