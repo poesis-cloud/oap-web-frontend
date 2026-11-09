@@ -8,7 +8,7 @@
 | Explorer and diff | Vitest | directory listing like GitHub (folders first, expected slots last, breadcrumbs, file counts), line diff (additions, removals, folded context) | `core/application/explorer.spec.ts`, `core/application/diff.spec.ts` |
 | Analysis and organization view | Vitest | cost in euros from usage records and the gateway price list, durations and human wait, first-pass flag, subjects across workflows and runs, workflow summaries (cost per accepted artifact), formats; organization categories, folder tree order, history and gap to nominal | `core/application/analysis.spec.ts`, `core/application/organization-view.spec.ts` |
 | Domain | Vitest | lifecycles (allowed and refused transitions), addressee rule, workspace tree from the structure map | `core/domain/*.spec.ts`, `core/application/dispatch.spec.ts`, `core/application/workspace-tree.spec.ts` |
-| Application scenario | Vitest | the vertical slice end to end on the mocked backends: proposal, confirmation, run, commit-gate revert, journal validity, **gate → gate conversation → invitations and notifications → decision taken there closes it**, rejection and rework, acceptance, board statuses, cost per accepted artifact vs usage, history rebuild, cancellation, budget stop, tenant isolation, no free chat, consultations, archive | `infrastructure/mock-world.spec.ts` |
+| Application scenario | Vitest | the vertical slice end to end on the mocked backends: proposal, confirmation, run, commit-gate revert, journal validity, **the ★ gate as the orchestrator's message in the launching conversation, holders invited and notified there, decided there**, **one conversation per worker session** (opening, reverts, delivery, scoped answers), rejection and rework, acceptance, board statuses, cost per accepted artifact vs usage, history rebuild, cancellation, budget stop, tenant isolation, no free chat, consultations, archive | `infrastructure/mock-world.spec.ts` |
 | Type and template | `tsc --noEmit`, Angular strict templates | whole project | `npm run typecheck`, `ng build` |
 | Visual / journeys | `tools/smoke.mjs` (headless Chrome over `dist/`, no dependency; `--dist` and `--base` for a sub-path build) | explorer like GitHub (tree, directories, viewer over the listing, versions, raw, organization YAML), conversation as a chat (new, proposal, launch), the gate journey (raised, notified, artifact reviewed in the viewer, rejected in its conversation; Supervision › Gates → second gate → approved), runs (list, statistics, run, session, log), board and organization, consultation and out-of-scope, tablet and phone, light theme | `../../evidence/smoke/` (38 screenshots, `report.json`) |
 
@@ -27,6 +27,14 @@ npm run smoke       # needs Google Chrome and a built dist/
 ```
 
 Direct Vitest invocation, useful on a constrained machine: `./node_modules/.bin/vitest run --root . --dir src --environment node`.
+
+## Results on 2026-11-09 (evening: Poesis identity, sessions as conversations, seeded scenario)
+
+- `tsc` app and spec: PASS, 0 errors.
+- `ng test` (Vitest): 15 files, 64 tests, PASS (incl. the gate as the orchestrator's message in the launching conversation, and one conversation per worker session).
+- `ng build` (production): PASS; initial bundle 975 kB raw / 212 kB transferred (system fonts, no webfont).
+- `tools/smoke.mjs`: 9 steps PASS, 39 screenshots (desktop, tablet, phone, light theme), 0 console error; the walk starts on the seeded history (one run completed, one waiting at its gate).
+- Keyed preview bundle built from the same sources.
 
 ## Results on 2026-11-09 (redesign, workstation, Node 22.21.1, OIP stack)
 

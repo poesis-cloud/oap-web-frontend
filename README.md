@@ -11,9 +11,11 @@ workflows to deliver quality artifacts (affordance
 [`oap`](https://github.com/poesis-cloud/oap) solution. First target: the **Specialized
 configuration serving the SAFe Agentic Organization** of SAF. A desktop-like application with
 one menu: **Workspace** (Explorer like GitHub with a read-only viewer over any object, Board),
-**Conversation** (a chat of humans and agents; a ★ gate is a conversation where the decision is
-taken, through a visible four-step journey), **Supervision** (Gates by status and role, Runs with
-sessions, logs, cost, time and statistics, Organization with its proposals and indicators).
+**Conversation** (a chat of humans and agents; one session = one conversation: the launching
+conversation is the orchestrator's session, each worker step has its own; a ★ gate is the
+orchestrator's message awaiting a decision, through a visible four-step journey), **Supervision**
+(Gates by status and role, Runs with sessions, logs, cost, time and statistics, Organization with
+its proposals and indicators). Styled on the Poesis design system of poesis.cloud.
 
 ## Structure
 
