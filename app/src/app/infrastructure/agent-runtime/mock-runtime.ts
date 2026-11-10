@@ -85,7 +85,11 @@ export class MockAgentRuntime implements RuntimePort {
     const workflow = findWorkflow(command.organization, command.proposal.workflowSlug);
     if (!workflow)
       throw new DomainError('unknown-workflow', `Workflow ${command.proposal.workflowSlug} is not in the organization`);
-    if (!['architectural-runway-extension', 'improvement-backlog', 'organization-change'].includes(workflow.slug)) throw new DomainError('workflow-unavailable', 'This workflow is in the catalog but is not executable in the frontend simulation.');
+    if (!['architectural-runway-extension', 'improvement-backlog', 'organization-change'].includes(workflow.slug))
+      throw new DomainError(
+        'workflow-unavailable',
+        'This workflow is in the catalog but is not executable in the frontend simulation.',
+      );
     const organizationCommit = this.repository.head(command.workspace.id);
     if (!organizationCommit) throw new DomainError('workspace-empty', 'The workspace has no nominal import commit');
     const now = this.clock.now();
@@ -112,9 +116,14 @@ export class MockAgentRuntime implements RuntimePort {
       failure: null,
       partialArtifacts: [],
     };
-    const change = workflow.slug === 'organization-change' ? prepareChange(this.repository, command.workspace.id, runId, inputs) : null;
+    const change =
+      workflow.slug === 'organization-change'
+        ? prepareChange(this.repository, command.workspace.id, runId, inputs)
+        : null;
     this.cursors.set(runId, {
-      inputs, change, preflight: (this.repository.read(command.workspace.id, ADR_INSTRUCTION) ?? '').includes(PREFLIGHT_MARKER),
+      inputs,
+      change,
+      preflight: (this.repository.read(command.workspace.id, ADR_INSTRUCTION) ?? '').includes(PREFLIGHT_MARKER),
       organization: command.organization,
       workflow,
       context: {
@@ -276,7 +285,10 @@ export class MockAgentRuntime implements RuntimePort {
 
     // The write boundary: authorization, then the commit gate validates the staged bytes.
     const firstAdrAttempt =
-      step.slug === 'author-adr' && !cursor.preflight && cursor.context.revision === 1 && !cursor.revertedOnce.has(step.slug);
+      step.slug === 'author-adr' &&
+      !cursor.preflight &&
+      cursor.context.revision === 1 &&
+      !cursor.revertedOnce.has(step.slug);
     let artifact = cursor.change
       ? changeArtifact(step.artifact, cursor.change, cursor.context.gateComment)
       : cursor.workflow.slug === 'improvement-backlog'
@@ -286,7 +298,13 @@ export class MockAgentRuntime implements RuntimePort {
       const path = `portfolio/art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
       const content = this.repository.read(run.workspaceId, path);
       if (!content) throw new DomainError('subject-missing', 'The Feature selected for this run no longer exists.');
-      artifact = { path, content: setFrontmatter(content, { adrs: [ADR_ID], architectureInventory: scriptedArtifact('adr', cursor.context).path }) };
+      artifact = {
+        path,
+        content: setFrontmatter(content, {
+          adrs: [ADR_ID],
+          architectureInventory: scriptedArtifact('adr', cursor.context).path,
+        }),
+      };
     }
     const tokens = STEP_TOKENS[step.slug] ?? { input: 3000, output: 600 };
     this.journal(run, 'check-step-authorization', stepRun.sessionId, run.orchestratorSessionId, { status: 'allowed' });
@@ -386,7 +404,8 @@ export class MockAgentRuntime implements RuntimePort {
     const gate = run.gates.find((g) => g.id === command.gateId);
     if (!gate) throw new DomainError('gate-missing', 'Gate not found');
     // Validate before recording any decision, so a stale diff cannot partially commit.
-    const organizationChanges = cursor.change && command.decision !== 'rejected' ? applyChange(this.repository, run, cursor.change) : null;
+    const organizationChanges =
+      cursor.change && command.decision !== 'rejected' ? applyChange(this.repository, run, cursor.change) : null;
     const now = this.clock.now();
     const status = transition('gate', GATE_TRANSITIONS, gate.status, command.decision);
     const decided: Gate = {
@@ -435,28 +454,28 @@ export class MockAgentRuntime implements RuntimePort {
     // Acceptance is a validated write: the reviewed artifact and the item it serves change status.
     const changes: Record<string, string> = organizationChanges ?? {};
     if (!cursor.change) {
-    const adrPath = decided.artifactPath;
-    const adrContent = this.repository.read(run.workspaceId, adrPath);
-    if (adrContent) changes[adrPath] = setFrontmatter(adrContent, { status: 'accepted', decided: now.slice(0, 10) });
-    const featurePath = `portfolio/art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
-    const featureContent = this.repository.read(run.workspaceId, featurePath);
-    if (featureContent) {
-      const parsed = parseArtifact(featureContent);
-      const nextStatus =
-        parsed.frontmatter['status'] === 'arch-pending' ? 'ready' : (parsed.frontmatter['status'] as string);
-      changes[featurePath] = setFrontmatter(featureContent, {
-        status: nextStatus,
-        adrs: [ADR_ID],
-        architectureInventory: adrPath,
-      });
-    }
-    if (command.decision === 'approved-with-reservation' && command.comment) {
-      const pain = painPoint(cursor.context, command.comment, run.id, gate.label);
-      changes[pain.path] = pain.content;
-    }
+      const adrPath = decided.artifactPath;
+      const adrContent = this.repository.read(run.workspaceId, adrPath);
+      if (adrContent) changes[adrPath] = setFrontmatter(adrContent, { status: 'accepted', decided: now.slice(0, 10) });
+      const featurePath = `portfolio/art/${cursor.context.art}/program-backlog/${cursor.context.featureSlug}/${cursor.context.featureSlug}.feature.md`;
+      const featureContent = this.repository.read(run.workspaceId, featurePath);
+      if (featureContent) {
+        const parsed = parseArtifact(featureContent);
+        const nextStatus =
+          parsed.frontmatter['status'] === 'arch-pending' ? 'ready' : (parsed.frontmatter['status'] as string);
+        changes[featurePath] = setFrontmatter(featureContent, {
+          status: nextStatus,
+          adrs: [ADR_ID],
+          architectureInventory: adrPath,
+        });
+      }
+      if (command.decision === 'approved-with-reservation' && command.comment) {
+        const pain = painPoint(cursor.context, command.comment, run.id, gate.label, decided.artifactPath);
+        changes[pain.path] = pain.content;
+      }
     }
     if (cursor.change && command.decision === 'approved-with-reservation' && command.comment) {
-      const pain = painPoint(cursor.context, command.comment, run.id, gate.label);
+      const pain = painPoint(cursor.context, command.comment, run.id, gate.label, decided.artifactPath);
       changes[pain.path] = pain.content;
     }
     if (Object.keys(changes).length > 0) {

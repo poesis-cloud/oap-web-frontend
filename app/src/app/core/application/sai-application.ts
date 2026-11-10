@@ -48,6 +48,7 @@ import type {
   WorkspaceRepository,
   WorkspaceProvisioner,
 } from '../ports';
+import { parseArtifact } from '../saf/frontmatter';
 import { deriveWorkItems, listArtifacts } from './board';
 import { parseMessage } from './dispatch';
 
@@ -616,7 +617,12 @@ export class SaiApplication {
       (i) => i.type === 'pain-point' && ['open', 'triaged'].includes(i.status),
     );
     if (!pains.length) throw new DomainError('no-pain-points', 'Record a pain point before starting a retrospective.');
-    let conversation = this.startConversation(session, workspaceId, 'Retrospective · ADR preflight', null);
+    let conversation = this.startConversation(
+      session,
+      workspaceId,
+      `Retrospective · ${pains.length} pain point${pains.length > 1 ? 's' : ''} · ${this.deps.clock.now().slice(0, 10)}`,
+      null,
+    );
     const organization = this.organization(session, workspaceId);
     conversation = this.join(conversation, Actor.agent('release-train-engineer'));
     const intro = this.agentMessage(
@@ -655,7 +661,7 @@ export class SaiApplication {
           thread.id,
           'release-train-engineer',
           'text',
-          'The commit-gate verdict is our evidence. Is the missing status a repeatable instruction gap? Review the pain point, then record your conclusion; an accepted patch still needs observation before this pain point can be considered resolved.',
+          this.painPointBrief(workspaceId, pain.path),
           this.deps.responder.provenance('release-train-engineer', organization),
           { artifactPath: pain.path },
         ),
@@ -668,6 +674,26 @@ export class SaiApplication {
     };
     this.deps.conversations.save(conversation);
     return conversation;
+  }
+
+  /** What the RTE opens a retrospective thread with: the pain point's own evidence, never a fixed story. */
+  private painPointBrief(workspaceId: WorkspaceId, path: ArtifactPath): string {
+    const content = this.deps.workspaceRead.read(workspaceId, path);
+    const fm = content ? parseArtifact(content).frontmatter : {};
+    const text = (key: string) => (typeof fm[key] === 'string' ? (fm[key] as string) : null);
+    const symptom = text('symptom') ?? 'the friction recorded on this pain point';
+    const origin = text('origin');
+    const sourceRun = text('sourceRun');
+    const target = text('targetArtifact');
+    const where = sourceRun
+      ? ` (run ${sourceRun}${origin ? `, origin ${origin}` : ''})`
+      : origin
+        ? ` (origin ${origin})`
+        : '';
+    const next = target
+      ? `A candidate change targets ${artifactFileName(target)}; say whether it is the right fix.`
+      : 'No target artifact yet: say whether this is a workflow improvement, a product improvement, accepted as is, or a duplicate.';
+    return `Evidence: ${symptom}${where}. ${next} Review the pain point, then return your conclusion to the parent thread; an accepted change still needs observation before this pain point can be considered resolved.`;
   }
 
   cancelChildThread(session: Session, conversationId: ConversationId, threadId: ThreadId): Conversation {

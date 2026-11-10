@@ -79,11 +79,18 @@ export function scriptedArtifact(kind: string, ctx: ScriptContext, valid = true)
   }
 }
 
-export function painPoint(ctx: ScriptContext, comment: string, runId: string, gateLabel: string): ScriptedArtifact {
-  const slug = `${runId}-${ctx.featureSlug}-gate-reservation`;
+export function painPoint(
+  ctx: ScriptContext,
+  comment: string,
+  runId: string,
+  gateLabel: string,
+  reviewedPath: string,
+): ScriptedArtifact {
+  const reviewed = reviewedPath.slice(reviewedPath.lastIndexOf('/') + 1);
+  const slug = `${runId}-${gateLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-reservation`;
   const frontmatter = serializeFrontmatter({
     id: `PP-${slug}`,
-    title: `Reservation at the ${gateLabel}`,
+    title: `Reservation at the ${gateLabel} on ${reviewed}`,
     status: 'open',
     sourceRun: runId,
     origin: 'workflow',
@@ -91,15 +98,12 @@ export function painPoint(ctx: ScriptContext, comment: string, runId: string, ga
     symptom: comment,
     impact: 'Human reservation requires follow-up.',
     owner: 'release-train-engineer',
-    evidence: [
-      `runs/${runId}.run.json`,
-      `portfolio/art/${ctx.art}/program-backlog/${ctx.featureSlug}/${ADR_SLUG}.adr.md`,
-    ],
+    evidence: [`runs/${runId}.run.json`, reviewedPath],
     created: ctx.date,
   });
   return {
     path: `portfolio/art/${ctx.art}/improvement-backlog/${slug}/${slug}.pain-point.md`,
-    content: `${frontmatter}\n\n# Pain point — reservation at the ${gateLabel}\n\n## Report\n${comment}\n\n## Evidence\n- Run \`${runId}\`\n- Artifact under review: \`${ADR_ID}\`\n\n## Next\nTo be triaged in the next retrospective (F16).\n`,
+    content: `${frontmatter}\n\n# Pain point — reservation at the ${gateLabel}\n\n## Report\n${comment}\n\n## Evidence\n- Run \`${runId}\`\n- Artifact under review: \`${reviewedPath}\`\n\n## Next\nTo be triaged in the next retrospective (F16).\n`,
   };
 }
 
