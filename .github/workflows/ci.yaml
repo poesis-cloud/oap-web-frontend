@@ -1,4 +1,4 @@
-name: sai-web-frontend-ci
+name: oap-web-frontend-ci
 
 on:
   push:
