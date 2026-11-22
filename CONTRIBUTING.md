@@ -1,4 +1,4 @@
-# Contributing to the SAI Web Frontend
+# Contributing to the OAP Web Frontend
 
 This repository is published under the Apache License, Version 2.0 (Apache-2.0) (see `LICENSE`). It can be distributed and published independently of the Poesis workspace, so its contribution terms are **self-contained here** and travel with the repository.
 
